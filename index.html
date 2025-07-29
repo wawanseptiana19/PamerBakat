@@ -474,7 +474,7 @@
         .btn-download,
         .btn-delete,
         .btn-edit,
-        .btn-hide-image {
+        .btn-hide-content { /* Changed from btn-hide-image to btn-hide-content */
             padding: 0.5rem 1rem;
             margin: 0.3rem;
             background-color: #DDD;
@@ -491,7 +491,7 @@
         .btn-download:hover,
         .btn-delete:hover,
         .btn-edit:hover,
-        .btn-hide-image:hover {
+        .btn-hide-content:hover { /* Changed from btn-hide-image to btn-hide-content */
             background-color: #CCC;
             transform: scale(1.05);
         }
@@ -518,8 +518,8 @@
             accent-color: #333; /* Warna checkbox */
         }
 
-        /* Full-screen image modal */
-        #fullScreenImageModal {
+        /* Full-screen image/video modal */
+        #fullScreenMediaModal { /* Changed ID from fullScreenImageModal */
             display: none; /* Hidden by default */
             position: fixed;
             z-index: 3000; /* Higher than other modals */
@@ -533,15 +533,16 @@
             flex-direction: column;
         }
 
-        #fullScreenImageModal img {
+        #fullScreenMediaModal img,
+        #fullScreenMediaModal video { /* Added video to selector */
             max-width: 90%;
             max-height: 90%;
-            object-fit: contain; /* Ensure image fits without cropping */
+            object-fit: contain; /* Ensure media fits without cropping */
             border: 3px solid #FFF;
             border-radius: 0.5rem;
         }
 
-        #fullScreenImageModal .close {
+        #fullScreenMediaModal .close {
             position: absolute;
             top: 20px;
             right: 35px;
@@ -552,8 +553,8 @@
             cursor: pointer;
         }
 
-        #fullScreenImageModal .close:hover,
-        #fullScreenImageModal .close:focus {
+        #fullScreenMediaModal .close:hover,
+        #fullScreenMediaModal .close:focus {
             color: #bbb;
             text-decoration: none;
             cursor: pointer;
@@ -630,9 +631,13 @@
 
     <!-- Sidebar -->
     <div id="sidebar">
-        <button id="btnShowEncrypt">
-            <i class="fas fa-key"></i>
+        <button id="btnShowEncryptImage">
+            <i class="fas fa-image"></i>
             <span class="tooltip-text">Encrypt Image</span>
+        </button>
+        <button id="btnShowEncryptVideo">
+            <i class="fas fa-video"></i>
+            <span class="tooltip-text">Encrypt Video</span>
         </button>
         <button id="btnShowForm">
             <i class="fas fa-plus"></i>
@@ -681,33 +686,59 @@
             </div>
         </div>
 
-        <div id="modalEncrypt" class="modal">
+        <!-- Modal Enkripsi Gambar -->
+        <div id="modalEncryptImage" class="modal">
             <div class="modal-content">
-                <span class="close" id="closeEncryptModal">&times;</span>
+                <span class="close" id="closeEncryptImageModal">&times;</span>
                 <h1>Encrypt Image</h1>
-                <form id="encryptForm">
+                <form id="encryptImageForm">
                     <div class="form-group">
                         <label for="imageInput" class="form-label">Choose Image</label>
                         <input type="file" id="imageInput" class="form-input" accept="image/*" required>
                     </div>
                     <div class="form-group">
-                        <label for="encryptShift" class="form-label">Shift Code</label>
-                        <input type="number" id="encryptShift" class="form-input" placeholder="Enter shift code" required>
+                        <label for="encryptImageShift" class="form-label">Shift Code</label>
+                        <input type="number" id="encryptImageShift" class="form-input" placeholder="Enter shift code" required>
                     </div>
-                    <button type="submit" class="btn-action"><i class="fas fa-lock"></i> Encrypt</button>
+                    <button type="submit" class="btn-action"><i class="fas fa-lock"></i> Encrypt Image</button>
                 </form>
-                <div id="encryptResult" class="hidden">
-                    <label for="encryptedOutput" class="form-label">Encryption Result</label>
-                    <textarea id="encryptedOutput" class="form-input" rows="4" readonly></textarea>
-                    <button id="btnDownloadTxt" class="btn-action"><i class="fas fa-download"></i> Download TXT</button>
+                <div id="encryptImageResult" class="hidden">
+                    <label for="encryptedImageOutput" class="form-label">Encryption Result</label>
+                    <textarea id="encryptedImageOutput" class="form-input" rows="4" readonly></textarea>
+                    <button id="btnDownloadImageTxt" class="btn-action"><i class="fas fa-download"></i> Download TXT</button>
                 </div>
             </div>
         </div>
 
-        <!-- Full-screen image modal -->
-        <div id="fullScreenImageModal" class="modal">
-            <span class="close" id="closeFullScreenImageModal">&times;</span>
-            <img id="fullScreenImage" src="" alt="Full Screen Decrypted Image">
+        <!-- Modal Enkripsi Video (BARU) -->
+        <div id="modalEncryptVideo" class="modal">
+            <div class="modal-content">
+                <span class="close" id="closeEncryptVideoModal">&times;</span>
+                <h1>Encrypt Video</h1>
+                <form id="encryptVideoForm">
+                    <div class="form-group">
+                        <label for="videoInput" class="form-label">Choose Video</label>
+                        <input type="file" id="videoInput" class="form-input" accept="video/*" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="encryptVideoShift" class="form-label">Shift Code</label>
+                        <input type="number" id="encryptVideoShift" class="form-input" placeholder="Enter shift code" required>
+                    </div>
+                    <button type="submit" class="btn-action"><i class="fas fa-lock"></i> Encrypt Video</button>
+                </form>
+                <div id="encryptVideoResult" class="hidden">
+                    <label for="encryptedVideoOutput" class="form-label">Encryption Result</label>
+                    <textarea id="encryptedVideoOutput" class="form-input" rows="4" readonly></textarea>
+                    <button id="btnDownloadVideoTxt" class="btn-action"><i class="fas fa-download"></i> Download TXT</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full-screen media modal (untuk gambar dan video) -->
+        <div id="fullScreenMediaModal" class="modal">
+            <span class="close" id="closeFullScreenMediaModal">&times;</span>
+            <img id="fullScreenImage" src="" alt="Full Screen Decrypted Image" class="hidden">
+            <video id="fullScreenVideo" controls src="" class="hidden"></video>
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -727,9 +758,10 @@
             // Sidebar elements
             const sidebar = document.getElementById('sidebar');
             const sidebarToggle = document.getElementById('sidebar-toggle');
-            const btnShowEncrypt = document.getElementById('btnShowEncrypt'); // Moved to top
-            const btnShowForm = document.getElementById('btnShowForm'); // Moved to top
-            const btnClearSavedPassword = document.getElementById('btnClearSavedPassword'); // Moved to sidebar
+            const btnShowEncryptImage = document.getElementById('btnShowEncryptImage'); // Tombol enkripsi gambar
+            const btnShowEncryptVideo = document.getElementById('btnShowEncryptVideo'); // Tombol enkripsi video (BARU)
+            const btnShowForm = document.getElementById('btnShowForm');
+            const btnClearSavedPassword = document.getElementById('btnClearSavedPassword');
 
             // Elemen DOM untuk modal form (tambah/edit link)
             const modalForm = document.getElementById('modalForm');
@@ -749,17 +781,27 @@
             const searchInput = document.getElementById('searchInput');
 
             // Elemen untuk modal enkripsi gambar
-            const modalEncrypt = document.getElementById('modalEncrypt');
-            const closeEncryptModal = document.getElementById('closeEncryptModal');
-            const encryptForm = document.getElementById('encryptForm');
-            const encryptResult = document.getElementById('encryptResult');
-            const encryptedOutput = document.getElementById('encryptedOutput');
-            const btnDownloadTxt = document.getElementById('btnDownloadTxt');
+            const modalEncryptImage = document.getElementById('modalEncryptImage');
+            const closeEncryptImageModal = document.getElementById('closeEncryptImageModal');
+            const encryptImageForm = document.getElementById('encryptImageForm');
+            const encryptImageResult = document.getElementById('encryptImageResult');
+            const encryptedImageOutput = document.getElementById('encryptedImageOutput');
+            const btnDownloadImageTxt = document.getElementById('btnDownloadImageTxt');
 
-            // Elemen untuk full-screen image modal
-            const fullScreenImageModal = document.getElementById('fullScreenImageModal');
+            // Elemen untuk modal enkripsi video (BARU)
+            const modalEncryptVideo = document.getElementById('modalEncryptVideo');
+            const closeEncryptVideoModal = document.getElementById('closeEncryptVideoModal');
+            const encryptVideoForm = document.getElementById('encryptVideoForm');
+            const encryptVideoResult = document.getElementById('encryptVideoResult');
+            const encryptedVideoOutput = document.getElementById('encryptedVideoOutput');
+            const btnDownloadVideoTxt = document.getElementById('btnDownloadVideoTxt');
+
+
+            // Elemen untuk full-screen media modal (untuk gambar dan video)
+            const fullScreenMediaModal = document.getElementById('fullScreenMediaModal'); // Changed ID
             const fullScreenImage = document.getElementById('fullScreenImage');
-            const closeFullScreenImageModal = document.getElementById('closeFullScreenImageModal');
+            const fullScreenVideo = document.getElementById('fullScreenVideo'); // Added video element
+            const closeFullScreenMediaModal = document.getElementById('closeFullScreenMediaModal'); // Changed ID
 
 
             // Fungsi untuk menampilkan konten utama
@@ -1014,35 +1056,65 @@
                             if (shift !== 0) {
                                 textContent = caesarDecipher(textContent, shift);
                             }
-                            const img = document.createElement('img');
-                            img.src = textContent;
-                            img.alt = 'Decrypted Image';
-                            img.style.maxWidth = '100%';
-                            img.style.marginTop = '1rem';
-                            img.style.borderRadius = '4px';
-                            img.style.border = '1px solid #666';
 
-                            // Add click listener to the image for full-screen
-                            img.addEventListener('click', () => {
-                                fullScreenImage.src = img.src;
-                                fullScreenImageModal.style.display = 'flex';
+                            // Determine if it's an image or video based on data URL prefix
+                            const mediaType = textContent.startsWith('data:image/') ? 'image' : (textContent.startsWith('data:video/') ? 'video' : 'unknown');
+
+                            let mediaElement;
+                            let downloadFileName;
+                            if (mediaType === 'image') {
+                                mediaElement = document.createElement('img');
+                                mediaElement.src = textContent;
+                                mediaElement.alt = 'Decrypted Image';
+                                downloadFileName = 'decrypted_image.png';
+                            } else if (mediaType === 'video') {
+                                mediaElement = document.createElement('video');
+                                mediaElement.src = textContent;
+                                mediaElement.controls = true;
+                                mediaElement.alt = 'Decrypted Video';
+                                downloadFileName = 'decrypted_video.mp4'; // Default, can be refined
+                            } else {
+                                decryptedContainer.innerHTML = '<p style="color:#800000;">Unsupported content type.</p>';
+                                return;
+                            }
+
+                            mediaElement.style.maxWidth = '100%';
+                            mediaElement.style.marginTop = '1rem';
+                            mediaElement.style.borderRadius = '4px';
+                            mediaElement.style.border = '1px solid #666';
+
+                            // Add click listener to the media for full-screen
+                            mediaElement.addEventListener('click', () => {
+                                // Hide both and then show the relevant one
+                                fullScreenImage.classList.add('hidden');
+                                fullScreenVideo.classList.add('hidden');
+
+                                if (mediaType === 'image') {
+                                    fullScreenImage.src = mediaElement.src;
+                                    fullScreenImage.classList.remove('hidden');
+                                } else if (mediaType === 'video') {
+                                    fullScreenVideo.src = mediaElement.src;
+                                    fullScreenVideo.classList.remove('hidden');
+                                    fullScreenVideo.play(); // Auto-play video in full screen
+                                }
+                                fullScreenMediaModal.style.display = 'flex';
                             });
 
                             const downloadBtn = document.createElement('button');
                             downloadBtn.className = 'btn-download';
-                            downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download Image';
+                            downloadBtn.innerHTML = `<i class="fas fa-download"></i> Download ${mediaType === 'image' ? 'Image' : 'Video'}`;
                             downloadBtn.addEventListener('click', () => {
                                 const a = document.createElement('a');
                                 a.href = textContent;
-                                a.download = 'decrypted_image.png';
+                                a.download = downloadFileName;
                                 document.body.appendChild(a);
                                 a.click();
                                 document.body.removeChild(a);
                             });
 
                             const hideBtn = document.createElement('button');
-                            hideBtn.className = 'btn-hide-image';
-                            hideBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Image';
+                            hideBtn.className = 'btn-hide-content'; // Changed class name
+                            hideBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Content';
                             hideBtn.addEventListener('click', () => {
                                 decryptedContainer.classList.add('hidden');
                                 decryptedContainer.innerHTML = ''; // Kosongkan konten saat disembunyikan
@@ -1050,23 +1122,39 @@
 
 
                             decryptedContainer.innerHTML = ''; // Bersihkan "Decrypting..."
-                            decryptedContainer.appendChild(img);
+                            decryptedContainer.appendChild(mediaElement);
                             decryptedContainer.appendChild(downloadBtn);
                             decryptedContainer.appendChild(hideBtn); // Tambahkan tombol hide
 
-                            img.addEventListener('load', () => {
-                                const width = img.naturalWidth;
-                                const height = img.naturalHeight;
-                                const infoDiv = document.createElement('div');
-                                infoDiv.style.marginTop = '0.5rem';
-                                let sizeText = '-';
-                                if (contentLength) {
-                                    sizeText = `${(parseInt(contentLength) / 1024).toFixed(2)} KB`;
-                                }
-                                infoDiv.innerHTML =
-                                    `<p style="font-size: 0.7rem; color: #333;">File Size: ${sizeText} | Dimensions: ${width} x ${height}</p>`;
-                                decryptedContainer.appendChild(infoDiv);
-                            });
+                            if (mediaType === 'image') {
+                                mediaElement.addEventListener('load', () => {
+                                    const width = mediaElement.naturalWidth;
+                                    const height = mediaElement.naturalHeight;
+                                    const infoDiv = document.createElement('div');
+                                    infoDiv.style.marginTop = '0.5rem';
+                                    let sizeText = '-';
+                                    if (contentLength) {
+                                        sizeText = `${(parseInt(contentLength) / 1024).toFixed(2)} KB`;
+                                    }
+                                    infoDiv.innerHTML =
+                                        `<p style="font-size: 0.7rem; color: #333;">File Size: ${sizeText} | Dimensions: ${width} x ${height}</p>`;
+                                    decryptedContainer.appendChild(infoDiv);
+                                });
+                            } else if (mediaType === 'video') {
+                                mediaElement.addEventListener('loadedmetadata', () => {
+                                    const duration = mediaElement.duration;
+                                    const infoDiv = document.createElement('div');
+                                    infoDiv.style.marginTop = '0.5rem';
+                                    let sizeText = '-';
+                                    if (contentLength) {
+                                        sizeText = `${(parseInt(contentLength) / 1024 / 1024).toFixed(2)} MB`; // For video, show in MB
+                                    }
+                                    infoDiv.innerHTML =
+                                        `<p style="font-size: 0.7rem; color: #333;">File Size: ${sizeText} | Duration: ${duration.toFixed(2)} seconds</p>`;
+                                    decryptedContainer.appendChild(infoDiv);
+                                });
+                            }
+
                         } catch (error) {
                             decryptedContainer.innerHTML = '';
                             showNotification(error.message, true);
@@ -1226,29 +1314,29 @@
             // Modal Enkripsi Gambar
 
             // Tampilkan modal enkripsi gambar saat tombol ditekan
-            btnShowEncrypt.addEventListener('click', () => {
-                modalEncrypt.style.display = 'block';
+            btnShowEncryptImage.addEventListener('click', () => {
+                modalEncryptImage.style.display = 'block';
                 sidebar.classList.remove('open'); // Close sidebar when opening modal
                 document.body.classList.remove('sidebar-open'); // Remove body class
             });
 
             // Tutup modal enkripsi gambar ketika tombol close ditekan
-            closeEncryptModal.addEventListener('click', () => {
-                modalEncrypt.style.display = 'none';
+            closeEncryptImageModal.addEventListener('click', () => {
+                modalEncryptImage.style.display = 'none';
             });
 
             // Tutup modal jika klik di luar konten modal enkripsi
             window.addEventListener('click', (event) => {
-                if (event.target == modalEncrypt) {
-                    modalEncrypt.style.display = 'none';
+                if (event.target == modalEncryptImage) {
+                    modalEncryptImage.style.display = 'none';
                 }
             });
 
             // Proses enkripsi gambar
-            encryptForm.addEventListener('submit', (e) => {
+            encryptImageForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const fileInput = document.getElementById('imageInput');
-                const shiftValue = parseInt(document.getElementById('encryptShift').value) || 0;
+                const shiftValue = parseInt(document.getElementById('encryptImageShift').value) || 0;
                 if (fileInput.files.length === 0) {
                     showNotification('Please select an image to encrypt.', true);
                     return;
@@ -1259,8 +1347,8 @@
                     const dataUrl = event.target.result;
                     // Enkripsi data URL gambar menggunakan Caesar cipher
                     const encryptedData = caesarCipher(dataUrl, shiftValue);
-                    encryptedOutput.value = encryptedData;
-                    encryptResult.classList.remove('hidden');
+                    encryptedImageOutput.value = encryptedData;
+                    encryptImageResult.classList.remove('hidden');
                     showNotification('Image encrypted successfully.');
                 };
                 reader.onerror = function (err) {
@@ -1270,9 +1358,9 @@
                 reader.readAsDataURL(file);
             });
 
-            // Tombol download hasil enkripsi sebagai file .ais
-            btnDownloadTxt.addEventListener('click', () => {
-                const encryptedText = encryptedOutput.value;
+            // Tombol download hasil enkripsi gambar sebagai file .ais
+            btnDownloadImageTxt.addEventListener('click', () => {
+                const encryptedText = encryptedImageOutput.value;
                 if (!encryptedText) {
                     showNotification('No encryption result to download.', true);
                     return;
@@ -1281,27 +1369,103 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'encrypted.ais';
+                a.download = 'encrypted_image.ais';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             });
 
+            // Modal Enkripsi Video (BARU)
+
+            // Tampilkan modal enkripsi video saat tombol ditekan
+            btnShowEncryptVideo.addEventListener('click', () => {
+                modalEncryptVideo.style.display = 'block';
+                sidebar.classList.remove('open'); // Close sidebar when opening modal
+                document.body.classList.remove('sidebar-open'); // Remove body class
+            });
+
+            // Tutup modal enkripsi video ketika tombol close ditekan
+            closeEncryptVideoModal.addEventListener('click', () => {
+                modalEncryptVideo.style.display = 'none';
+            });
+
+            // Tutup modal jika klik di luar konten modal enkripsi video
+            window.addEventListener('click', (event) => {
+                if (event.target == modalEncryptVideo) {
+                    modalEncryptVideo.style.display = 'none';
+                }
+            });
+
+            // Proses enkripsi video (BARU)
+            encryptVideoForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const fileInput = document.getElementById('videoInput');
+                const shiftValue = parseInt(document.getElementById('encryptVideoShift').value) || 0;
+                if (fileInput.files.length === 0) {
+                    showNotification('Please select a video to encrypt.', true);
+                    return;
+                }
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const dataUrl = event.target.result;
+                    // Enkripsi data URL video menggunakan Caesar cipher
+                    const encryptedData = caesarCipher(dataUrl, shiftValue);
+                    encryptedVideoOutput.value = encryptedData;
+                    encryptVideoResult.classList.remove('hidden');
+                    showNotification('Video encrypted successfully.');
+                };
+                reader.onerror = function (err) {
+                    console.error(err);
+                    showNotification('Error reading video.', true);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // Tombol download hasil enkripsi video sebagai file .ais (BARU)
+            btnDownloadVideoTxt.addEventListener('click', () => {
+                const encryptedText = encryptedVideoOutput.value;
+                if (!encryptedText) {
+                    showNotification('No encryption result to download.', true);
+                    return;
+                }
+                const blob = new Blob([encryptedText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'encrypted_video.ais';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+
+
             // Fungsi Caesar cipher untuk enkripsi (shift ke depan)
             function caesarCipher(str, shift) {
-                return str.replace(/[a-zA-Z]/g, function (c) {
-                    const base = c <= 'Z' ? 65 : 97;
-                    return String.fromCharCode((c.charCodeAt(0) - base + shift) % 26 + base);
-                });
+                // Untuk Base64, kita tidak hanya mengenkripsi alfabet, tetapi semua karakter
+                // yang mungkin ada di Base64 (A-Z, a-z, 0-9, +, /, =)
+                // Ini adalah implementasi sederhana, untuk keamanan nyata butuh algoritma yang lebih kuat
+                return str.split('').map(char => {
+                    const charCode = char.charCodeAt(0);
+                    // Hanya geser karakter yang dapat dicetak
+                    if (charCode >= 32 && charCode <= 126) { // ASCII printable characters
+                        return String.fromCharCode(((charCode - 32 + shift) % 95) + 32);
+                    }
+                    return char;
+                }).join('');
             }
 
             // Fungsi Caesar decipher untuk dekripsi (shift ke belakang)
             function caesarDecipher(str, shift) {
-                return str.replace(/[a-zA-Z]/g, function (c) {
-                    const base = c <= 'Z' ? 65 : 97;
-                    return String.fromCharCode((c.charCodeAt(0) - base - shift + 26) % 26 + base);
-                });
+                return str.split('').map(char => {
+                    const charCode = char.charCodeAt(0);
+                    if (charCode >= 32 && charCode <= 126) { // ASCII printable characters
+                        return String.fromCharCode(((charCode - 32 - shift + 95) % 95) + 32);
+                    }
+                    return char;
+                }).join('');
             }
 
             // Sidebar toggle logic
@@ -1344,17 +1508,25 @@
                 });
             });
 
-            // Close full-screen image modal
-            closeFullScreenImageModal.addEventListener('click', () => {
-                fullScreenImageModal.style.display = 'none';
+            // Close full-screen media modal
+            closeFullScreenMediaModal.addEventListener('click', () => { // Changed ID
+                fullScreenMediaModal.style.display = 'none';
                 fullScreenImage.src = ''; // Clear image source
+                fullScreenImage.classList.add('hidden'); // Hide image element
+                fullScreenVideo.src = ''; // Clear video source
+                fullScreenVideo.classList.add('hidden'); // Hide video element
+                fullScreenVideo.pause(); // Pause video if playing
             });
 
-            // Close full-screen image modal when clicking outside the image
-            fullScreenImageModal.addEventListener('click', (event) => {
-                if (event.target === fullScreenImageModal) {
-                    fullScreenImageModal.style.display = 'none';
+            // Close full-screen media modal when clicking outside the media
+            fullScreenMediaModal.addEventListener('click', (event) => { // Changed ID
+                if (event.target === fullScreenMediaModal) {
+                    fullScreenMediaModal.style.display = 'none';
                     fullScreenImage.src = ''; // Clear image source
+                    fullScreenImage.classList.add('hidden'); // Hide image element
+                    fullScreenVideo.src = ''; // Clear video source
+                    fullScreenVideo.classList.add('hidden'); // Hide video element
+                    fullScreenVideo.pause(); // Pause video if playing
                 }
             });
         </script>
