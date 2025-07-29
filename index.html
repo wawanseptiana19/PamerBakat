@@ -224,6 +224,31 @@
             transform: scale(1.1);
         }
 
+        /* Tombol Hapus Password Tersimpan */
+        #btnClearSavedPassword {
+            position: fixed;
+            bottom: 95px; /* Di atas tombol enkripsi gambar */
+            left: 25px;
+            z-index: 1000;
+            font-size: 0.9rem;
+            padding: 0.75rem 1.5rem;
+            background-color: #DDD;
+            border: 3px solid #333;
+            border-radius: 0.5rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        #btnClearSavedPassword:hover {
+            background-color: #CCC;
+            transform: scale(1.05);
+        }
+
+
         /* Modal Popup untuk Form Tambah Link dan Enkripsi Gambar */
         .modal {
             display: none;
@@ -405,8 +430,7 @@
         .btn-copy,
         .btn-decrypt,
         .btn-download,
-        .btn-delete,
-        .btn-edit { /* Added btn-edit */
+        .btn-delete {
             padding: 0.5rem 1rem;
             margin: 0.3rem;
             background-color: #DDD;
@@ -421,8 +445,7 @@
         .btn-copy:hover,
         .btn-decrypt:hover,
         .btn-download:hover,
-        .btn-delete:hover,
-        .btn-edit:hover { /* Added btn-edit */
+        .btn-delete:hover {
             background-color: #CCC;
             transform: scale(1.05);
         }
@@ -461,6 +484,20 @@
             to {
                 width: 100%;
             }
+        }
+
+        /* Checkbox untuk "Remember Me" */
+        .remember-me-container {
+            display: flex;
+            align-items: center;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .remember-me-container input[type="checkbox"] {
+            margin-right: 0.5rem;
+            accent-color: #333; /* Warna checkbox */
         }
 
         @media screen and (max-width: 768px) {
@@ -516,8 +553,7 @@
             .btn-copy,
             .btn-decrypt,
             .btn-download,
-            .btn-delete,
-            .btn-edit { /* Added btn-edit */
+            .btn-delete {
                 font-size: 0.6rem;
                 padding: 0.3rem 0.5rem;
             }
@@ -527,6 +563,11 @@
                 font-size: 1.5rem;
                 width: 50px;
                 height: 50px;
+            }
+
+            #btnClearSavedPassword {
+                font-size: 0.7rem;
+                padding: 0.5rem 1rem;
             }
         }
     </style>
@@ -541,6 +582,10 @@
         <input type="file" id="passwordFile" accept=".bat">
         <!-- Tombol Enter sebagai cadangan -->
         <button id="btnSubmitPassword"><i class="fas fa-upload"></i> Enter</button>
+        <div class="remember-me-container">
+            <input type="checkbox" id="rememberMeCheckbox">
+            <label for="rememberMeCheckbox">Remember Me</label>
+        </div>
         <p id="passwordError" class="hidden">Incorrect password. Please try again.</p>
     </div>
 
@@ -557,12 +602,13 @@
 
         <button id="btnShowEncrypt"><i class="fas fa-key"></i></button>
 
+        <button id="btnClearSavedPassword"><i class="fas fa-eraser"></i> Clear Saved Password</button>
+
         <div id="modalForm" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
-                <h1 id="formTitle">Add New Link</h1>
+                <h1>Add New Link</h1>
                 <form id="linkForm">
-                    <input type="hidden" id="linkId"> <!-- Hidden input for link ID -->
                     <div class="form-group">
                         <label for="personName" class="form-label">Person Name</label>
                         <input type="text" id="personName" class="form-input" placeholder="Enter person name" required>
@@ -610,17 +656,47 @@
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
         <script>
-            // Correct password
+            // Password yang benar
             const correctPassword = "YQDYIpjYnF7PZtDYs6e8yZJmGqTuB4rgZQSaenc618nmy4x095";
+            const LOCAL_STORAGE_KEY = 'savedPassword'; // Kunci untuk localStorage
 
-            // Password modal elements
+            // Elemen modal upload password
             const passwordModal = document.getElementById('passwordModal');
             const passwordFile = document.getElementById('passwordFile');
             const btnSubmitPassword = document.getElementById('btnSubmitPassword');
             const passwordError = document.getElementById('passwordError');
             const mainContent = document.getElementById('mainContent');
+            const rememberMeCheckbox = document.getElementById('rememberMeCheckbox');
+            const btnClearSavedPassword = document.getElementById('btnClearSavedPassword');
 
-            // Automatic validation when file is selected without pressing Enter
+            // Fungsi untuk menampilkan konten utama
+            function showMainContent() {
+                passwordModal.style.display = 'none';
+                mainContent.style.display = 'block';
+                loadLinks(); // Muat link setelah berhasil masuk
+            }
+
+            // Fungsi untuk memeriksa password
+            async function checkPassword(password) {
+                if (password === correctPassword) {
+                    showMainContent();
+                    return true;
+                } else {
+                    passwordError.textContent = "Incorrect password. Please try again.";
+                    passwordError.classList.remove('hidden');
+                    return false;
+                }
+            }
+
+            // Memeriksa localStorage saat halaman dimuat
+            window.addEventListener('DOMContentLoaded', () => {
+                const savedPassword = localStorage.getItem(LOCAL_STORAGE_KEY);
+                if (savedPassword) {
+                    checkPassword(savedPassword);
+                }
+            });
+
+            // Validasi otomatis saat file dipilih
             passwordFile.addEventListener('change', () => {
                 if (passwordFile.files.length === 0) {
                     passwordError.textContent = "Please choose a file.";
@@ -629,7 +705,7 @@
                 }
 
                 const file = passwordFile.files[0];
-                // Ensure the uploaded file has a .bat extension
+                // Pastikan file yang diupload memiliki ekstensi .bat
                 if (!file.name.endsWith('.bat')) {
                     passwordError.textContent = "File must be in .bat format.";
                     passwordError.classList.remove('hidden');
@@ -637,14 +713,13 @@
                 }
 
                 const reader = new FileReader();
-                reader.onload = function (event) {
+                reader.onload = async function (event) {
                     const fileContent = event.target.result.trim();
-                    if (fileContent === correctPassword) {
-                        passwordModal.style.display = 'none';
-                        mainContent.style.display = 'block';
-                    } else {
-                        passwordError.textContent = "Incorrect password. Please try again.";
-                        passwordError.classList.remove('hidden');
+                    const passwordCorrect = await checkPassword(fileContent);
+                    if (passwordCorrect && rememberMeCheckbox.checked) {
+                        localStorage.setItem(LOCAL_STORAGE_KEY, fileContent);
+                    } else if (!passwordCorrect) {
+                        localStorage.removeItem(LOCAL_STORAGE_KEY); // Hapus jika password salah
                     }
                 };
                 reader.onerror = function () {
@@ -654,8 +729,8 @@
                 reader.readAsText(file);
             });
 
-            // Fallback Enter button function
-            btnSubmitPassword.addEventListener('click', () => {
+            // Fungsi tombol Enter sebagai cadangan
+            btnSubmitPassword.addEventListener('click', async () => {
                 if (passwordFile.files.length === 0) {
                     passwordError.textContent = "Please choose a file.";
                     passwordError.classList.remove('hidden');
@@ -670,14 +745,13 @@
                 }
 
                 const reader = new FileReader();
-                reader.onload = function (event) {
+                reader.onload = async function (event) {
                     const fileContent = event.target.result.trim();
-                    if (fileContent === correctPassword) {
-                        passwordModal.style.display = 'none';
-                        mainContent.style.display = 'block';
-                    } else {
-                        passwordError.textContent = "Incorrect password. Please try again.";
-                        passwordError.classList.remove('hidden');
+                    const passwordCorrect = await checkPassword(fileContent);
+                    if (passwordCorrect && rememberMeCheckbox.checked) {
+                        localStorage.setItem(LOCAL_STORAGE_KEY, fileContent);
+                    } else if (!passwordCorrect) {
+                        localStorage.removeItem(LOCAL_STORAGE_KEY); // Hapus jika password salah
                     }
                 };
                 reader.onerror = function () {
@@ -687,13 +761,52 @@
                 reader.readAsText(file);
             });
 
-            // Supabase configuration - adjust with your credentials
+            // Event listener untuk tombol "Clear Saved Password"
+            btnClearSavedPassword.addEventListener('click', () => {
+                // Konfirmasi dengan modal kustom, bukan alert/confirm
+                const confirmationModal = document.createElement('div');
+                confirmationModal.className = 'modal';
+                confirmationModal.innerHTML = `
+                    <div class="modal-content">
+                        <h2>Konfirmasi Hapus Password</h2>
+                        <p>Apakah Anda yakin ingin menghapus password yang tersimpan dari perangkat ini?</p>
+                        <button id="confirmClear" class="btn-action" style="width:auto; margin-right:10px;"><i class="fas fa-check"></i> Ya</button>
+                        <button id="cancelClear" class="btn-action" style="width:auto;"><i class="fas fa-times"></i> Tidak</button>
+                    </div>
+                `;
+                document.body.appendChild(confirmationModal);
+                confirmationModal.style.display = 'block';
+
+                document.getElementById('confirmClear').addEventListener('click', () => {
+                    localStorage.removeItem(LOCAL_STORAGE_KEY);
+                    showNotification('Password tersimpan telah dihapus.', false);
+                    confirmationModal.remove(); // Hapus modal konfirmasi
+                    // Opsional: kembali ke modal password jika password tidak lagi tersimpan
+                    passwordModal.style.display = 'flex';
+                    mainContent.style.display = 'none';
+                    passwordError.classList.add('hidden'); // Sembunyikan pesan error
+                });
+
+                document.getElementById('cancelClear').addEventListener('click', () => {
+                    confirmationModal.remove(); // Hapus modal konfirmasi
+                });
+
+                // Tutup modal jika klik di luar konten modal konfirmasi
+                confirmationModal.addEventListener('click', (event) => {
+                    if (event.target === confirmationModal) {
+                        confirmationModal.remove();
+                    }
+                });
+            });
+
+
+            // Konfigurasi Supabase – sesuaikan dengan kredensial Anda
             const SUPABASE_URL = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
             const SUPABASE_ANON_KEY =
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
             const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            // DOM elements for other features
+            // Elemen DOM untuk fitur lainnya
             const btnShowForm = document.getElementById('btnShowForm');
             const modalForm = document.getElementById('modalForm');
             const closeModal = document.querySelector('#modalForm .close');
@@ -702,10 +815,8 @@
             const linksContainer = document.getElementById('linksContainer');
             const searchForm = document.getElementById('searchForm');
             const searchInput = document.getElementById('searchInput');
-            const formTitle = document.getElementById('formTitle'); // New element for form title
-            const linkIdInput = document.getElementById('linkId'); // Hidden input for link ID
 
-            // Elements for image encryption modal
+            // Elemen untuk modal enkripsi gambar
             const btnShowEncrypt = document.getElementById('btnShowEncrypt');
             const modalEncrypt = document.getElementById('modalEncrypt');
             const closeEncryptModal = document.getElementById('closeEncryptModal');
@@ -714,7 +825,7 @@
             const encryptedOutput = document.getElementById('encryptedOutput');
             const btnDownloadTxt = document.getElementById('btnDownloadTxt');
 
-            // Notification function
+            // Notifikasi
             function showNotification(message, isError = false) {
                 notification.textContent = message;
                 notification.style.borderColor = isError ? '#800000' : '#333';
@@ -724,10 +835,16 @@
                 }, 4000);
             }
 
-            // Copy to clipboard function
+            // Fungsi copy ke clipboard
             async function copyToClipboard(text) {
                 try {
-                    await navigator.clipboard.writeText(text);
+                    // Menggunakan document.execCommand('copy') untuk kompatibilitas iframe
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
                     showNotification('URL copied successfully.');
                 } catch (err) {
                     console.error('Failed to copy: ', err);
@@ -735,7 +852,7 @@
                 }
             }
 
-            // Load link data from Supabase
+            // Memuat data link dari Supabase
             async function loadLinks(searchQuery = '') {
                 linksContainer.innerHTML = '';
                 let query = supabaseClient.from('links').select('*').order('created_at', {
@@ -772,9 +889,6 @@
                             <button class="btn-decrypt" data-url="${link.url}" data-shift="${link.shift_code || 0}">
                                 <i class="fas fa-lock-open"></i> Decrypt
                             </button>
-                            <button class="btn-edit" data-id="${link.id}" data-person="${link.person_name}" data-name="${link.name}" data-url="${link.url}" data-shift="${link.shift_code || ''}">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
                             <button class="btn-delete" data-id="${link.id}">
                                 <i class="fas fa-trash"></i> Delete
                             </button>
@@ -784,7 +898,7 @@
                     linksContainer.appendChild(linkItem);
                 });
 
-                // Event listener for copy button
+                // Event listener untuk tombol copy
                 document.querySelectorAll('.btn-copy').forEach(button => {
                     button.addEventListener('click', () => {
                         const url = button.getAttribute('data-url');
@@ -792,7 +906,7 @@
                     });
                 });
 
-                // Event listener for decrypt button
+                // Event listener untuk tombol dekripsi
                 document.querySelectorAll('.btn-decrypt').forEach(button => {
                     button.addEventListener('click', async () => {
                         const url = button.getAttribute('data-url');
@@ -864,182 +978,128 @@
                     });
                 });
 
-                // Event listener for edit button
-                document.querySelectorAll('.btn-edit').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const id = button.getAttribute('data-id');
-                        const personName = button.getAttribute('data-person');
-                        const linkName = button.getAttribute('data-name');
-                        const linkUrl = button.getAttribute('data-url');
-                        const shiftCode = button.getAttribute('data-shift');
-
-                        // Populate the form with existing data
-                        linkIdInput.value = id;
-                        document.getElementById('personName').value = personName;
-                        document.getElementById('linkName').value = linkName;
-                        document.getElementById('linkUrl').value = linkUrl;
-                        document.getElementById('shiftCode').value = shiftCode;
-
-                        formTitle.textContent = 'Edit Link'; // Change modal title
-                        modalForm.style.display = 'block'; // Show the modal
-                    });
-                });
-
-                // Event listener for delete button
+                // Event listener untuk tombol hapus
                 document.querySelectorAll('.btn-delete').forEach(button => {
                     button.addEventListener('click', async () => {
-                        const id = button.getAttribute('data-id');
-                        // Use a custom modal for confirmation instead of window.confirm
-                        const confirmDelete = await showConfirmationModal('Are you sure you want to delete this link?');
-                        if (!confirmDelete) return;
+                        // Mengganti confirm() dengan modal kustom
+                        const deleteConfirmationModal = document.createElement('div');
+                        deleteConfirmationModal.className = 'modal';
+                        deleteConfirmationModal.innerHTML = `
+                            <div class="modal-content">
+                                <h2>Konfirmasi Hapus Link</h2>
+                                <p>Apakah Anda yakin ingin menghapus link ini?</p>
+                                <button id="confirmDelete" class="btn-action" style="width:auto; margin-right:10px;"><i class="fas fa-check"></i> Ya</button>
+                                <button id="cancelDelete" class="btn-action" style="width:auto;"><i class="fas fa-times"></i> Tidak</button>
+                            </div>
+                        `;
+                        document.body.appendChild(deleteConfirmationModal);
+                        deleteConfirmationModal.style.display = 'block';
 
-                        const { error } = await supabaseClient
-                            .from('links')
-                            .delete()
-                            .eq('id', id);
-                        if (error) {
-                            console.error(error);
-                            showNotification('Failed to delete link.', true);
-                        } else {
-                            showNotification('Link deleted successfully.');
-                            loadLinks(searchInput.value);
-                        }
+                        document.getElementById('confirmDelete').addEventListener('click', async () => {
+                            const id = button.getAttribute('data-id');
+                            const { error } = await supabaseClient
+                                .from('links')
+                                .delete()
+                                .eq('id', id);
+                            if (error) {
+                                console.error(error);
+                                showNotification('Failed to delete link.', true);
+                            } else {
+                                showNotification('Link deleted successfully.');
+                                loadLinks(searchInput.value);
+                            }
+                            deleteConfirmationModal.remove(); // Hapus modal konfirmasi
+                        });
+
+                        document.getElementById('cancelDelete').addEventListener('click', () => {
+                            deleteConfirmationModal.remove(); // Hapus modal konfirmasi
+                        });
+
+                        // Tutup modal jika klik di luar konten modal konfirmasi
+                        deleteConfirmationModal.addEventListener('click', (event) => {
+                            if (event.target === deleteConfirmationModal) {
+                                deleteConfirmationModal.remove();
+                            }
+                        });
                     });
                 });
             }
 
-            // Custom confirmation modal function
-            function showConfirmationModal(message) {
-                return new Promise((resolve) => {
-                    const modal = document.createElement('div');
-                    modal.className = 'modal';
-                    modal.style.display = 'flex'; // Make it visible
-                    modal.style.alignItems = 'center';
-                    modal.style.justifyContent = 'center';
-
-                    const modalContent = document.createElement('div');
-                    modalContent.className = 'modal-content';
-                    modalContent.innerHTML = `
-                        <h2 style="margin-bottom: 1rem;">${message}</h2>
-                        <div style="display: flex; justify-content: space-around; margin-top: 1.5rem;">
-                            <button id="confirmYes" class="btn-action" style="width: 45%;"><i class="fas fa-check"></i> Yes</button>
-                            <button id="confirmNo" class="btn-action" style="width: 45%;"><i class="fas fa-times"></i> No</button>
-                        </div>
-                    `;
-                    modal.appendChild(modalContent);
-                    document.body.appendChild(modal);
-
-                    document.getElementById('confirmYes').addEventListener('click', () => {
-                        modal.remove();
-                        resolve(true);
-                    });
-
-                    document.getElementById('confirmNo').addEventListener('click', () => {
-                        modal.remove();
-                        resolve(false);
-                    });
-                });
-            }
-
-
-            // Show Popup Modal when add (+) button is pressed
+            // Tampilkan Modal Popup ketika tombol tambah (+) ditekan
             btnShowForm.addEventListener('click', () => {
-                formTitle.textContent = 'Add New Link'; // Reset title for new link
-                linkIdInput.value = ''; // Clear ID for new link
-                linkForm.reset(); // Clear form fields
                 modalForm.style.display = 'block';
             });
 
-            // Close Modal when close button on add link modal is pressed
+            // Tutup Modal ketika tombol close pada modal tambah link ditekan
             closeModal.addEventListener('click', () => {
                 modalForm.style.display = 'none';
             });
 
-            // Close Modal if clicked outside modal content (add link)
+            // Tutup Modal jika klik di luar konten modal (tambah link)
             window.addEventListener('click', (event) => {
                 if (event.target == modalForm) {
                     modalForm.style.display = 'none';
                 }
             });
 
-            // Submit add/edit link form
+            // Kirim form tambah link
             linkForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const id = linkIdInput.value;
                 const personName = document.getElementById('personName').value.trim();
                 const linkName = document.getElementById('linkName').value.trim();
                 const linkUrl = document.getElementById('linkUrl').value.trim();
                 const shiftCode = document.getElementById('shiftCode').value.trim();
-
                 if (!personName || !linkName || !linkUrl) {
                     showNotification('Person Name, Link Name, and URL are required.', true);
                     return;
                 }
-
-                if (id) {
-                    // Update existing link
-                    const { data, error } = await supabaseClient
-                        .from('links')
-                        .update({ person_name: personName, name: linkName, url: linkUrl, shift_code: shiftCode })
-                        .eq('id', id);
-                    if (error) {
-                        console.error(error);
-                        showNotification('Error updating link.', true);
-                    } else {
-                        showNotification('Link updated successfully.');
-                        modalForm.style.display = 'none';
-                        loadLinks(searchInput.value);
-                    }
+                const { data, error } = await supabaseClient
+                    .from('links')
+                    .insert([{ person_name: personName, name: linkName, url: linkUrl, shift_code: shiftCode }]);
+                if (error) {
+                    console.error(error);
+                    showNotification('Error saving link.', true);
                 } else {
-                    // Insert new link
-                    const { data, error } = await supabaseClient
-                        .from('links')
-                        .insert([{ person_name: personName, name: linkName, url: linkUrl, shift_code: shiftCode }]);
-                    if (error) {
-                        console.error(error);
-                        showNotification('Error saving link.', true);
-                    } else {
-                        showNotification('Link saved successfully.');
-                        linkForm.reset();
-                        modalForm.style.display = 'none';
-                        loadLinks(searchInput.value);
-                    }
+                    showNotification('Link saved successfully.');
+                    linkForm.reset();
+                    modalForm.style.display = 'none';
+                    loadLinks(searchInput.value);
                 }
             });
 
-            // Live search for links
+            // Pencarian link secara langsung (live search)
             searchInput.addEventListener('input', () => {
                 const query = searchInput.value;
                 loadLinks(query);
             });
 
-            // If search form is submitted (so "Search" button also works)
+            // Jika form pencarian dikirim (agar tombol "Cari" juga berfungsi)
             searchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const query = searchInput.value;
                 loadLinks(query);
             });
 
-            // Image Encryption Modal
+            // Modal Enkripsi Gambar
 
-            // Show image encryption modal when button is pressed
+            // Tampilkan modal enkripsi gambar saat tombol ditekan
             btnShowEncrypt.addEventListener('click', () => {
                 modalEncrypt.style.display = 'block';
             });
 
-            // Close image encryption modal when close button is pressed
+            // Tutup modal enkripsi gambar ketika tombol close ditekan
             closeEncryptModal.addEventListener('click', () => {
                 modalEncrypt.style.display = 'none';
             });
 
-            // Close modal if clicked outside encryption modal content
+            // Tutup modal jika klik di luar konten modal enkripsi
             window.addEventListener('click', (event) => {
                 if (event.target == modalEncrypt) {
                     modalEncrypt.style.display = 'none';
                 }
             });
 
-            // Image encryption process
+            // Proses enkripsi gambar
             encryptForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const fileInput = document.getElementById('imageInput');
@@ -1052,7 +1112,7 @@
                 const reader = new FileReader();
                 reader.onload = function (event) {
                     const dataUrl = event.target.result;
-                    // Encrypt image data URL using Caesar cipher
+                    // Enkripsi data URL gambar menggunakan Caesar cipher
                     const encryptedData = caesarCipher(dataUrl, shiftValue);
                     encryptedOutput.value = encryptedData;
                     encryptResult.classList.remove('hidden');
@@ -1065,7 +1125,7 @@
                 reader.readAsDataURL(file);
             });
 
-            // Download encrypted result as .ais file
+            // Tombol download hasil enkripsi sebagai file .ais
             btnDownloadTxt.addEventListener('click', () => {
                 const encryptedText = encryptedOutput.value;
                 if (!encryptedText) {
@@ -1083,7 +1143,7 @@
                 URL.revokeObjectURL(url);
             });
 
-            // Caesar cipher function for encryption (shift forward)
+            // Fungsi Caesar cipher untuk enkripsi (shift ke depan)
             function caesarCipher(str, shift) {
                 return str.replace(/[a-zA-Z]/g, function (c) {
                     const base = c <= 'Z' ? 65 : 97;
@@ -1091,7 +1151,7 @@
                 });
             }
 
-            // Caesar decipher function for decryption (shift backward)
+            // Fungsi Caesar decipher untuk dekripsi (shift ke belakang)
             function caesarDecipher(str, shift) {
                 return str.replace(/[a-zA-Z]/g, function (c) {
                     const base = c <= 'Z' ? 65 : 97;
@@ -1099,7 +1159,8 @@
                 });
             }
 
-            window.addEventListener('DOMContentLoaded', () => loadLinks());
+            // Memuat link saat halaman pertama kali dimuat (setelah password diverifikasi)
+            // window.addEventListener('DOMContentLoaded', () => loadLinks()); // Dihapus karena sudah dipanggil di showMainContent
         </script>
     </div>
 </body>
