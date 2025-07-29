@@ -718,11 +718,7 @@
                     </div>
                     <button type="submit" class="btn-action"><i class="fas fa-lock"></i> Encrypt</button>
                 </form>
-                <div id="encryptResult" class="hidden">
-                    <label for="encryptedOutput" class="form-label">Encryption Result</label>
-                    <textarea id="encryptedOutput" class="form-input" rows="4" readonly></textarea>
-                    <button id="btnDownloadTxt" class="btn-action"><i class="fas fa-download"></i> Download TXT</button>
-                </div>
+                <!-- Removed encryptResult div as per user request -->
             </div>
         </div>
 
@@ -774,9 +770,9 @@
             const modalEncrypt = document.getElementById('modalEncrypt');
             const closeEncryptModal = document.getElementById('closeEncryptModal');
             const encryptForm = document.getElementById('encryptForm');
-            const encryptResult = document.getElementById('encryptResult');
-            const encryptedOutput = document.getElementById('encryptedOutput');
-            const btnDownloadTxt = document.getElementById('btnDownloadTxt');
+            // const encryptResult = document.getElementById('encryptResult'); // Removed as per user request
+            // const encryptedOutput = document.getElementById('encryptedOutput'); // Removed as per user request
+            // const btnDownloadTxt = document.getElementById('btnDownloadTxt'); // Removed as per user request
 
             // Elemen untuk full-screen modal
             const fullScreenModal = document.getElementById('fullScreenModal'); // Changed ID
@@ -1057,7 +1053,7 @@
                                 mediaElement.src = textContent;
                                 mediaElement.controls = true; // Add controls for video playback
                                 mediaElement.autoplay = false; // Optional: set to true if you want autoplay
-                                mediaElement.loop = false; // Optional: set to true if you want looping
+                                mediaElement.loop = true; // Set to true to make video loop
                                 fileExtension = 'mp4'; // Default for videos, can be more specific if needed
                                 mediaElement.addEventListener('loadedmetadata', () => {
                                     const width = mediaElement.videoWidth;
@@ -1319,33 +1315,27 @@
                     const dataUrl = event.target.result;
                     // Enkripsi data URL gambar/video menggunakan Caesar cipher
                     const encryptedData = caesarCipher(dataUrl, shiftValue);
-                    encryptedOutput.value = encryptedData;
-                    encryptResult.classList.remove('hidden');
-                    showNotification('Content encrypted successfully.'); // Updated text
+
+                    // Langsung unduh file terenkripsi
+                    const blob = new Blob([encryptedData], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'encrypted.ais';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    showNotification('Content encrypted and downloaded successfully.'); // Updated text
+                    encryptForm.reset(); // Reset form setelah unduh
+                    modalEncrypt.style.display = 'none'; // Tutup modal setelah unduh
                 };
                 reader.onerror = function (err) {
                     console.error(err);
                     showNotification('Error reading file.', true);
                 };
                 reader.readAsDataURL(file);
-            });
-
-            // Tombol download hasil enkripsi sebagai file .ais
-            btnDownloadTxt.addEventListener('click', () => {
-                const encryptedText = encryptedOutput.value;
-                if (!encryptedText) {
-                    showNotification('No encryption result to download.', true);
-                    return;
-                }
-                const blob = new Blob([encryptedText], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'encrypted.ais';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
             });
 
             // Fungsi Caesar cipher untuk enkripsi (shift ke depan)
