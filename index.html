@@ -430,7 +430,8 @@
         .btn-copy,
         .btn-decrypt,
         .btn-download,
-        .btn-delete {
+        .btn-delete,
+        .btn-edit { /* Added .btn-edit */
             padding: 0.5rem 1rem;
             margin: 0.3rem;
             background-color: #DDD;
@@ -445,7 +446,8 @@
         .btn-copy:hover,
         .btn-decrypt:hover,
         .btn-download:hover,
-        .btn-delete:hover {
+        .btn-delete:hover,
+        .btn-edit:hover { /* Added .btn-edit:hover */
             background-color: #CCC;
             transform: scale(1.05);
         }
@@ -553,7 +555,8 @@
             .btn-copy,
             .btn-decrypt,
             .btn-download,
-            .btn-delete {
+            .btn-delete,
+            .btn-edit { /* Added .btn-edit */
                 font-size: 0.6rem;
                 padding: 0.3rem 0.5rem;
             }
@@ -607,8 +610,9 @@
         <div id="modalForm" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
-                <h1>Add New Link</h1>
+                <h1 id="modalFormTitle">Add New Link</h1> <!-- Added ID for title -->
                 <form id="linkForm">
+                    <input type="hidden" id="linkId"> <!-- Hidden input to store link ID for editing -->
                     <div class="form-group">
                         <label for="personName" class="form-label">Person Name</label>
                         <input type="text" id="personName" class="form-input" placeholder="Enter person name" required>
@@ -625,7 +629,7 @@
                         <label for="shiftCode" class="form-label">Shift Code</label>
                         <input type="text" id="shiftCode" class="form-input" placeholder="Enter shift code">
                     </div>
-                    <button type="submit" class="btn-action"><i class="fas fa-save"></i> Save Link</button>
+                    <button type="submit" class="btn-action" id="submitLinkButton"><i class="fas fa-save"></i> Save Link</button> <!-- Added ID for button -->
                 </form>
                 <div id="notification" class="hidden"></div>
             </div>
@@ -668,6 +672,33 @@
             const mainContent = document.getElementById('mainContent');
             const rememberMeCheckbox = document.getElementById('rememberMeCheckbox');
             const btnClearSavedPassword = document.getElementById('btnClearSavedPassword');
+
+            // Elemen DOM untuk modal form (tambah/edit link)
+            const modalForm = document.getElementById('modalForm');
+            const closeModal = document.querySelector('#modalForm .close');
+            const modalFormTitle = document.getElementById('modalFormTitle'); // Added
+            const linkForm = document.getElementById('linkForm');
+            const linkIdInput = document.getElementById('linkId'); // Added hidden input for ID
+            const personNameInput = document.getElementById('personName');
+            const linkNameInput = document.getElementById('linkName');
+            const linkUrlInput = document.getElementById('linkUrl');
+            const shiftCodeInput = document.getElementById('shiftCode');
+            const submitLinkButton = document.getElementById('submitLinkButton'); // Added
+
+            const notification = document.getElementById('notification');
+            const linksContainer = document.getElementById('linksContainer');
+            const searchForm = document.getElementById('searchForm');
+            const searchInput = document.getElementById('searchInput');
+
+            // Elemen untuk modal enkripsi gambar
+            const btnShowEncrypt = document.getElementById('btnShowEncrypt');
+            const modalEncrypt = document.getElementById('modalEncrypt');
+            const closeEncryptModal = document.getElementById('closeEncryptModal');
+            const encryptForm = document.getElementById('encryptForm');
+            const encryptResult = document.getElementById('encryptResult');
+            const encryptedOutput = document.getElementById('encryptedOutput');
+            const btnDownloadTxt = document.getElementById('btnDownloadTxt');
+
 
             // Fungsi untuk menampilkan konten utama
             function showMainContent() {
@@ -806,25 +837,6 @@
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
             const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            // Elemen DOM untuk fitur lainnya
-            const btnShowForm = document.getElementById('btnShowForm');
-            const modalForm = document.getElementById('modalForm');
-            const closeModal = document.querySelector('#modalForm .close');
-            const linkForm = document.getElementById('linkForm');
-            const notification = document.getElementById('notification');
-            const linksContainer = document.getElementById('linksContainer');
-            const searchForm = document.getElementById('searchForm');
-            const searchInput = document.getElementById('searchInput');
-
-            // Elemen untuk modal enkripsi gambar
-            const btnShowEncrypt = document.getElementById('btnShowEncrypt');
-            const modalEncrypt = document.getElementById('modalEncrypt');
-            const closeEncryptModal = document.getElementById('closeEncryptModal');
-            const encryptForm = document.getElementById('encryptForm');
-            const encryptResult = document.getElementById('encryptResult');
-            const encryptedOutput = document.getElementById('encryptedOutput');
-            const btnDownloadTxt = document.getElementById('btnDownloadTxt');
-
             // Notifikasi
             function showNotification(message, isError = false) {
                 notification.textContent = message;
@@ -888,6 +900,9 @@
                         <div>
                             <button class="btn-decrypt" data-url="${link.url}" data-shift="${link.shift_code || 0}">
                                 <i class="fas fa-lock-open"></i> Decrypt
+                            </button>
+                            <button class="btn-edit" data-id="${link.id}" data-person="${link.person_name || ''}" data-name="${link.name}" data-url="${link.url}" data-shift="${link.shift_code || ''}">
+                                <i class="fas fa-edit"></i> Edit
                             </button>
                             <button class="btn-delete" data-id="${link.id}">
                                 <i class="fas fa-trash"></i> Delete
@@ -978,6 +993,31 @@
                     });
                 });
 
+                // Event listener untuk tombol edit
+                document.querySelectorAll('.btn-edit').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const id = button.getAttribute('data-id');
+                        const personName = button.getAttribute('data-person');
+                        const linkName = button.getAttribute('data-name');
+                        const linkUrl = button.getAttribute('data-url');
+                        const shiftCode = button.getAttribute('data-shift');
+
+                        // Set the form fields
+                        linkIdInput.value = id;
+                        personNameInput.value = personName;
+                        linkNameInput.value = linkName;
+                        linkUrlInput.value = linkUrl;
+                        shiftCodeInput.value = shiftCode;
+
+                        // Change modal title and button text
+                        modalFormTitle.textContent = 'Edit Link';
+                        submitLinkButton.innerHTML = '<i class="fas fa-save"></i> Update Link';
+
+                        // Show the modal
+                        modalForm.style.display = 'block';
+                    });
+                });
+
                 // Event listener untuk tombol hapus
                 document.querySelectorAll('.btn-delete').forEach(button => {
                     button.addEventListener('click', async () => {
@@ -1027,6 +1067,11 @@
 
             // Tampilkan Modal Popup ketika tombol tambah (+) ditekan
             btnShowForm.addEventListener('click', () => {
+                // Reset form for adding new link
+                linkForm.reset();
+                linkIdInput.value = ''; // Clear hidden ID
+                modalFormTitle.textContent = 'Add New Link';
+                submitLinkButton.innerHTML = '<i class="fas fa-save"></i> Save Link';
                 modalForm.style.display = 'block';
             });
 
@@ -1042,26 +1087,41 @@
                 }
             });
 
-            // Kirim form tambah link
+            // Kirim form tambah/edit link
             linkForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const personName = document.getElementById('personName').value.trim();
-                const linkName = document.getElementById('linkName').value.trim();
-                const linkUrl = document.getElementById('linkUrl').value.trim();
-                const shiftCode = document.getElementById('shiftCode').value.trim();
+                const id = linkIdInput.value; // Get ID from hidden input
+                const personName = personNameInput.value.trim();
+                const linkName = linkNameInput.value.trim();
+                const linkUrl = linkUrlInput.value.trim();
+                const shiftCode = shiftCodeInput.value.trim();
+
                 if (!personName || !linkName || !linkUrl) {
                     showNotification('Person Name, Link Name, and URL are required.', true);
                     return;
                 }
-                const { data, error } = await supabaseClient
-                    .from('links')
-                    .insert([{ person_name: personName, name: linkName, url: linkUrl, shift_code: shiftCode }]);
+
+                let error;
+                if (id) {
+                    // Update existing link
+                    ({ error } = await supabaseClient
+                        .from('links')
+                        .update({ person_name: personName, name: linkName, url: linkUrl, shift_code: shiftCode })
+                        .eq('id', id));
+                } else {
+                    // Insert new link
+                    ({ error } = await supabaseClient
+                        .from('links')
+                        .insert([{ person_name: personName, name: linkName, url: linkUrl, shift_code: shiftCode }]));
+                }
+
                 if (error) {
                     console.error(error);
-                    showNotification('Error saving link.', true);
+                    showNotification(`Error ${id ? 'updating' : 'saving'} link.`, true);
                 } else {
-                    showNotification('Link saved successfully.');
+                    showNotification(`Link ${id ? 'updated' : 'saved'} successfully.`, false);
                     linkForm.reset();
+                    linkIdInput.value = ''; // Clear hidden ID after successful operation
                     modalForm.style.display = 'none';
                     loadLinks(searchInput.value);
                 }
