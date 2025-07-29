@@ -726,6 +726,7 @@
                     </div>
                     <button type="submit" class="btn-action"><i class="fas fa-lock"></i> Encrypt Video</button>
                 </form>
+                <!-- Hasil enkripsi video tidak lagi ditampilkan di sini, langsung diunduh -->
                 <div id="encryptVideoResult" class="hidden">
                     <label for="encryptedVideoOutput" class="form-label">Encryption Result</label>
                     <textarea id="encryptedVideoOutput" class="form-input" rows="4" readonly></textarea>
@@ -792,9 +793,9 @@
             const modalEncryptVideo = document.getElementById('modalEncryptVideo');
             const closeEncryptVideoModal = document.getElementById('closeEncryptVideoModal');
             const encryptVideoForm = document.getElementById('encryptVideoForm');
-            const encryptVideoResult = document.getElementById('encryptVideoResult');
-            const encryptedVideoOutput = document.getElementById('encryptedVideoOutput');
-            const btnDownloadVideoTxt = document.getElementById('btnDownloadVideoTxt');
+            // const encryptVideoResult = document.getElementById('encryptVideoResult'); // Tidak lagi digunakan untuk tampilan
+            // const encryptedVideoOutput = document.getElementById('encryptedVideoOutput'); // Tidak lagi digunakan untuk tampilan
+            // const btnDownloadVideoTxt = document.getElementById('btnDownloadVideoTxt'); // Tidak lagi digunakan sebagai tombol terpisah
 
 
             // Elemen untuk full-screen media modal (untuk gambar dan video)
@@ -1397,7 +1398,7 @@
                 }
             });
 
-            // Proses enkripsi video (BARU)
+            // Proses enkripsi video (BARU) - Langsung unduh tanpa pratinjau
             encryptVideoForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const fileInput = document.getElementById('videoInput');
@@ -1412,34 +1413,45 @@
                     const dataUrl = event.target.result;
                     // Enkripsi data URL video menggunakan Caesar cipher
                     const encryptedData = caesarCipher(dataUrl, shiftValue);
-                    encryptedVideoOutput.value = encryptedData;
-                    encryptVideoResult.classList.remove('hidden');
-                    showNotification('Video encrypted successfully.');
+
+                    // Langsung unduh file
+                    const blob = new Blob([encryptedData], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'encrypted_video.ais';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    showNotification('Video berhasil dienkripsi dan diunduh.');
+                    modalEncryptVideo.style.display = 'none'; // Tutup modal setelah unduhan
                 };
                 reader.onerror = function (err) {
                     console.error(err);
-                    showNotification('Error reading video.', true);
+                    showNotification('Error membaca video.', true);
                 };
                 reader.readAsDataURL(file);
             });
 
-            // Tombol download hasil enkripsi video sebagai file .ais (BARU)
-            btnDownloadVideoTxt.addEventListener('click', () => {
-                const encryptedText = encryptedVideoOutput.value;
-                if (!encryptedText) {
-                    showNotification('No encryption result to download.', true);
-                    return;
-                }
-                const blob = new Blob([encryptedText], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'encrypted_video.ais';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            });
+            // Tombol download hasil enkripsi video sebagai file .ais (BARU) - Ini tidak lagi diperlukan karena unduhan otomatis
+            // btnDownloadVideoTxt.addEventListener('click', () => {
+            //     const encryptedText = encryptedVideoOutput.value;
+            //     if (!encryptedText) {
+            //         showNotification('No encryption result to download.', true);
+            //         return;
+            //     }
+            //     const blob = new Blob([encryptedText], { type: 'text/plain' });
+            //     const url = URL.createObjectURL(blob);
+            //     const a = document.createElement('a');
+            //     a.href = url;
+            //     a.download = 'encrypted_video.ais';
+            //     document.body.appendChild(a);
+            //     a.click();
+            //     document.body.removeChild(a);
+            //     URL.revokeObjectURL(url);
+            // });
 
 
             // Fungsi Caesar cipher untuk enkripsi (shift ke depan)
