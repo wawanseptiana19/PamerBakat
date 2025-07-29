@@ -16,6 +16,7 @@
             color: #333; /* Warna teks gelap */
             margin: 0;
             padding: 0;
+            overflow-x: hidden; /* Prevent horizontal scroll when sidebar is open */
         }
 
         /* Modal Upload File untuk Password */
@@ -105,7 +106,66 @@
         /* Sembunyikan konten utama hingga password benar */
         #mainContent {
             display: none;
+            transition: margin-left 0.3s ease; /* Smooth transition for content shift */
         }
+
+        /* Sidebar styles */
+        #sidebar {
+            height: 100%;
+            width: 90px; /* Default width - adjusted */
+            position: fixed;
+            z-index: 1001; /* Above main content, below modals */
+            top: 0;
+            left: -90px; /* Hidden by default - adjusted */
+            background-color: #E0E0E0;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem; /* Consistent padding */
+            padding-top: 70px; /* Space for toggle button */
+            gap: 1.5rem; /* Increased gap for better spacing */
+        }
+
+        #sidebar.open {
+            left: 0;
+        }
+
+        /* Sidebar toggle button */
+        #sidebar-toggle {
+            position: fixed;
+            top: 1.5rem;
+            left: 1.5rem;
+            z-index: 1002; /* Above sidebar */
+            font-size: 1.5rem;
+            background-color: #DDD;
+            border: 3px solid #333;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, opacity 0.3s ease; /* Added opacity transition */
+        }
+
+        #sidebar-toggle:hover {
+            background-color: #CCC;
+            transform: scale(1.1);
+        }
+
+        /* Adjust main content when sidebar is open */
+        body.sidebar-open #mainContent {
+            margin-left: 90px; /* Adjusted to new sidebar width */
+        }
+        /* Hide sidebar toggle when sidebar is open */
+        body.sidebar-open #sidebar-toggle {
+            opacity: 0;
+            pointer-events: none; /* Disable clicks when hidden */
+        }
+
 
         /* Styling konten utama dan komponen lainnya */
         .card {
@@ -174,80 +234,62 @@
             color: #333;
         }
 
-        /* Tombol tambah (+) di kanan bawah */
-        #btnShowForm {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            z-index: 1000;
-            font-size: 2rem;
-            background-color: #DDD;
-            border: 3px solid #333;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            color: #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-
-        #btnShowForm:hover {
-            background-color: #CCC;
-            transform: scale(1.1);
-        }
-
-        /* Tombol enkripsi gambar di kiri bawah */
-        #btnShowEncrypt {
-            position: fixed;
-            bottom: 25px;
-            left: 25px;
-            z-index: 1000;
-            font-size: 2rem;
-            background-color: #DDD;
-            border: 3px solid #333;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            color: #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-
-        #btnShowEncrypt:hover {
-            background-color: #CCC;
-            transform: scale(1.1);
-        }
-
-        /* Tombol Hapus Password Tersimpan */
-        #btnClearSavedPassword {
-            position: fixed;
-            bottom: 95px; /* Di atas tombol enkripsi gambar */
-            left: 25px;
-            z-index: 1000;
-            font-size: 0.9rem;
-            padding: 0.75rem 1.5rem;
-            background-color: #DDD;
-            border: 3px solid #333;
+        /* Buttons inside sidebar */
+        #sidebar button {
+            font-size: 1.2rem; /* Make icons slightly larger */
+            padding: 0.75rem; /* Equal padding for square/circular look */
             border-radius: 0.5rem;
-            color: #333;
+            width: 50px; /* Fixed width for consistent size */
+            height: 50px; /* Fixed height for consistent size */
+            margin-top: 0;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: center; /* Center the icon */
+            background-color: #DDD;
+            border: 2px solid #333;
+            color: #333;
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.2s ease;
+            position: relative; /* For tooltip */
         }
-
-        #btnClearSavedPassword:hover {
+        #sidebar button:hover {
             background-color: #CCC;
-            transform: scale(1.05);
+            transform: scale(1.1); /* Slightly larger hover effect */
         }
 
+        /* Tooltip for sidebar buttons */
+        #sidebar button .tooltip-text {
+            visibility: hidden;
+            width: max-content;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 10px;
+            position: absolute;
+            z-index: 1;
+            left: 100%; /* Position to the right of the button */
+            margin-left: 10px; /* Space from the button */
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+
+        #sidebar button:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Specific style for Clear Saved Password button - pushed to bottom */
+        #sidebar #btnClearSavedPassword {
+            border-radius: 50%; /* Ensure it's circular */
+            margin-top: auto; /* Push to the bottom */
+            align-self: center; /* Center horizontally */
+        }
+        #sidebar #btnClearSavedPassword i {
+            margin: 0; /* Remove margin from icon */
+        }
 
         /* Modal Popup untuk Form Tambah Link dan Enkripsi Gambar */
         .modal {
@@ -432,7 +474,7 @@
         .btn-download,
         .btn-delete,
         .btn-edit,
-        .btn-hide-image { /* Added .btn-hide-image */
+        .btn-hide-image {
             padding: 0.5rem 1rem;
             margin: 0.3rem;
             background-color: #DDD;
@@ -449,7 +491,7 @@
         .btn-download:hover,
         .btn-delete:hover,
         .btn-edit:hover,
-        .btn-hide-image:hover { /* Added .btn-hide-image:hover */
+        .btn-hide-image:hover {
             background-color: #CCC;
             transform: scale(1.05);
         }
@@ -461,37 +503,6 @@
             border-radius: 0.5rem;
             border: 1px solid #333;
         }
-
-        /* Removed progress bar styles as it's no longer needed */
-        /*
-        .progress-bar {
-            width: 100%;
-            background-color: #CCC;
-            border: 2px solid #333;
-            border-radius: 0.5rem;
-            overflow: hidden;
-            margin-top: 0.75rem;
-            height: 1.2rem;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background-color: #333;
-            width: 0%;
-            animation: loadingAnimation 3s forwards;
-            border-radius: 0.25rem;
-        }
-
-        @keyframes loadingAnimation {
-            from {
-                width: 0%;
-            }
-
-            to {
-                width: 100%;
-            }
-        }
-        */
 
         /* Checkbox untuk "Remember Me" */
         .remember-me-container {
@@ -507,7 +518,65 @@
             accent-color: #333; /* Warna checkbox */
         }
 
+        /* Full-screen image modal */
+        #fullScreenImageModal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 3000; /* Higher than other modals */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9); /* Darker overlay */
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #fullScreenImageModal img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain; /* Ensure image fits without cropping */
+            border: 3px solid #FFF;
+            border-radius: 0.5rem;
+        }
+
+        #fullScreenImageModal .close {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        #fullScreenImageModal .close:hover,
+        #fullScreenImageModal .close:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+
         @media screen and (max-width: 768px) {
+            #sidebar {
+                width: 70px; /* Even smaller sidebar on mobile */
+                left: -70px;
+                padding-top: 60px; /* Adjust padding-top for smaller toggle */
+            }
+            body.sidebar-open #mainContent {
+                margin-left: 70px;
+            }
+            #sidebar-toggle {
+                font-size: 1.2rem;
+                width: 40px;
+                height: 40px;
+                top: 1rem;
+                left: 1rem;
+            }
+
             .card,
             .modal-content,
             #linksContainer,
@@ -524,59 +593,17 @@
             .btn-search {
                 width: 100%;
             }
-        }
 
-        @media screen and (max-width: 600px) {
-            .custom-file-label,
-            #passwordModal button {
-                font-size: 0.7rem;
-                padding: 0.5rem 1rem;
+            #sidebar button {
+                font-size: 1rem; /* Slightly smaller icons on mobile */
+                width: 45px;
+                height: 45px;
             }
 
-            #passwordModal h1 {
+            #sidebar #btnClearSavedPassword {
                 font-size: 1.2rem;
-            }
-
-            .form-label {
-                font-size: 0.8rem;
-            }
-
-            .form-input,
-            .btn-action,
-            .search-input,
-            .btn-search {
-                font-size: 0.8rem;
-                padding: 0.75rem;
-            }
-
-            .link-title {
-                font-size: 1rem;
-            }
-
-            .link-details {
-                font-size: 0.8rem;
-            }
-
-            .btn-copy,
-            .btn-decrypt,
-            .btn-download,
-            .btn-delete,
-            .btn-edit,
-            .btn-hide-image { /* Added .btn-hide-image */
-                font-size: 0.6rem;
-                padding: 0.3rem 0.5rem;
-            }
-
-            #btnShowForm,
-            #btnShowEncrypt {
-                font-size: 1.5rem;
-                width: 50px;
-                height: 50px;
-            }
-
-            #btnClearSavedPassword {
-                font-size: 0.7rem;
-                padding: 0.5rem 1rem;
+                width: 45px;
+                height: 45px;
             }
         }
     </style>
@@ -598,6 +625,25 @@
         <p id="passwordError" class="hidden">Incorrect password. Please try again.</p>
     </div>
 
+    <!-- Sidebar Toggle Button -->
+    <button id="sidebar-toggle"><i class="fas fa-bars"></i></button>
+
+    <!-- Sidebar -->
+    <div id="sidebar">
+        <button id="btnShowEncrypt">
+            <i class="fas fa-key"></i>
+            <span class="tooltip-text">Encrypt Image</span>
+        </button>
+        <button id="btnShowForm">
+            <i class="fas fa-plus"></i>
+            <span class="tooltip-text">Add New Link</span>
+        </button>
+        <button id="btnClearSavedPassword">
+            <i class="fas fa-eraser"></i>
+            <span class="tooltip-text">Clear Saved Password</span>
+        </button>
+    </div>
+
     <div id="mainContent">
         <form id="searchForm" class="search-form">
             <input type="text" id="searchInput" class="search-input"
@@ -606,12 +652,6 @@
         </form>
 
         <div id="linksContainer"></div>
-
-        <button id="btnShowForm"><i class="fas fa-plus"></i></button>
-
-        <button id="btnShowEncrypt"><i class="fas fa-key"></i></button>
-
-        <button id="btnClearSavedPassword"><i class="fas fa-eraser"></i> Clear Saved Password</button>
 
         <div id="modalForm" class="modal">
             <div class="modal-content">
@@ -664,6 +704,12 @@
             </div>
         </div>
 
+        <!-- Full-screen image modal -->
+        <div id="fullScreenImageModal" class="modal">
+            <span class="close" id="closeFullScreenImageModal">&times;</span>
+            <img id="fullScreenImage" src="" alt="Full Screen Decrypted Image">
+        </div>
+
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
         <script>
             // Password yang benar
@@ -677,7 +723,13 @@
             const passwordError = document.getElementById('passwordError');
             const mainContent = document.getElementById('mainContent');
             const rememberMeCheckbox = document.getElementById('rememberMeCheckbox');
-            const btnClearSavedPassword = document.getElementById('btnClearSavedPassword');
+
+            // Sidebar elements
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const btnShowEncrypt = document.getElementById('btnShowEncrypt'); // Moved to top
+            const btnShowForm = document.getElementById('btnShowForm'); // Moved to top
+            const btnClearSavedPassword = document.getElementById('btnClearSavedPassword'); // Moved to sidebar
 
             // Elemen DOM untuk modal form (tambah/edit link)
             const modalForm = document.getElementById('modalForm');
@@ -697,13 +749,17 @@
             const searchInput = document.getElementById('searchInput');
 
             // Elemen untuk modal enkripsi gambar
-            const btnShowEncrypt = document.getElementById('btnShowEncrypt');
             const modalEncrypt = document.getElementById('modalEncrypt');
             const closeEncryptModal = document.getElementById('closeEncryptModal');
             const encryptForm = document.getElementById('encryptForm');
             const encryptResult = document.getElementById('encryptResult');
             const encryptedOutput = document.getElementById('encryptedOutput');
             const btnDownloadTxt = document.getElementById('btnDownloadTxt');
+
+            // Elemen untuk full-screen image modal
+            const fullScreenImageModal = document.getElementById('fullScreenImageModal');
+            const fullScreenImage = document.getElementById('fullScreenImage');
+            const closeFullScreenImageModal = document.getElementById('closeFullScreenImageModal');
 
 
             // Fungsi untuk menampilkan konten utama
@@ -822,6 +878,8 @@
                     passwordModal.style.display = 'flex';
                     mainContent.style.display = 'none';
                     passwordError.classList.add('hidden'); // Sembunyikan pesan error
+                    sidebar.classList.remove('open'); // Close sidebar
+                    document.body.classList.remove('sidebar-open'); // Remove body class
                 });
 
                 document.getElementById('cancelClear').addEventListener('click', () => {
@@ -951,7 +1009,6 @@
                             if (!response.ok) {
                                 throw new Error('Failed to fetch file for decryption.');
                             }
-                            // await new Promise(resolve => setTimeout(resolve, 2500)); // Dihapus: tidak ada loading
                             const contentLength = response.headers.get('Content-Length');
                             let textContent = await response.text();
                             if (shift !== 0) {
@@ -964,6 +1021,12 @@
                             img.style.marginTop = '1rem';
                             img.style.borderRadius = '4px';
                             img.style.border = '1px solid #666';
+
+                            // Add click listener to the image for full-screen
+                            img.addEventListener('click', () => {
+                                fullScreenImage.src = img.src;
+                                fullScreenImageModal.style.display = 'flex';
+                            });
 
                             const downloadBtn = document.createElement('button');
                             downloadBtn.className = 'btn-download';
@@ -1091,6 +1154,8 @@
                 modalFormTitle.textContent = 'Add New Link';
                 submitLinkButton.innerHTML = '<i class="fas fa-save"></i> Save Link';
                 modalForm.style.display = 'block';
+                sidebar.classList.remove('open'); // Close sidebar when opening modal
+                document.body.classList.remove('sidebar-open'); // Remove body class
             });
 
             // Tutup Modal ketika tombol close pada modal tambah link ditekan
@@ -1163,6 +1228,8 @@
             // Tampilkan modal enkripsi gambar saat tombol ditekan
             btnShowEncrypt.addEventListener('click', () => {
                 modalEncrypt.style.display = 'block';
+                sidebar.classList.remove('open'); // Close sidebar when opening modal
+                document.body.classList.remove('sidebar-open'); // Remove body class
             });
 
             // Tutup modal enkripsi gambar ketika tombol close ditekan
@@ -1237,8 +1304,59 @@
                 });
             }
 
-            // Memuat link saat halaman pertama kali dimuat (setelah password diverifikasi)
-            // window.addEventListener('DOMContentLoaded', () => loadLinks()); // Dihapus karena sudah dipanggil di showMainContent
+            // Sidebar toggle logic
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+                document.body.classList.toggle('sidebar-open');
+                // Toggle visibility of sidebar-toggle icon
+                if (sidebar.classList.contains('open')) {
+                    sidebarToggle.style.opacity = '0';
+                    sidebarToggle.style.pointerEvents = 'none';
+                } else {
+                    sidebarToggle.style.opacity = '1';
+                    sidebarToggle.style.pointerEvents = 'auto';
+                }
+            });
+
+            // Close sidebar when clicking outside (on main content)
+            mainContent.addEventListener('click', (event) => {
+                if (sidebar.classList.contains('open')) {
+                    // Check if the click was outside the sidebar itself
+                    if (!sidebar.contains(event.target) && event.target !== sidebarToggle) {
+                        sidebar.classList.remove('open');
+                        document.body.classList.remove('sidebar-open');
+                        sidebarToggle.style.opacity = '1'; // Show toggle button
+                        sidebarToggle.style.pointerEvents = 'auto';
+                    }
+                }
+            });
+
+            // Close sidebar when a button inside it is clicked (optional, but good UX)
+            sidebar.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', () => {
+                    // Only close if it's not the Clear Saved Password confirmation modal
+                    if (!button.closest('.modal')) {
+                        sidebar.classList.remove('open');
+                        document.body.classList.remove('sidebar-open');
+                        sidebarToggle.style.opacity = '1'; // Show toggle button
+                        sidebarToggle.style.pointerEvents = 'auto';
+                    }
+                });
+            });
+
+            // Close full-screen image modal
+            closeFullScreenImageModal.addEventListener('click', () => {
+                fullScreenImageModal.style.display = 'none';
+                fullScreenImage.src = ''; // Clear image source
+            });
+
+            // Close full-screen image modal when clicking outside the image
+            fullScreenImageModal.addEventListener('click', (event) => {
+                if (event.target === fullScreenImageModal) {
+                    fullScreenImageModal.style.display = 'none';
+                    fullScreenImage.src = ''; // Clear image source
+                }
+            });
         </script>
     </div>
 </body>
