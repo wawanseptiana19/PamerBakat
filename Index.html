@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pamer Bakat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        /* Gunakan font klasik seperti Courier New atau Courier Prime */
+        body {
+            font-family: 'Courier Prime', 'Courier New', monospace;
+            background-color: #C0C0C0; /* Background abu-abu */
+            color: #333; /* Warna teks gelap */
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Modal Upload File untuk Password */
+        #passwordModal {
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(192, 192, 192, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            backdrop-filter: blur(4px);
+        }
+
+        #passwordModal h1 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        /* Sembunyikan input file asli */
+        #passwordFile {
+            display: none;
+        }
+
+        /* Gaya tombol custom untuk file input */
+        .custom-file-label {
+            padding: 0.75rem 1.5rem;
+            background-color: #DDD;
+            border: 2px solid #333;
+            border-radius: 0.5rem;
+            color: #333;
+            cursor: pointer;
+            display: inline-block;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-bottom: 1.5rem;
+            font-size: 0.8rem;
+        }
+
+        .custom-file-label:hover {
+            background-color: #CCC;
+            transform: scale(1.05);
+        }
+
+        #passwordModal button {
+            padding: 0.75rem 1.5rem;
+            background-color: #DDD;
+            border: 2px solid #333;
+            border-radius: 0.5rem;
+            color: #333;
+            cursor: pointer;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        #passwordModal button:hover {
+            background-color: #CCC;
+            transform: scale(1.05);
+        }
+
+        #passwordModal p {
+            color: #800000;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.8;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.8;
+            }
+        }
+
+        /* Sembunyikan konten utama hingga password benar */
+        #mainContent {
+            display: none;
+        }
+
+        /* Styling konten utama dan komponen lainnya */
+        .card {
+            background-color: #E0E0E0;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 0 20px #AAA;
+            max-width: 600px;
+            margin: 2rem auto;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 25px #999;
+        }
+
+        .btn-action {
+            margin-top: 1.5rem;
+            padding: 0.75rem 1.5rem;
+            background-color: #DDD;
+            color: #333;
+            border: 2px solid #333;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            cursor: pointer;
+            font-size: 0.8rem;
+            width: 100%;
+            display: block;
+            text-align: center;
+        }
+
+        .btn-action:hover {
+            background-color: #CCC;
+            transform: scale(1.05);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #333;
+            border-radius: 0.5rem;
+            background-color: #FFF;
+            color: #333;
+            font-size: 0.9rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #666;
+        }
+
+        .form-label {
+            margin-bottom: 0.75rem;
+            display: block;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        /* Tombol tambah (+) di kanan bawah */
+        #btnShowForm {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 1000;
+            font-size: 2rem;
+            background-color: #DDD;
+            border: 3px solid #333;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        #btnShowForm:hover {
+            background-color: #CCC;
+            transform: scale(1.1);
+        }
+
+        /* Tombol enkripsi gambar di kiri bawah */
+        #btnShowEncrypt {
+            position: fixed;
+            bottom: 25px;
+            left: 25px;
+            z-index: 1000;
+            font-size: 2rem;
+            background-color: #DDD;
+            border: 3px solid #333;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        #btnShowEncrypt:hover {
+            background-color: #CCC;
+            transform: scale(1.1);
+        }
+
+        /* Modal Popup untuk Form Tambah Link dan Enkripsi Gambar */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1500;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(128, 128, 128, 0.8);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: #DDD;
+            margin: 5% auto;
+            padding: 2rem;
+            width: 95%;
+            max-width: 600px;
+            border-radius: 1rem;
+            box-shadow: 0 6px 15px rgba(100, 100, 100, 0.7);
+            color: #333;
+            animation: fadeIn 0.5s ease, scaleIn 0.5s ease;
+            transform-origin: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.8);
+            }
+
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .close {
+            color: #333;
+            float: right;
+            font-size: 3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #666;
+            transform: scale(1.2);
+        }
+
+        /* Styling form pencarian */
+        .search-form {
+            max-width: 800px;
+            margin: 2rem auto;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid #333;
+            border-radius: 0.5rem;
+            background-color: #FFF;
+            color: #333;
+            font-size: 0.9rem;
+            transition: border-color 0.2s ease;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: #666;
+        }
+
+        .btn-search {
+            padding: 0.75rem 1.5rem;
+            background-color: #DDD;
+            color: #333;
+            border: 2px solid #333;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .btn-search:hover {
+            background-color: #CCC;
+            transform: scale(1.05);
+        }
+
+        /* Container tampilan link */
+        #linksContainer {
+            max-width: 800px;
+            margin: 2rem auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .link-item {
+            background-color: #E0E0E0;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 2px solid #333;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(100, 100, 100, 0.5);
+        }
+
+        .link-item:hover {
+            background-color: #D3D3D3;
+            transform: translateY(-5px);
+        }
+
+        .person-name {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #333;
+            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
+        }
+
+        .link-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+            background-color: #CCC;
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.375rem;
+            display: inline-block;
+            color: #333;
+        }
+
+        .link-details {
+            font-size: 0.9rem;
+            margin: 0.2rem 0;
+            color: #333;
+        }
+
+        .link-url {
+            display: inline-block;
+            max-width: 70%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            vertical-align: middle;
+            color: #555;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .link-url:hover {
+            color: #777;
+            text-decoration: underline;
+        }
+
+        a {
+            text-decoration: none;
+            color: #333;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .btn-copy,
+        .btn-decrypt,
+        .btn-download,
+        .btn-delete,
+        .btn-edit { /* Added btn-edit */
+            padding: 0.5rem 1rem;
+            margin: 0.3rem;
+            background-color: #DDD;
+            border: 2px solid #333;
+            border-radius: 0.5rem;
+            color: #333;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .btn-copy:hover,
+        .btn-decrypt:hover,
+        .btn-download:hover,
+        .btn-delete:hover,
+        .btn-edit:hover { /* Added btn-edit */
+            background-color: #CCC;
+            transform: scale(1.05);
+        }
+
+        .decrypted-container {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #FFF;
+            border-radius: 0.5rem;
+            border: 1px solid #333;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background-color: #CCC;
+            border: 2px solid #333;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin-top: 0.75rem;
+            height: 1.2rem;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #333;
+            width: 0%;
+            animation: loadingAnimation 3s forwards;
+            border-radius: 0.25rem;
+        }
+
+        @keyframes loadingAnimation {
+            from {
+                width: 0%;
+            }
+
+            to {
+                width: 100%;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .card,
+            .modal-content,
+            #linksContainer,
+            .search-form {
+                max-width: 95%;
+                margin: 1.5rem auto;
+            }
+
+            .search-form {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .btn-search {
+                width: 100%;
+            }
+        }
+
+        @media screen and (max-width: 600px) {
+            .custom-file-label,
+            #passwordModal button {
+                font-size: 0.7rem;
+                padding: 0.5rem 1rem;
+            }
+
+            #passwordModal h1 {
+                font-size: 1.2rem;
+            }
+
+            .form-label {
+                font-size: 0.8rem;
+            }
+
+            .form-input,
+            .btn-action,
+            .search-input,
+            .btn-search {
+                font-size: 0.8rem;
+                padding: 0.75rem;
+            }
+
+            .link-title {
+                font-size: 1rem;
+            }
+
+            .link-details {
+                font-size: 0.8rem;
+            }
+
+            .btn-copy,
+            .btn-decrypt,
+            .btn-download,
+            .btn-delete,
+            .btn-edit { /* Added btn-edit */
+                font-size: 0.6rem;
+                padding: 0.3rem 0.5rem;
+            }
+
+            #btnShowForm,
+            #btnShowEncrypt {
+                font-size: 1.5rem;
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="passwordModal">
+        <h1>Upload Key File</h1>
+        <label for="passwordFile" class="custom-file-label">
+            <i class="fas fa-file"></i> Choose File
+        </label>
+        <input type="file" id="passwordFile" accept=".bat">
+        <!-- Tombol Enter sebagai cadangan -->
+        <button id="btnSubmitPassword"><i class="fas fa-upload"></i> Enter</button>
+        <p id="passwordError" class="hidden">Incorrect password. Please try again.</p>
+    </div>
+
+    <div id="mainContent">
+        <form id="searchForm" class="search-form">
+            <input type="text" id="searchInput" class="search-input"
+                placeholder="Search links by person or link name...">
+            <button type="submit" class="btn-search"><i class="fas fa-search"></i> Search</button>
+        </form>
+
+        <div id="linksContainer"></div>
+
+        <button id="btnShowForm"><i class="fas fa-plus"></i></button>
+
+        <button id="btnShowEncrypt"><i class="fas fa-key"></i></button>
+
+        <div id="modalForm" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h1 id="formTitle">Add New Link</h1>
+                <form id="linkForm">
+                    <input type="hidden" id="linkId"> <!-- Hidden input for link ID -->
+                    <div class="form-group">
+                        <label for="personName" class="form-label">Person Name</label>
+                        <input type="text" id="personName" class="form-input" placeholder="Enter person name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="linkName" class="form-label">Link Name</label>
+                        <input type="text" id="linkName" class="form-input" placeholder="Enter link name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="linkUrl" class="form-label">URL Link</label>
+                        <input type="url" id="linkUrl" class="form-input" placeholder="https://www.example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shiftCode" class="form-label">Shift Code</label>
+                        <input type="text" id="shiftCode" class="form-input" placeholder="Enter shift code">
+                    </div>
+                    <button type="submit" class="btn-action"><i class="fas fa-save"></i> Save Link</button>
+                </form>
+                <div id="notification" class="hidden"></div>
+            </div>
+        </div>
+
+        <div id="modalEncrypt" class="modal">
+            <div class="modal-content">
+                <span class="close" id="closeEncryptModal">&times;</span>
+                <h1>Encrypt Image</h1>
+                <form id="encryptForm">
+                    <div class="form-group">
+                        <label for="imageInput" class="form-label">Choose Image</label>
+                        <input type="file" id="imageInput" class="form-input" accept="image/*" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="encryptShift" class="form-label">Shift Code</label>
+                        <input type="number" id="encryptShift" class="form-input" placeholder="Enter shift code" required>
+                    </div>
+                    <button type="submit" class="btn-action"><i class="fas fa-lock"></i> Encrypt</button>
+                </form>
+                <div id="encryptResult" class="hidden">
+                    <label for="encryptedOutput" class="form-label">Encryption Result</label>
+                    <textarea id="encryptedOutput" class="form-input" rows="4" readonly></textarea>
+                    <button id="btnDownloadTxt" class="btn-action"><i class="fas fa-download"></i> Download TXT</button>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script>
+            // Correct password
+            const correctPassword = "YQDYIpjYnF7PZtDYs6e8yZJmGqTuB4rgZQSaenc618nmy4x095";
+
+            // Password modal elements
+            const passwordModal = document.getElementById('passwordModal');
+            const passwordFile = document.getElementById('passwordFile');
+            const btnSubmitPassword = document.getElementById('btnSubmitPassword');
+            const passwordError = document.getElementById('passwordError');
+            const mainContent = document.getElementById('mainContent');
+
+            // Automatic validation when file is selected without pressing Enter
+            passwordFile.addEventListener('change', () => {
+                if (passwordFile.files.length === 0) {
+                    passwordError.textContent = "Please choose a file.";
+                    passwordError.classList.remove('hidden');
+                    return;
+                }
+
+                const file = passwordFile.files[0];
+                // Ensure the uploaded file has a .bat extension
+                if (!file.name.endsWith('.bat')) {
+                    passwordError.textContent = "File must be in .bat format.";
+                    passwordError.classList.remove('hidden');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const fileContent = event.target.result.trim();
+                    if (fileContent === correctPassword) {
+                        passwordModal.style.display = 'none';
+                        mainContent.style.display = 'block';
+                    } else {
+                        passwordError.textContent = "Incorrect password. Please try again.";
+                        passwordError.classList.remove('hidden');
+                    }
+                };
+                reader.onerror = function () {
+                    passwordError.textContent = "Error reading file.";
+                    passwordError.classList.remove('hidden');
+                };
+                reader.readAsText(file);
+            });
+
+            // Fallback Enter button function
+            btnSubmitPassword.addEventListener('click', () => {
+                if (passwordFile.files.length === 0) {
+                    passwordError.textContent = "Please choose a file.";
+                    passwordError.classList.remove('hidden');
+                    return;
+                }
+
+                const file = passwordFile.files[0];
+                if (!file.name.endsWith('.bat')) {
+                    passwordError.textContent = "File must be in .bat format.";
+                    passwordError.classList.remove('hidden');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const fileContent = event.target.result.trim();
+                    if (fileContent === correctPassword) {
+                        passwordModal.style.display = 'none';
+                        mainContent.style.display = 'block';
+                    } else {
+                        passwordError.textContent = "Incorrect password. Please try again.";
+                        passwordError.classList.remove('hidden');
+                    }
+                };
+                reader.onerror = function () {
+                    passwordError.textContent = "Error reading file.";
+                    passwordError.classList.remove('hidden');
+                };
+                reader.readAsText(file);
+            });
+
+            // Supabase configuration - adjust with your credentials
+            const SUPABASE_URL = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
+            const SUPABASE_ANON_KEY =
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            // DOM elements for other features
+            const btnShowForm = document.getElementById('btnShowForm');
+            const modalForm = document.getElementById('modalForm');
+            const closeModal = document.querySelector('#modalForm .close');
+            const linkForm = document.getElementById('linkForm');
+            const notification = document.getElementById('notification');
+            const linksContainer = document.getElementById('linksContainer');
+            const searchForm = document.getElementById('searchForm');
+            const searchInput = document.getElementById('searchInput');
+            const formTitle = document.getElementById('formTitle'); // New element for form title
+            const linkIdInput = document.getElementById('linkId'); // Hidden input for link ID
+
+            // Elements for image encryption modal
+            const btnShowEncrypt = document.getElementById('btnShowEncrypt');
+            const modalEncrypt = document.getElementById('modalEncrypt');
+            const closeEncryptModal = document.getElementById('closeEncryptModal');
+            const encryptForm = document.getElementById('encryptForm');
+            const encryptResult = document.getElementById('encryptResult');
+            const encryptedOutput = document.getElementById('encryptedOutput');
+            const btnDownloadTxt = document.getElementById('btnDownloadTxt');
+
+            // Notification function
+            function showNotification(message, isError = false) {
+                notification.textContent = message;
+                notification.style.borderColor = isError ? '#800000' : '#333';
+                notification.classList.remove('hidden');
+                setTimeout(() => {
+                    notification.classList.add('hidden');
+                }, 4000);
+            }
+
+            // Copy to clipboard function
+            async function copyToClipboard(text) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    showNotification('URL copied successfully.');
+                } catch (err) {
+                    console.error('Failed to copy: ', err);
+                    showNotification('Failed to copy URL.', true);
+                }
+            }
+
+            // Load link data from Supabase
+            async function loadLinks(searchQuery = '') {
+                linksContainer.innerHTML = '';
+                let query = supabaseClient.from('links').select('*').order('created_at', {
+                    ascending: false
+                });
+                if (searchQuery.trim() !== '') {
+                    query = query.or(`person_name.ilike.%${searchQuery}%,name.ilike.%${searchQuery}%`);
+                }
+                const { data, error } = await query;
+                if (error) {
+                    console.error(error);
+                    showNotification('Error loading links.', true);
+                    return;
+                }
+                if (!data || data.length === 0) {
+                    linksContainer.innerHTML = '<p class="text-center" style="color:#666;">No links found.</p>';
+                    return;
+                }
+                data.forEach(link => {
+                    const linkItem = document.createElement('div');
+                    linkItem.className = 'link-item';
+                    linkItem.innerHTML = `
+                        <p class="person-name">${link.person_name || 'UNKNOWN'}</p>
+                        <p class="link-title">${link.name}</p>
+                        <p class="link-details">
+                            <strong>URL:</strong>
+                            <a href="${link.url}" target="_blank" class="link-url">${link.url}</a>
+                            <button class="btn-copy" data-url="${link.url}"><i class="fas fa-copy"></i> Copy</button>
+                        </p>
+                        <p class="link-details">
+                            <strong>Shift Code:</strong> ${link.shift_code || '-'}
+                        </p>
+                        <div>
+                            <button class="btn-decrypt" data-url="${link.url}" data-shift="${link.shift_code || 0}">
+                                <i class="fas fa-lock-open"></i> Decrypt
+                            </button>
+                            <button class="btn-edit" data-id="${link.id}" data-person="${link.person_name}" data-name="${link.name}" data-url="${link.url}" data-shift="${link.shift_code || ''}">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn-delete" data-id="${link.id}">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                        <div class="decrypted-container hidden"></div>
+                    `;
+                    linksContainer.appendChild(linkItem);
+                });
+
+                // Event listener for copy button
+                document.querySelectorAll('.btn-copy').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const url = button.getAttribute('data-url');
+                        copyToClipboard(url);
+                    });
+                });
+
+                // Event listener for decrypt button
+                document.querySelectorAll('.btn-decrypt').forEach(button => {
+                    button.addEventListener('click', async () => {
+                        const url = button.getAttribute('data-url');
+                        const shift = parseInt(button.getAttribute('data-shift')) || 0;
+                        const decryptedContainer = button.parentElement.parentElement.querySelector('.decrypted-container');
+
+                        decryptedContainer.innerHTML = `
+                            <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                                <p style="margin: 0; font-size: 0.8rem;">decrypting</p>
+                                <div class="progress-bar">
+                                    <div class="progress-bar-fill"></div>
+                                </div>
+                            </div>
+                        `;
+                        decryptedContainer.classList.remove('hidden');
+
+                        try {
+                            const response = await fetch(url);
+                            if (!response.ok) {
+                                throw new Error('Failed to fetch file for decryption.');
+                            }
+                            await new Promise(resolve => setTimeout(resolve, 2500));
+                            const contentLength = response.headers.get('Content-Length');
+                            let textContent = await response.text();
+                            if (shift !== 0) {
+                                textContent = caesarDecipher(textContent, shift);
+                            }
+                            const img = document.createElement('img');
+                            img.src = textContent;
+                            img.alt = 'Decrypted Image';
+                            img.style.maxWidth = '100%';
+                            img.style.marginTop = '1rem';
+                            img.style.borderRadius = '4px';
+                            img.style.border = '1px solid #666';
+
+                            const downloadBtn = document.createElement('button');
+                            downloadBtn.className = 'btn-download';
+                            downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download Image';
+                            downloadBtn.addEventListener('click', () => {
+                                const a = document.createElement('a');
+                                a.href = textContent;
+                                a.download = 'decrypted_image.png';
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                            });
+
+                            decryptedContainer.innerHTML = '';
+                            decryptedContainer.appendChild(img);
+                            decryptedContainer.appendChild(downloadBtn);
+
+                            img.addEventListener('load', () => {
+                                const width = img.naturalWidth;
+                                const height = img.naturalHeight;
+                                const infoDiv = document.createElement('div');
+                                infoDiv.style.marginTop = '0.5rem';
+                                let sizeText = '-';
+                                if (contentLength) {
+                                    sizeText = `${(parseInt(contentLength) / 1024).toFixed(2)} KB`;
+                                }
+                                infoDiv.innerHTML =
+                                    `<p style="font-size: 0.7rem; color: #333;">File Size: ${sizeText} | Dimensions: ${width} x ${height}</p>`;
+                                decryptedContainer.appendChild(infoDiv);
+                            });
+                        } catch (error) {
+                            decryptedContainer.innerHTML = '';
+                            showNotification(error.message, true);
+                        }
+                    });
+                });
+
+                // Event listener for edit button
+                document.querySelectorAll('.btn-edit').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const id = button.getAttribute('data-id');
+                        const personName = button.getAttribute('data-person');
+                        const linkName = button.getAttribute('data-name');
+                        const linkUrl = button.getAttribute('data-url');
+                        const shiftCode = button.getAttribute('data-shift');
+
+                        // Populate the form with existing data
+                        linkIdInput.value = id;
+                        document.getElementById('personName').value = personName;
+                        document.getElementById('linkName').value = linkName;
+                        document.getElementById('linkUrl').value = linkUrl;
+                        document.getElementById('shiftCode').value = shiftCode;
+
+                        formTitle.textContent = 'Edit Link'; // Change modal title
+                        modalForm.style.display = 'block'; // Show the modal
+                    });
+                });
+
+                // Event listener for delete button
+                document.querySelectorAll('.btn-delete').forEach(button => {
+                    button.addEventListener('click', async () => {
+                        const id = button.getAttribute('data-id');
+                        // Use a custom modal for confirmation instead of window.confirm
+                        const confirmDelete = await showConfirmationModal('Are you sure you want to delete this link?');
+                        if (!confirmDelete) return;
+
+                        const { error } = await supabaseClient
+                            .from('links')
+                            .delete()
+                            .eq('id', id);
+                        if (error) {
+                            console.error(error);
+                            showNotification('Failed to delete link.', true);
+                        } else {
+                            showNotification('Link deleted successfully.');
+                            loadLinks(searchInput.value);
+                        }
+                    });
+                });
+            }
+
+            // Custom confirmation modal function
+            function showConfirmationModal(message) {
+                return new Promise((resolve) => {
+                    const modal = document.createElement('div');
+                    modal.className = 'modal';
+                    modal.style.display = 'flex'; // Make it visible
+                    modal.style.alignItems = 'center';
+                    modal.style.justifyContent = 'center';
+
+                    const modalContent = document.createElement('div');
+                    modalContent.className = 'modal-content';
+                    modalContent.innerHTML = `
+                        <h2 style="margin-bottom: 1rem;">${message}</h2>
+                        <div style="display: flex; justify-content: space-around; margin-top: 1.5rem;">
+                            <button id="confirmYes" class="btn-action" style="width: 45%;"><i class="fas fa-check"></i> Yes</button>
+                            <button id="confirmNo" class="btn-action" style="width: 45%;"><i class="fas fa-times"></i> No</button>
+                        </div>
+                    `;
+                    modal.appendChild(modalContent);
+                    document.body.appendChild(modal);
+
+                    document.getElementById('confirmYes').addEventListener('click', () => {
+                        modal.remove();
+                        resolve(true);
+                    });
+
+                    document.getElementById('confirmNo').addEventListener('click', () => {
+                        modal.remove();
+                        resolve(false);
+                    });
+                });
+            }
+
+
+            // Show Popup Modal when add (+) button is pressed
+            btnShowForm.addEventListener('click', () => {
+                formTitle.textContent = 'Add New Link'; // Reset title for new link
+                linkIdInput.value = ''; // Clear ID for new link
+                linkForm.reset(); // Clear form fields
+                modalForm.style.display = 'block';
+            });
+
+            // Close Modal when close button on add link modal is pressed
+            closeModal.addEventListener('click', () => {
+                modalForm.style.display = 'none';
+            });
+
+            // Close Modal if clicked outside modal content (add link)
+            window.addEventListener('click', (event) => {
+                if (event.target == modalForm) {
+                    modalForm.style.display = 'none';
+                }
+            });
+
+            // Submit add/edit link form
+            linkForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = linkIdInput.value;
+                const personName = document.getElementById('personName').value.trim();
+                const linkName = document.getElementById('linkName').value.trim();
+                const linkUrl = document.getElementById('linkUrl').value.trim();
+                const shiftCode = document.getElementById('shiftCode').value.trim();
+
+                if (!personName || !linkName || !linkUrl) {
+                    showNotification('Person Name, Link Name, and URL are required.', true);
+                    return;
+                }
+
+                if (id) {
+                    // Update existing link
+                    const { data, error } = await supabaseClient
+                        .from('links')
+                        .update({ person_name: personName, name: linkName, url: linkUrl, shift_code: shiftCode })
+                        .eq('id', id);
+                    if (error) {
+                        console.error(error);
+                        showNotification('Error updating link.', true);
+                    } else {
+                        showNotification('Link updated successfully.');
+                        modalForm.style.display = 'none';
+                        loadLinks(searchInput.value);
+                    }
+                } else {
+                    // Insert new link
+                    const { data, error } = await supabaseClient
+                        .from('links')
+                        .insert([{ person_name: personName, name: linkName, url: linkUrl, shift_code: shiftCode }]);
+                    if (error) {
+                        console.error(error);
+                        showNotification('Error saving link.', true);
+                    } else {
+                        showNotification('Link saved successfully.');
+                        linkForm.reset();
+                        modalForm.style.display = 'none';
+                        loadLinks(searchInput.value);
+                    }
+                }
+            });
+
+            // Live search for links
+            searchInput.addEventListener('input', () => {
+                const query = searchInput.value;
+                loadLinks(query);
+            });
+
+            // If search form is submitted (so "Search" button also works)
+            searchForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const query = searchInput.value;
+                loadLinks(query);
+            });
+
+            // Image Encryption Modal
+
+            // Show image encryption modal when button is pressed
+            btnShowEncrypt.addEventListener('click', () => {
+                modalEncrypt.style.display = 'block';
+            });
+
+            // Close image encryption modal when close button is pressed
+            closeEncryptModal.addEventListener('click', () => {
+                modalEncrypt.style.display = 'none';
+            });
+
+            // Close modal if clicked outside encryption modal content
+            window.addEventListener('click', (event) => {
+                if (event.target == modalEncrypt) {
+                    modalEncrypt.style.display = 'none';
+                }
+            });
+
+            // Image encryption process
+            encryptForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const fileInput = document.getElementById('imageInput');
+                const shiftValue = parseInt(document.getElementById('encryptShift').value) || 0;
+                if (fileInput.files.length === 0) {
+                    showNotification('Please select an image to encrypt.', true);
+                    return;
+                }
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const dataUrl = event.target.result;
+                    // Encrypt image data URL using Caesar cipher
+                    const encryptedData = caesarCipher(dataUrl, shiftValue);
+                    encryptedOutput.value = encryptedData;
+                    encryptResult.classList.remove('hidden');
+                    showNotification('Image encrypted successfully.');
+                };
+                reader.onerror = function (err) {
+                    console.error(err);
+                    showNotification('Error reading image.', true);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // Download encrypted result as .ais file
+            btnDownloadTxt.addEventListener('click', () => {
+                const encryptedText = encryptedOutput.value;
+                if (!encryptedText) {
+                    showNotification('No encryption result to download.', true);
+                    return;
+                }
+                const blob = new Blob([encryptedText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'encrypted.ais';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+
+            // Caesar cipher function for encryption (shift forward)
+            function caesarCipher(str, shift) {
+                return str.replace(/[a-zA-Z]/g, function (c) {
+                    const base = c <= 'Z' ? 65 : 97;
+                    return String.fromCharCode((c.charCodeAt(0) - base + shift) % 26 + base);
+                });
+            }
+
+            // Caesar decipher function for decryption (shift backward)
+            function caesarDecipher(str, shift) {
+                return str.replace(/[a-zA-Z]/g, function (c) {
+                    const base = c <= 'Z' ? 65 : 97;
+                    return String.fromCharCode((c.charCodeAt(0) - base - shift + 26) % 26 + base);
+                });
+            }
+
+            window.addEventListener('DOMContentLoaded', () => loadLinks());
+        </script>
+    </div>
+</body>
+
+</html>
