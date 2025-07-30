@@ -210,6 +210,7 @@
             color: #333;
             font-size: 0.9rem;
             transition: border-color 0.2s ease;
+            outline: none;
         }
 
         .form-input:focus {
@@ -456,7 +457,7 @@
             font-size: 0.7rem;
         }
         .gallery-view .link-item .decrypted-container .btn-hide-content {
-            display: none; /* Hide hide button in gallery view */
+            display: none;
         }
 
         .person-name {
@@ -708,7 +709,7 @@
     <div id="mainContent">
         <form id="searchForm" class="search-form">
             <input type="text" id="searchInput" class="search-input"
-                placeholder="Search links by person or link name...">
+                placeholder="Search links by person name...">
             <button type="submit" class="btn-search"><i class="fas fa-search"></i> Search</button>
         </form>
 
@@ -754,6 +755,10 @@
                     <div class="form-group">
                         <label for="encryptShift" class="form-label">Shift Code</label>
                         <input type="number" id="encryptShift" class="form-input" placeholder="Enter shift code" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="outputFileName" class="form-label">Output File Name (e.g., my_secret.ais)</label>
+                        <input type="text" id="outputFileName" class="form-input" placeholder="encrypted.ais">
                     </div>
                     <button type="submit" class="btn-action"><i class="fas fa-lock"></i> Encrypt</button>
                 </form>
@@ -803,6 +808,7 @@
             const modalEncrypt = document.getElementById('modalEncrypt');
             const closeEncryptModal = document.getElementById('closeEncryptModal');
             const encryptForm = document.getElementById('encryptForm');
+            const outputFileNameInput = document.getElementById('outputFileName');
 
             const fullScreenModal = document.getElementById('fullScreenModal');
             const fullScreenContent = document.getElementById('fullScreenContent');
@@ -1088,7 +1094,7 @@
                     ascending: false
                 });
                 if (searchQuery.trim() !== '') {
-                    query = query.or(`person_name.ilike.%${searchQuery}%,name.ilike.%${searchQuery}%`);
+                    query = query.ilike('person_name', `%${searchQuery}%`);
                 }
                 const { data, error } = await query;
                 if (error) {
@@ -1310,6 +1316,8 @@
                 e.preventDefault();
                 const fileInput = document.getElementById('imageInput');
                 const shiftValue = parseInt(document.getElementById('encryptShift').value) || 0;
+                const outputFileName = outputFileNameInput.value.trim();
+
                 if (fileInput.files.length === 0) {
                     showNotification('Please select an image or video to encrypt.', true);
                     return;
@@ -1324,7 +1332,7 @@
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = 'encrypted.ais';
+                    a.download = outputFileName || 'encrypted.ais';
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
