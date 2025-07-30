@@ -9,17 +9,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
-        /* Gunakan font klasik seperti Courier New atau Courier Prime */
         body {
             font-family: 'Courier Prime', 'Courier New', monospace;
-            background-color: #C0C0C0; /* Background abu-abu */
-            color: #333; /* Warna teks gelap */
+            background-color: #C0C0C0;
+            color: #333;
             margin: 0;
             padding: 0;
-            overflow-x: hidden; /* Prevent horizontal scroll when sidebar is open */
+            overflow-x: hidden;
         }
 
-        /* Modal Upload File untuk Password */
         #passwordModal {
             position: fixed;
             z-index: 2000;
@@ -41,12 +39,10 @@
             color: #333;
         }
 
-        /* Sembunyikan input file asli */
         #passwordFile {
             display: none;
         }
 
-        /* Gaya tombol custom untuk file input */
         .custom-file-label {
             padding: 0.75rem 1.5rem;
             background-color: #DDD;
@@ -103,41 +99,38 @@
             }
         }
 
-        /* Sembunyikan konten utama hingga password benar */
         #mainContent {
             display: none;
-            transition: margin-left 0.3s ease; /* Smooth transition for content shift */
+            transition: margin-left 0.3s ease;
         }
 
-        /* Sidebar styles */
         #sidebar {
             height: 100%;
-            width: 90px; /* Default width - adjusted */
+            width: 90px;
             position: fixed;
-            z-index: 1001; /* Above main content, below modals */
+            z-index: 1001;
             top: 0;
-            left: -90px; /* Hidden by default - adjusted */
+            left: -90px;
             background-color: #E0E0E0;
             transition: left 0.3s ease;
             box-shadow: 2px 0 5px rgba(0,0,0,0.2);
             display: flex;
             flex-direction: column;
-            padding: 1.5rem; /* Consistent padding */
-            padding-top: 70px; /* Space for toggle button */
-            gap: 1.5rem; /* Increased gap for better spacing */
-            align-items: center; /* Center items horizontally in the column */
+            padding: 1.5rem;
+            padding-top: 70px;
+            gap: 1.5rem;
+            align-items: center;
         }
 
         #sidebar.open {
             left: 0;
         }
 
-        /* Sidebar toggle button */
         #sidebar-toggle {
             position: fixed;
             top: 1.5rem;
             left: 1.5rem;
-            z-index: 1002; /* Above sidebar */
+            z-index: 1002;
             font-size: 1.5rem;
             background-color: #DDD;
             border: 3px solid #333;
@@ -149,7 +142,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease, opacity 0.3s ease; /* Added opacity transition */
+            transition: background-color 0.3s ease, transform 0.2s ease, opacity 0.3s ease;
         }
 
         #sidebar-toggle:hover {
@@ -157,18 +150,14 @@
             transform: scale(1.1);
         }
 
-        /* Adjust main content when sidebar is open */
         body.sidebar-open #mainContent {
-            margin-left: 90px; /* Adjusted to new sidebar width */
+            margin-left: 90px;
         }
-        /* Hide sidebar toggle when sidebar is open */
         body.sidebar-open #sidebar-toggle {
             opacity: 0;
-            pointer-events: none; /* Disable clicks when hidden */
+            pointer-events: none;
         }
 
-
-        /* Styling konten utama dan komponen lainnya */
         .card {
             background-color: #E0E0E0;
             padding: 2rem;
@@ -235,30 +224,28 @@
             color: #333;
         }
 
-        /* Buttons inside sidebar */
         #sidebar button {
-            font-size: 1.2rem; /* Make icons slightly larger */
-            padding: 0.75rem; /* Equal padding for square/circular look */
+            font-size: 1.2rem;
+            padding: 0.75rem;
             border-radius: 0.5rem;
-            width: 50px; /* Fixed width for consistent size */
-            height: 50px; /* Fixed height for consistent size */
-            margin-top: 0; /* Ensure no extra top margin */
+            width: 50px;
+            height: 50px;
+            margin-top: 0;
             display: flex;
             align-items: center;
-            justify-content: center; /* Center the icon */
+            justify-content: center;
             background-color: #DDD;
             border: 2px solid #333;
             color: #333;
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.2s ease;
-            position: relative; /* For tooltip */
+            position: relative;
         }
         #sidebar button:hover {
             background-color: #CCC;
-            transform: scale(1.1); /* Slightly larger hover effect */
+            transform: scale(1.1);
         }
 
-        /* Tooltip for sidebar buttons */
         #sidebar button .tooltip-text {
             visibility: hidden;
             width: max-content;
@@ -269,8 +256,8 @@
             padding: 5px 10px;
             position: absolute;
             z-index: 1;
-            left: 100%; /* Position to the right of the button */
-            margin-left: 10px; /* Space from the button */
+            left: 100%;
+            margin-left: 10px;
             opacity: 0;
             transition: opacity 0.3s ease;
             font-size: 0.75rem;
@@ -282,17 +269,13 @@
             opacity: 1;
         }
 
-        /* Specific style for Clear Saved Password button - removed margin-top: auto */
         #sidebar #btnClearSavedPassword {
-            border-radius: 50%; /* Ensure it's circular */
-            /* Removed margin-top: auto; to align vertically with others */
-            /* align-self: center; is already handled by parent's align-items: center */
+            border-radius: 50%;
         }
         #sidebar #btnClearSavedPassword i {
-            margin: 0; /* Remove margin from icon */
+            margin: 0;
         }
 
-        /* Modal Popup untuk Form Tambah Link dan Enkripsi Gambar */
         .modal {
             display: none;
             position: fixed;
@@ -354,7 +337,6 @@
             transform: scale(1.2);
         }
 
-        /* Styling form pencarian */
         .search-form {
             max-width: 800px;
             margin: 2rem auto;
@@ -395,130 +377,83 @@
             transform: scale(1.05);
         }
 
-        /* Container tampilan link */
         #linksContainer {
-            max-width: 800px;
+            max-width: 90%;
             margin: 2rem auto;
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 1.5rem;
+            padding: 1rem;
+            justify-items: center;
         }
 
-        .link-item {
+        .gallery-item {
             background-color: #E0E0E0;
-            padding: 1.5rem;
+            padding: 1rem;
             border-radius: 0.75rem;
             border: 2px solid #333;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            position: relative;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
             box-shadow: 0 4px 8px rgba(100, 100, 100, 0.5);
+            min-height: 200px;
+            position: relative;
         }
 
-        .link-item:hover {
-            background-color: #D3D3D3;
+        .gallery-item:hover {
             transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(100, 100, 100, 0.7);
         }
 
-        .person-name {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            color: #333;
+        .gallery-item img,
+        .gallery-item video {
+            max-width: 100%;
+            max-height: 150px;
+            object-fit: contain;
+            border-radius: 4px;
+            border: 1px solid #666;
             margin-bottom: 0.5rem;
-            letter-spacing: 1px;
+            cursor: pointer;
         }
 
-        .link-title {
-            font-size: 1.1rem;
+        .gallery-item pre {
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-size: 0.9rem;
+            color: #333;
+            max-height: 150px;
+            overflow-y: auto;
+            width: 100%;
+            text-align: left;
+            padding: 0.5rem;
+            background-color: #FFF;
+            border-radius: 0.5rem;
+            border: 1px solid #333;
+        }
+
+        .gallery-item-info {
+            font-size: 0.75rem;
+            color: #555;
+            margin-top: 0.5rem;
+            width: 100%;
+        }
+
+        .gallery-item-title {
+            font-size: 1rem;
             font-weight: bold;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
             background-color: #CCC;
-            padding: 0.3rem 0.6rem;
+            padding: 0.2rem 0.5rem;
             border-radius: 0.375rem;
             display: inline-block;
             color: #333;
         }
 
-        .link-details {
-            font-size: 0.9rem;
-            margin: 0.2rem 0;
-            color: #333;
-        }
-
-        .link-url {
-            display: inline-block;
-            max-width: 70%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            vertical-align: middle;
-            color: #555;
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        .link-url:hover {
-            color: #777;
-            text-decoration: underline;
-        }
-
-        a {
-            text-decoration: none;
-            color: #333;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        .btn-copy,
-        .btn-decrypt,
-        .btn-download,
-        .btn-delete,
-        .btn-edit,
-        .btn-hide-content { /* Changed from btn-hide-image */
-            padding: 0.5rem 1rem;
-            margin: 0.3rem;
-            background-color: #DDD;
-            border: 2px solid #333;
-            border-radius: 0.5rem;
-            color: #333;
-            cursor: pointer;
-            font-size: 0.7rem;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-
-        .btn-copy:hover,
-        .btn-decrypt:hover,
-        .btn-download:hover,
-        .btn-delete:hover,
-        .btn-edit:hover,
-        .btn-hide-content:hover { /* Changed from btn-hide-image */
-            background-color: #CCC;
-            transform: scale(1.05);
-        }
-
-        .decrypted-container {
-            margin-top: 1rem;
-            padding: 1rem;
-            background-color: #FFF;
-            border-radius: 0.5rem;
-            border: 1px solid #333;
-            display: flex; /* Added for centering content */
-            flex-direction: column; /* Added for centering content */
-            align-items: center; /* Added for centering content */
-            justify-content: center; /* Added for centering content */
-        }
-
-        .decrypted-container img,
-        .decrypted-container video {
-            max-width: 100%;
-            height: auto;
-            margin-top: 1rem;
-            border-radius: 4px;
-            border: 1px solid #666;
-        }
-
-        /* Checkbox untuk "Remember Me" */
         .remember-me-container {
             display: flex;
             align-items: center;
@@ -529,25 +464,24 @@
 
         .remember-me-container input[type="checkbox"] {
             margin-right: 0.5rem;
-            accent-color: #333; /* Warna checkbox */
+            accent-color: #333;
         }
 
-        /* Full-screen modal */
-        #fullScreenModal { /* Changed ID from fullScreenImageModal */
-            display: none; /* Hidden by default */
+        #fullScreenModal {
+            display: none;
             position: fixed;
-            z-index: 3000; /* Higher than other modals */
+            z-index: 3000;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.9); /* Darker overlay */
+            background-color: rgba(0, 0, 0, 0.9);
             justify-content: center;
             align-items: center;
             flex-direction: column;
         }
 
-        #fullScreenModal .close { /* Changed ID from fullScreenImageModal */
+        #fullScreenModal .close {
             position: absolute;
             top: 20px;
             right: 35px;
@@ -558,14 +492,14 @@
             cursor: pointer;
         }
 
-        #fullScreenModal .close:hover, /* Changed ID from fullScreenImageModal */
-        #fullScreenModal .close:focus { /* Changed ID from fullScreenImageModal */
+        #fullScreenModal .close:hover,
+        #fullScreenModal .close:focus {
             color: #bbb;
             text-decoration: none;
             cursor: pointer;
         }
 
-        #fullScreenContent { /* New container for dynamic content */
+        #fullScreenContent {
             max-width: 90%;
             max-height: 90%;
             display: flex;
@@ -582,12 +516,11 @@
             border-radius: 0.5rem;
         }
 
-
         @media screen and (max-width: 768px) {
             #sidebar {
-                width: 70px; /* Even smaller sidebar on mobile */
+                width: 70px;
                 left: -70px;
-                padding-top: 60px; /* Adjust padding-top for smaller toggle */
+                padding-top: 60px;
             }
             body.sidebar-open #mainContent {
                 margin-left: 70px;
@@ -618,7 +551,7 @@
             }
 
             #sidebar button {
-                font-size: 1rem; /* Slightly smaller icons on mobile */
+                font-size: 1rem;
                 width: 45px;
                 height: 45px;
             }
@@ -627,6 +560,10 @@
                 font-size: 1.2rem;
                 width: 45px;
                 height: 45px;
+            }
+
+            #linksContainer {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             }
         }
     </style>
@@ -639,7 +576,6 @@
             <i class="fas fa-file"></i> Choose File
         </label>
         <input type="file" id="passwordFile" accept=".bat">
-        <!-- Tombol Enter sebagai cadangan -->
         <button id="btnSubmitPassword"><i class="fas fa-upload"></i> Enter</button>
         <div class="remember-me-container">
             <input type="checkbox" id="rememberMeCheckbox">
@@ -648,10 +584,8 @@
         <p id="passwordError" class="hidden">Incorrect password. Please try again.</p>
     </div>
 
-    <!-- Sidebar Toggle Button -->
     <button id="sidebar-toggle"><i class="fas fa-bars"></i></button>
 
-    <!-- Sidebar -->
     <div id="sidebar">
         <button id="btnShowEncrypt">
             <i class="fas fa-key"></i>
@@ -711,7 +645,7 @@
                 <form id="encryptForm">
                     <div class="form-group">
                         <label for="imageInput" class="form-label">Choose Image</label>
-                        <input type="file" id="imageInput" class="form-input" accept="image/*,video/*" required> <!-- Added video/* -->
+                        <input type="file" id="imageInput" class="form-input" accept="image/*,video/*" required>
                     </div>
                     <div class="form-group">
                         <label for="encryptShift" class="form-label">Shift Code</label>
@@ -719,23 +653,19 @@
                     </div>
                     <button type="submit" class="btn-action"><i class="fas fa-lock"></i> Encrypt</button>
                 </form>
-                <!-- Removed encryptResult div as per user request -->
             </div>
         </div>
 
-        <!-- Full-screen modal for image/video -->
-        <div id="fullScreenModal" class="modal"> <!-- Changed ID -->
-            <span class="close" id="closeFullScreenModal">&times;</span> <!-- Changed ID -->
-            <div id="fullScreenContent" class="flex justify-center items-center w-full h-full"></div> <!-- New container -->
+        <div id="fullScreenModal" class="modal">
+            <span class="close" id="closeFullScreenModal">&times;</span>
+            <div id="fullScreenContent" class="flex justify-center items-center w-full h-full"></div>
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
         <script>
-            // Password yang benar
             const correctPassword = "YQDYIpjYnF7PZtDYs6e8yZJmGqTuB4rgZQSaenc618nmy4x095";
-            const LOCAL_STORAGE_KEY = 'savedPassword'; // Kunci untuk localStorage
+            const LOCAL_STORAGE_KEY = 'savedPassword';
 
-            // Elemen modal upload password
             const passwordModal = document.getElementById('passwordModal');
             const passwordFile = document.getElementById('passwordFile');
             const btnSubmitPassword = document.getElementById('btnSubmitPassword');
@@ -743,14 +673,12 @@
             const mainContent = document.getElementById('mainContent');
             const rememberMeCheckbox = document.getElementById('rememberMeCheckbox');
 
-            // Sidebar elements
             const sidebar = document.getElementById('sidebar');
             const sidebarToggle = document.getElementById('sidebar-toggle');
-            const btnShowEncrypt = document.getElementById('btnShowEncrypt'); // Moved to top
-            const btnShowForm = document.getElementById('btnShowForm'); // Moved to top
-            const btnClearSavedPassword = document.getElementById('btnClearSavedPassword'); // Moved to sidebar
+            const btnShowEncrypt = document.getElementById('btnShowEncrypt');
+            const btnShowForm = document.getElementById('btnShowForm');
+            const btnClearSavedPassword = document.getElementById('btnClearSavedPassword');
 
-            // Elemen DOM untuk modal form (tambah/edit link)
             const modalForm = document.getElementById('modalForm');
             const closeModal = document.querySelector('#modalForm .close');
             const modalFormTitle = document.getElementById('modalFormTitle');
@@ -767,28 +695,20 @@
             const searchForm = document.getElementById('searchForm');
             const searchInput = document.getElementById('searchInput');
 
-            // Elemen untuk modal enkripsi gambar
             const modalEncrypt = document.getElementById('modalEncrypt');
             const closeEncryptModal = document.getElementById('closeEncryptModal');
             const encryptForm = document.getElementById('encryptForm');
-            // const encryptResult = document.getElementById('encryptResult'); // Removed as per user request
-            // const encryptedOutput = document.getElementById('encryptedOutput'); // Removed as per user request
-            // const btnDownloadTxt = document.getElementById('btnDownloadTxt'); // Removed as per user request
 
-            // Elemen untuk full-screen modal
-            const fullScreenModal = document.getElementById('fullScreenModal'); // Changed ID
-            const fullScreenContent = document.getElementById('fullScreenContent'); // New element
-            const closeFullScreenModal = document.getElementById('closeFullScreenModal'); // Changed ID
+            const fullScreenModal = document.getElementById('fullScreenModal');
+            const fullScreenContent = document.getElementById('fullScreenContent');
+            const closeFullScreenModal = document.getElementById('closeFullScreenModal');
 
-
-            // Fungsi untuk menampilkan konten utama
             function showMainContent() {
                 passwordModal.style.display = 'none';
                 mainContent.style.display = 'block';
-                loadLinks(); // Muat link setelah berhasil masuk
+                loadLinks();
             }
 
-            // Fungsi untuk memeriksa password
             async function checkPassword(password) {
                 if (password === correctPassword) {
                     showMainContent();
@@ -800,7 +720,6 @@
                 }
             }
 
-            // Memeriksa localStorage saat halaman dimuat
             window.addEventListener('DOMContentLoaded', () => {
                 const savedPassword = localStorage.getItem(LOCAL_STORAGE_KEY);
                 if (savedPassword) {
@@ -808,7 +727,6 @@
                 }
             });
 
-            // Validasi otomatis saat file dipilih
             passwordFile.addEventListener('change', () => {
                 if (passwordFile.files.length === 0) {
                     passwordError.textContent = "Please choose a file.";
@@ -817,7 +735,6 @@
                 }
 
                 const file = passwordFile.files[0];
-                // Pastikan file yang diupload memiliki ekstensi .bat
                 if (!file.name.endsWith('.bat')) {
                     passwordError.textContent = "File must be in .bat format.";
                     passwordError.classList.remove('hidden');
@@ -831,7 +748,7 @@
                     if (passwordCorrect && rememberMeCheckbox.checked) {
                         localStorage.setItem(LOCAL_STORAGE_KEY, fileContent);
                     } else if (!passwordCorrect) {
-                        localStorage.removeItem(LOCAL_STORAGE_KEY); // Hapus jika password salah
+                        localStorage.removeItem(LOCAL_STORAGE_KEY);
                     }
                 };
                 reader.onerror = function () {
@@ -841,7 +758,6 @@
                 reader.readAsText(file);
             });
 
-            // Fungsi tombol Enter sebagai cadangan
             btnSubmitPassword.addEventListener('click', async () => {
                 if (passwordFile.files.length === 0) {
                     passwordError.textContent = "Please choose a file.";
@@ -863,7 +779,7 @@
                     if (passwordCorrect && rememberMeCheckbox.checked) {
                         localStorage.setItem(LOCAL_STORAGE_KEY, fileContent);
                     } else if (!passwordCorrect) {
-                        localStorage.removeItem(LOCAL_STORAGE_KEY); // Hapus jika password salah
+                        localStorage.removeItem(LOCAL_STORAGE_KEY);
                     }
                 };
                 reader.onerror = function () {
@@ -873,9 +789,7 @@
                 reader.readAsText(file);
             });
 
-            // Event listener untuk tombol "Clear Saved Password"
             btnClearSavedPassword.addEventListener('click', () => {
-                // Konfirmasi dengan modal kustom, bukan alert/confirm
                 const confirmationModal = document.createElement('div');
                 confirmationModal.className = 'modal';
                 confirmationModal.innerHTML = `
@@ -892,20 +806,18 @@
                 document.getElementById('confirmClear').addEventListener('click', () => {
                     localStorage.removeItem(LOCAL_STORAGE_KEY);
                     showNotification('Password tersimpan telah dihapus.', false);
-                    confirmationModal.remove(); // Hapus modal konfirmasi
-                    // Opsional: kembali ke modal password jika password tidak lagi tersimpan
+                    confirmationModal.remove();
                     passwordModal.style.display = 'flex';
                     mainContent.style.display = 'none';
-                    passwordError.classList.add('hidden'); // Sembunyikan pesan error
-                    sidebar.classList.remove('open'); // Close sidebar
-                    document.body.classList.remove('sidebar-open'); // Remove body class
+                    passwordError.classList.add('hidden');
+                    sidebar.classList.remove('open');
+                    document.body.classList.remove('sidebar-open');
                 });
 
                 document.getElementById('cancelClear').addEventListener('click', () => {
-                    confirmationModal.remove(); // Hapus modal konfirmasi
+                    confirmationModal.remove();
                 });
 
-                // Tutup modal jika klik di luar konten modal konfirmasi
                 confirmationModal.addEventListener('click', (event) => {
                     if (event.target === confirmationModal) {
                         confirmationModal.remove();
@@ -913,14 +825,11 @@
                 });
             });
 
-
-            // Konfigurasi Supabase – sesuaikan dengan kredensial Anda
             const SUPABASE_URL = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
             const SUPABASE_ANON_KEY =
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
             const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            // Notifikasi
             function showNotification(message, isError = false) {
                 notification.textContent = message;
                 notification.style.borderColor = isError ? '#800000' : '#333';
@@ -930,10 +839,8 @@
                 }, 4000);
             }
 
-            // Fungsi copy ke clipboard
             async function copyToClipboard(text) {
                 try {
-                    // Menggunakan document.execCommand('copy') untuk kompatibilitas iframe
                     const textarea = document.createElement('textarea');
                     textarea.value = text;
                     document.body.appendChild(textarea);
@@ -947,7 +854,6 @@
                 }
             }
 
-            // Memuat data link dari Supabase
             async function loadLinks(searchQuery = '') {
                 linksContainer.innerHTML = '';
                 let query = supabaseClient.from('links').select('*').order('created_at', {
@@ -966,271 +872,123 @@
                     linksContainer.innerHTML = '<p class="text-center" style="color:#666;">No links found.</p>';
                     return;
                 }
-                data.forEach(link => {
-                    const linkItem = document.createElement('div');
-                    linkItem.className = 'link-item';
-                    linkItem.innerHTML = `
-                        <p class="person-name">${link.person_name || 'UNKNOWN'}</p>
-                        <p class="link-title">${link.name}</p>
-                        <p class="link-details">
-                            <strong>URL:</strong>
-                            <a href="${link.url}" target="_blank" class="link-url">${link.url}</a>
-                            <button class="btn-copy" data-url="${link.url}"><i class="fas fa-copy"></i> Copy</button>
-                        </p>
-                        <p class="link-details">
-                            <strong>Shift Code:</strong> ${link.shift_code || '-'}
-                        </p>
-                        <div>
-                            <button class="btn-decrypt" data-url="${link.url}" data-shift="${link.shift_code || 0}">
-                                <i class="fas fa-lock-open"></i> Decrypt
-                            </button>
-                            <button class="btn-edit" data-id="${link.id}" data-person="${link.person_name || ''}" data-name="${link.name}" data-url="${link.url}" data-shift="${link.shift_code || ''}">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="btn-delete" data-id="${link.id}">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        </div>
-                        <div class="decrypted-container hidden"></div>
-                    `;
-                    linksContainer.appendChild(linkItem);
-                });
 
-                // Event listener untuk tombol copy
-                document.querySelectorAll('.btn-copy').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const url = button.getAttribute('data-url');
-                        copyToClipboard(url);
-                    });
-                });
+                for (const link of data) {
+                    const galleryItem = document.createElement('div');
+                    galleryItem.className = 'gallery-item';
+                    galleryItem.innerHTML = `<p class="gallery-item-title">${link.name}</p>`;
 
-                // Event listener untuk tombol dekripsi
-                document.querySelectorAll('.btn-decrypt').forEach(button => {
-                    button.addEventListener('click', async () => {
-                        const url = button.getAttribute('data-url');
-                        const shift = parseInt(button.getAttribute('data-shift')) || 0;
-                        const decryptedContainer = button.parentElement.parentElement.querySelector('.decrypted-container');
+                    const loadingIndicator = document.createElement('p');
+                    loadingIndicator.style.fontSize = '0.8rem';
+                    loadingIndicator.style.color = '#666';
+                    loadingIndicator.textContent = 'Decrypting...';
+                    galleryItem.appendChild(loadingIndicator);
+                    linksContainer.appendChild(galleryItem);
 
-                        // Jika container sudah menampilkan hasil dekripsi, sembunyikan
-                        if (!decryptedContainer.classList.contains('hidden')) {
-                            decryptedContainer.classList.add('hidden');
-                            decryptedContainer.innerHTML = ''; // Kosongkan konten
-                            return; // Hentikan eksekusi lebih lanjut
+                    try {
+                        const response = await fetch(link.url);
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch file for decryption.');
+                        }
+                        const contentLength = response.headers.get('Content-Length');
+                        let textContent = await response.text();
+                        const shift = parseInt(link.shift_code) || 0;
+                        if (shift !== 0) {
+                            textContent = caesarDecipher(textContent, shift);
                         }
 
-                        // Tampilkan kontainer dekripsi (tanpa loading bar)
-                        decryptedContainer.classList.remove('hidden');
-                        decryptedContainer.innerHTML = '<p style="margin: 0; font-size: 0.8rem; color:#666;">Decrypting...</p>';
+                        galleryItem.removeChild(loadingIndicator);
 
+                        let mediaElement;
+                        let fileExtension = '';
+                        let dimensionsInfo = '';
 
-                        try {
-                            const response = await fetch(url);
-                            if (!response.ok) {
-                                throw new Error('Failed to fetch file for decryption.');
-                            }
-                            const contentLength = response.headers.get('Content-Length');
-                            let textContent = await response.text();
-                            if (shift !== 0) {
-                                textContent = caesarDecipher(textContent, shift);
-                            }
-
-                            decryptedContainer.innerHTML = ''; // Clear "Decrypting..."
-                            let mediaElement;
-                            let fileExtension = '';
-                            let dimensionsInfo = '';
-
-                            if (textContent.startsWith('data:image/')) {
-                                mediaElement = document.createElement('img');
-                                mediaElement.src = textContent;
-                                mediaElement.alt = 'Decrypted Image';
-                                fileExtension = 'png'; // Default for images
-                                mediaElement.addEventListener('load', () => {
-                                    const width = mediaElement.naturalWidth;
-                                    const height = mediaElement.naturalHeight;
-                                    dimensionsInfo = `Dimensions: ${width} x ${height}`;
-                                });
-                            } else if (textContent.startsWith('data:video/')) {
-                                mediaElement = document.createElement('video');
-                                mediaElement.src = textContent;
-                                mediaElement.controls = true; // Add controls for video playback
-                                mediaElement.autoplay = false; // Optional: set to true if you want autoplay
-                                mediaElement.loop = true; // Set to true to make video loop
-                                fileExtension = 'mp4'; // Default for videos, can be more specific if needed
-                                mediaElement.addEventListener('loadedmetadata', () => {
-                                    const width = mediaElement.videoWidth;
-                                    const height = mediaElement.videoHeight;
-                                    const duration = mediaElement.duration;
-                                    dimensionsInfo = `Dimensions: ${width} x ${height} | Duration: ${duration.toFixed(2)}s`;
-                                });
-                            } else {
-                                // Handle other types or display as raw text if not image/video
-                                const pre = document.createElement('pre');
-                                pre.textContent = textContent;
-                                pre.style.whiteSpace = 'pre-wrap';
-                                pre.style.wordBreak = 'break-all';
-                                mediaElement = pre;
-                                fileExtension = 'txt';
-                            }
-
-                            mediaElement.style.maxWidth = '100%';
-                            mediaElement.style.marginTop = '1rem';
-                            mediaElement.style.borderRadius = '4px';
-                            mediaElement.style.border = '1px solid #666';
-
-                            // Add click listener to the media element for full-screen
-                            mediaElement.addEventListener('click', () => {
-                                fullScreenContent.innerHTML = ''; // Clear previous content
-                                const fullScreenMedia = mediaElement.cloneNode(true); // Clone the element
-                                fullScreenMedia.controls = true; // Ensure controls are on for full screen video
-                                fullScreenMedia.autoplay = true; // Autoplay when full screen
-                                fullScreenMedia.loop = true; // Loop when full screen
-                                fullScreenContent.appendChild(fullScreenMedia);
-                                fullScreenModal.style.display = 'flex';
+                        if (textContent.startsWith('data:image/')) {
+                            mediaElement = document.createElement('img');
+                            mediaElement.src = textContent;
+                            mediaElement.alt = 'Decrypted Image';
+                            fileExtension = 'png';
+                            mediaElement.addEventListener('load', () => {
+                                const width = mediaElement.naturalWidth;
+                                const height = mediaElement.naturalHeight;
+                                dimensionsInfo = `Dimensions: ${width} x ${height}`;
                             });
-
-                            const downloadBtn = document.createElement('button');
-                            downloadBtn.className = 'btn-download';
-                            downloadBtn.innerHTML = `<i class="fas fa-download"></i> Download ${fileExtension.toUpperCase()}`;
-                            downloadBtn.addEventListener('click', () => {
-                                const a = document.createElement('a');
-                                a.href = textContent;
-                                a.download = `decrypted_file.${fileExtension}`; // Dynamic file extension
-                                document.body.appendChild(a);
-                                a.click();
-                                document.body.removeChild(a);
+                        } else if (textContent.startsWith('data:video/')) {
+                            mediaElement = document.createElement('video');
+                            mediaElement.src = textContent;
+                            mediaElement.controls = false;
+                            mediaElement.autoplay = false;
+                            mediaElement.loop = true;
+                            fileExtension = 'mp4';
+                            mediaElement.addEventListener('loadedmetadata', () => {
+                                const width = mediaElement.videoWidth;
+                                const height = mediaElement.videoHeight;
+                                const duration = mediaElement.duration;
+                                dimensionsInfo = `Dimensions: ${width} x ${height} | Duration: ${duration.toFixed(2)}s`;
                             });
-
-                            const hideBtn = document.createElement('button');
-                            hideBtn.className = 'btn-hide-content'; // Changed class name
-                            hideBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Content'; // Changed text
-                            hideBtn.addEventListener('click', () => {
-                                decryptedContainer.classList.add('hidden');
-                                decryptedContainer.innerHTML = ''; // Kosongkan konten saat disembunyikan
-                            });
-
-                            decryptedContainer.appendChild(mediaElement);
-                            decryptedContainer.appendChild(downloadBtn);
-                            decryptedContainer.appendChild(hideBtn); // Tambahkan tombol hide
-
-                            if (contentLength || dimensionsInfo) {
-                                const infoDiv = document.createElement('div');
-                                infoDiv.style.marginTop = '0.5rem';
-                                let sizeText = '-';
-                                if (contentLength) {
-                                    sizeText = `${(parseInt(contentLength) / 1024).toFixed(2)} KB`;
-                                }
-                                infoDiv.innerHTML =
-                                    `<p style="font-size: 0.7rem; color: #333;">File Size: ${sizeText} | ${dimensionsInfo}</p>`;
-                                decryptedContainer.appendChild(infoDiv);
-                            }
-
-                        } catch (error) {
-                            decryptedContainer.innerHTML = '';
-                            showNotification(error.message, true);
+                        } else {
+                            const pre = document.createElement('pre');
+                            pre.textContent = textContent;
+                            mediaElement = pre;
+                            fileExtension = 'txt';
                         }
-                    });
-                });
 
-                // Event listener untuk tombol edit
-                document.querySelectorAll('.btn-edit').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const id = button.getAttribute('data-id');
-                        const personName = button.getAttribute('data-person');
-                        const linkName = button.getAttribute('data-name');
-                        const linkUrl = button.getAttribute('data-url');
-                        const shiftCode = button.getAttribute('data-shift');
-
-                        // Set the form fields
-                        linkIdInput.value = id;
-                        personNameInput.value = personName;
-                        linkNameInput.value = linkName;
-                        linkUrlInput.value = linkUrl;
-                        shiftCodeInput.value = shiftCode;
-
-                        // Change modal title and button text
-                        modalFormTitle.textContent = 'Edit Link';
-                        submitLinkButton.innerHTML = '<i class="fas fa-save"></i> Update Link';
-
-                        // Show the modal
-                        modalForm.style.display = 'block';
-                    });
-                });
-
-                // Event listener untuk tombol hapus
-                document.querySelectorAll('.btn-delete').forEach(button => {
-                    button.addEventListener('click', async () => {
-                        // Mengganti confirm() dengan modal kustom
-                        const deleteConfirmationModal = document.createElement('div');
-                        deleteConfirmationModal.className = 'modal';
-                        deleteConfirmationModal.innerHTML = `
-                            <div class="modal-content">
-                                <h2>Konfirmasi Hapus Link</h2>
-                                <p>Apakah Anda yakin ingin menghapus link ini?</p>
-                                <button id="confirmDelete" class="btn-action" style="width:auto; margin-right:10px;"><i class="fas fa-check"></i> Ya</button>
-                                <button id="cancelDelete" class="btn-action" style="width:auto;"><i class="fas fa-times"></i> Tidak</button>
-                            </div>
-                        `;
-                        document.body.appendChild(deleteConfirmationModal);
-                        deleteConfirmationModal.style.display = 'block';
-
-                        document.getElementById('confirmDelete').addEventListener('click', async () => {
-                            const id = button.getAttribute('data-id');
-                            const { error } = await supabaseClient
-                                .from('links')
-                                .delete()
-                                .eq('id', id);
-                            if (error) {
-                                console.error(error);
-                                showNotification('Failed to delete link.', true);
-                            } else {
-                                showNotification('Link deleted successfully.');
-                                loadLinks(searchInput.value);
-                            }
-                            deleteConfirmationModal.remove(); // Hapus modal konfirmasi
+                        mediaElement.addEventListener('click', () => {
+                            fullScreenContent.innerHTML = '';
+                            const fullScreenMedia = mediaElement.cloneNode(true);
+                            fullScreenMedia.controls = true;
+                            fullScreenMedia.autoplay = true;
+                            fullScreenMedia.loop = true;
+                            fullScreenContent.appendChild(fullScreenMedia);
+                            fullScreenModal.style.display = 'flex';
                         });
 
-                        document.getElementById('cancelDelete').addEventListener('click', () => {
-                            deleteConfirmationModal.remove(); // Hapus modal konfirmasi
-                        });
+                        galleryItem.appendChild(mediaElement);
 
-                        // Tutup modal jika klik di luar konten modal konfirmasi
-                        deleteConfirmationModal.addEventListener('click', (event) => {
-                            if (event.target === deleteConfirmationModal) {
-                                deleteConfirmationModal.remove();
-                            }
-                        });
-                    });
-                });
+                        const infoDiv = document.createElement('div');
+                        infoDiv.className = 'gallery-item-info';
+                        let sizeText = '-';
+                        if (contentLength) {
+                            sizeText = `${(parseInt(contentLength) / 1024).toFixed(2)} KB`;
+                        }
+                        infoDiv.innerHTML = `<p>File Size: ${sizeText} | ${dimensionsInfo}</p>`;
+                        galleryItem.appendChild(infoDiv);
+
+                    } catch (error) {
+                        galleryItem.removeChild(loadingIndicator);
+                        const errorText = document.createElement('p');
+                        errorText.style.color = '#800000';
+                        errorText.style.fontSize = '0.8rem';
+                        errorText.textContent = `Error decrypting: ${error.message}`;
+                        galleryItem.appendChild(errorText);
+                        console.error(error);
+                    }
+                }
             }
 
-            // Tampilkan Modal Popup ketika tombol tambah (+) ditekan
             btnShowForm.addEventListener('click', () => {
-                // Reset form for adding new link
                 linkForm.reset();
-                linkIdInput.value = ''; // Clear hidden ID
+                linkIdInput.value = '';
                 modalFormTitle.textContent = 'Add New Link';
                 submitLinkButton.innerHTML = '<i class="fas fa-save"></i> Save Link';
                 modalForm.style.display = 'block';
-                sidebar.classList.remove('open'); // Close sidebar when opening modal
-                document.body.classList.remove('sidebar-open'); // Remove body class
+                sidebar.classList.remove('open');
+                document.body.classList.remove('sidebar-open');
             });
 
-            // Tutup Modal ketika tombol close pada modal tambah link ditekan
             closeModal.addEventListener('click', () => {
                 modalForm.style.display = 'none';
             });
 
-            // Tutup Modal jika klik di luar konten modal (tambah link)
             window.addEventListener('click', (event) => {
                 if (event.target == modalForm) {
                     modalForm.style.display = 'none';
                 }
             });
 
-            // Kirim form tambah/edit link
             linkForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const id = linkIdInput.value; // Get ID from hidden input
+                const id = linkIdInput.value;
                 const personName = personNameInput.value.trim();
                 const linkName = linkNameInput.value.trim();
                 const linkUrl = linkUrlInput.value.trim();
@@ -1243,13 +1001,11 @@
 
                 let error;
                 if (id) {
-                    // Update existing link
                     ({ error } = await supabaseClient
                         .from('links')
                         .update({ person_name: personName, name: linkName, url: linkUrl, shift_code: shiftCode })
                         .eq('id', id));
                 } else {
-                    // Insert new link
                     ({ error } = await supabaseClient
                         .from('links')
                         .insert([{ person_name: personName, name: linkName, url: linkUrl, shift_code: shiftCode }]));
@@ -1261,63 +1017,53 @@
                 } else {
                     showNotification(`Link ${id ? 'updated' : 'saved'} successfully.`, false);
                     linkForm.reset();
-                    linkIdInput.value = ''; // Clear hidden ID after successful operation
+                    linkIdInput.value = '';
                     modalForm.style.display = 'none';
                     loadLinks(searchInput.value);
                 }
             });
 
-            // Pencarian link secara langsung (live search)
             searchInput.addEventListener('input', () => {
                 const query = searchInput.value;
                 loadLinks(query);
             });
 
-            // Jika form pencarian dikirim (agar tombol "Cari" juga berfungsi)
             searchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const query = searchInput.value;
                 loadLinks(query);
             });
 
-            // Modal Enkripsi Gambar
-
-            // Tampilkan modal enkripsi gambar saat tombol ditekan
             btnShowEncrypt.addEventListener('click', () => {
                 modalEncrypt.style.display = 'block';
-                sidebar.classList.remove('open'); // Close sidebar when opening modal
-                document.body.classList.remove('sidebar-open'); // Remove body class
+                sidebar.classList.remove('open');
+                document.body.classList.remove('sidebar-open');
             });
 
-            // Tutup modal enkripsi gambar ketika tombol close ditekan
             closeEncryptModal.addEventListener('click', () => {
                 modalEncrypt.style.display = 'none';
             });
 
-            // Tutup modal jika klik di luar konten modal enkripsi
             window.addEventListener('click', (event) => {
                 if (event.target == modalEncrypt) {
                     modalEncrypt.style.display = 'none';
                 }
             });
 
-            // Proses enkripsi gambar
             encryptForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const fileInput = document.getElementById('imageInput');
                 const shiftValue = parseInt(document.getElementById('encryptShift').value) || 0;
                 if (fileInput.files.length === 0) {
-                    showNotification('Please select an image or video to encrypt.', true); // Updated text
+                    showNotification('Please select an image or video to encrypt.', true);
                     return;
                 }
                 const file = fileInput.files[0];
                 const reader = new FileReader();
                 reader.onload = function (event) {
                     const dataUrl = event.target.result;
-                    // Enkripsi data URL gambar/video menggunakan Caesar cipher
                     const encryptedData = caesarCipher(dataUrl, shiftValue);
 
-                    // Langsung unduh file terenkripsi
                     const blob = new Blob([encryptedData], { type: 'text/plain' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -1328,9 +1074,9 @@
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
 
-                    showNotification('Content encrypted and downloaded successfully.'); // Updated text
-                    encryptForm.reset(); // Reset form setelah unduh
-                    modalEncrypt.style.display = 'none'; // Tutup modal setelah unduh
+                    showNotification('Content encrypted and downloaded successfully.');
+                    encryptForm.reset();
+                    modalEncrypt.style.display = 'none';
                 };
                 reader.onerror = function (err) {
                     console.error(err);
@@ -1339,7 +1085,6 @@
                 reader.readAsDataURL(file);
             });
 
-            // Fungsi Caesar cipher untuk enkripsi (shift ke depan)
             function caesarCipher(str, shift) {
                 return str.replace(/[a-zA-Z]/g, function (c) {
                     const base = c <= 'Z' ? 65 : 97;
@@ -1347,7 +1092,6 @@
                 });
             }
 
-            // Fungsi Caesar decipher untuk dekripsi (shift ke belakang)
             function caesarDecipher(str, shift) {
                 return str.replace(/[a-zA-Z]/g, function (c) {
                     const base = c <= 'Z' ? 65 : 97;
@@ -1355,11 +1099,9 @@
                 });
             }
 
-            // Sidebar toggle logic
             sidebarToggle.addEventListener('click', () => {
                 sidebar.classList.toggle('open');
                 document.body.classList.toggle('sidebar-open');
-                // Toggle visibility of sidebar-toggle icon
                 if (sidebar.classList.contains('open')) {
                     sidebarToggle.style.opacity = '0';
                     sidebarToggle.style.pointerEvents = 'none';
@@ -1369,43 +1111,37 @@
                 }
             });
 
-            // Close sidebar when clicking outside (on main content)
             mainContent.addEventListener('click', (event) => {
                 if (sidebar.classList.contains('open')) {
-                    // Check if the click was outside the sidebar itself
                     if (!sidebar.contains(event.target) && event.target !== sidebarToggle) {
                         sidebar.classList.remove('open');
                         document.body.classList.remove('sidebar-open');
-                        sidebarToggle.style.opacity = '1'; // Show toggle button
+                        sidebarToggle.style.opacity = '1';
                         sidebarToggle.style.pointerEvents = 'auto';
                     }
                 }
             });
 
-            // Close sidebar when a button inside it is clicked (optional, but good UX)
             sidebar.querySelectorAll('button').forEach(button => {
                 button.addEventListener('click', () => {
-                    // Only close if it's not the Clear Saved Password confirmation modal
                     if (!button.closest('.modal')) {
                         sidebar.classList.remove('open');
                         document.body.classList.remove('sidebar-open');
-                        sidebarToggle.style.opacity = '1'; // Show toggle button
+                        sidebarToggle.style.opacity = '1';
                         sidebarToggle.style.pointerEvents = 'auto';
                     }
                 });
             });
 
-            // Close full-screen modal
-            closeFullScreenModal.addEventListener('click', () => { // Changed ID
-                fullScreenModal.style.display = 'none'; // Changed ID
-                fullScreenContent.innerHTML = ''; // Clear content
+            closeFullScreenModal.addEventListener('click', () => {
+                fullScreenModal.style.display = 'none';
+                fullScreenContent.innerHTML = '';
             });
 
-            // Close full-screen modal when clicking outside the content
-            fullScreenModal.addEventListener('click', (event) => { // Changed ID
-                if (event.target === fullScreenModal) { // Changed ID
-                    fullScreenModal.style.display = 'none'; // Changed ID
-                    fullScreenContent.innerHTML = ''; // Clear content
+            fullScreenModal.addEventListener('click', (event) => {
+                if (event.target === fullScreenModal) {
+                    fullScreenModal.style.display = 'none';
+                    fullScreenContent.innerHTML = '';
                 }
             });
         </script>
