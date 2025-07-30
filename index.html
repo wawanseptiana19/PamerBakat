@@ -125,6 +125,7 @@
             padding: 1.5rem; /* Consistent padding */
             padding-top: 70px; /* Space for toggle button */
             gap: 1.5rem; /* Increased gap for better spacing */
+            align-items: center; /* Center items horizontally in the column */
         }
 
         #sidebar.open {
@@ -241,7 +242,7 @@
             border-radius: 0.5rem;
             width: 50px; /* Fixed width for consistent size */
             height: 50px; /* Fixed height for consistent size */
-            margin-top: 0;
+            margin-top: 0; /* Ensure no extra top margin */
             display: flex;
             align-items: center;
             justify-content: center; /* Center the icon */
@@ -281,12 +282,12 @@
             opacity: 1;
         }
 
-        /* Removed specific style for Clear Saved Password button - pushed to bottom */
-        /* #sidebar #btnClearSavedPassword {
-            border-radius: 50%;
-            margin-top: auto;
-            align-self: center;
-        } */
+        /* Specific style for Clear Saved Password button - removed margin-top: auto */
+        #sidebar #btnClearSavedPassword {
+            border-radius: 50%; /* Ensure it's circular */
+            /* Removed margin-top: auto; to align vertically with others */
+            /* align-self: center; is already handled by parent's align-items: center */
+        }
         #sidebar #btnClearSavedPassword i {
             margin: 0; /* Remove margin from icon */
         }
