@@ -1018,7 +1018,7 @@
                             const width = mediaElement.videoWidth;
                             const height = mediaElement.videoHeight;
                             const duration = mediaElement.duration;
-                            dimensionsInfo = `Dimensions: ${width} x ${height} | Duration: ${duration.toFixed(2)}s`;
+                            dimensionsInfo = `Dimensions: ${duration.toFixed(2)}s`; // Removed width x height for videos
                         });
                     } else {
                         const pre = document.createElement('pre');
@@ -1089,7 +1089,9 @@
             }
 
             async function loadLinks(searchQuery = '') {
-                linksContainer.innerHTML = '';
+                linksContainer.innerHTML = ''; // Pastikan ini selalu ada di awal
+                linksContainer.innerHTML = '<p class="text-center" style="color:#666;">Loading links...</p>'; // Loading indicator
+
                 let query = supabaseClient.from('links').select('*').order('created_at', {
                     ascending: false
                 });
@@ -1100,12 +1102,15 @@
                 if (error) {
                     console.error(error);
                     showNotification('Error loading links.', true);
+                    linksContainer.innerHTML = '<p class="text-center" style="color:#800000;">Error loading links.</p>';
                     return;
                 }
                 if (!data || data.length === 0) {
                     linksContainer.innerHTML = '<p class="text-center" style="color:#666;">No links found.</p>';
                     return;
                 }
+
+                linksContainer.innerHTML = ''; // Clear loading indicator and prepare for actual content
 
                 if (isGalleryView) {
                     linksContainer.classList.add('gallery-view');
@@ -1199,7 +1204,7 @@
                         document.body.appendChild(deleteConfirmationModal);
                         deleteConfirmationModal.style.display = 'block';
 
-                        document.getElementById('confirmDelete').addEventListener('click', async () => {
+                        document.getElementById('confirmClear').addEventListener('click', async () => {
                             const id = button.getAttribute('data-id');
                             const { error } = await supabaseClient
                                 .from('links')
@@ -1285,15 +1290,30 @@
                 }
             });
 
+            // Debounce function
+            function debounce(func, delay) {
+                let timeout;
+                return function(...args) {
+                    const context = this;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(context, args), delay);
+                };
+            }
+
+            // Apply debounce to search input
+            const debouncedLoadLinks = debounce((query) => {
+                loadLinks(query);
+            }, 300); // 300ms delay
+
             searchInput.addEventListener('input', () => {
                 const query = searchInput.value;
-                loadLinks(query);
+                debouncedLoadLinks(query);
             });
 
             searchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const query = searchInput.value;
-                loadLinks(query);
+                loadLinks(query); // No debounce on explicit submit
             });
 
             btnShowEncrypt.addEventListener('click', () => {
