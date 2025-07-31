@@ -443,17 +443,16 @@
             border: 1px solid #333;
         }
 
-        /* Gaya baru untuk gambar dan video yang diperkecil dalam mode galeri */
         .gallery-view .link-item .decrypted-container img,
         .gallery-view .link-item .decrypted-container video {
-            max-width: 200px; /* Ukuran maksimum gambar/video dalam mode galeri */
-            max-height: 200px; /* Ukuran maksimum gambar/video dalam mode galeri */
+            max-width: 200px;
+            max-height: 200px;
             width: auto;
             height: auto;
             margin-top: 0.5rem;
             border-radius: 4px;
             border: 1px solid #666;
-            object-fit: contain; /* Memastikan media tidak terdistorsi */
+            object-fit: contain;
         }
 
         .gallery-view .link-item .decrypted-container .btn-download {
@@ -469,8 +468,8 @@
         }
 
         .person-name {
-            font-size: 1.1rem; /* Ukuran font lebih besar */
-            font-weight: bold; /* Teks lebih tebal */
+            font-size: 1.1rem;
+            font-weight: bold;
             text-transform: uppercase;
             color: #333;
             margin-bottom: 0.5rem;
@@ -701,27 +700,25 @@
     <div id="sidebar">
         <button id="btnShowEncrypt">
             <i class="fas fa-key"></i>
-            <span class="tooltip-text">Encrypt Image</span>
+            <span class="tooltip-text">Enkripsi</span>
         </button>
         <button id="btnShowForm">
             <i class="fas fa-plus"></i>
-            <span class="tooltip-text">Add New Link</span>
+            <span class="tooltip-text">Tambahkan Konten</span>
         </button>
-        <button id="btnToggleView">
-            <i class="fas fa-th-large"></i>
-            <span class="tooltip-text">Toggle View</span>
-        </button>
-        <!-- Clear Saved Password button moved to the bottom and icon changed -->
         <button id="btnClearSavedPassword" style="margin-top: auto;">
             <i class="fas fa-sign-out-alt"></i>
-            <span class="tooltip-text">Clear Saved Password</span>
+            <span class="tooltip-text">Logout</span>
         </button>
     </div>
 
     <div id="mainContent">
         <form id="searchForm" class="search-form">
-            <input type="text" id="searchInput" class="search-input" placeholder="Search links by person name...">
-            <button type="submit" class="btn-search"><i class="fas fa-search"></i> Search</button>
+            <input type="text" id="searchInput" class="search-input" placeholder="Cari seseorang...">
+            <button type="submit" class="btn-search"><i class="fas fa-search"></i></button>
+            <button id="btnToggleView" type="button" class="btn-search">
+                <i class="fas fa-th-large"></i>
+            </button>
         </form>
 
         <div id="linksContainer"></div>
@@ -729,15 +726,15 @@
         <div id="modalForm" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
-                <h1 id="modalFormTitle">Add New Link</h1>
+                <h1 id="modalFormTitle">Tambahakan Daftar</h1>
                 <form id="linkForm">
                     <input type="hidden" id="linkId">
                     <div class="form-group">
-                        <label for="personName" class="form-label">Person Name</label>
+                        <label for="personName" class="form-label">Nama Orang</label>
                         <input type="text" id="personName" class="form-input" placeholder="Enter person name" required>
                     </div>
                     <div class="form-group">
-                        <label for="linkName" class="form-label">Link Name</label>
+                        <label for="linkName" class="form-label">Nama Tautan</label>
                         <input type="text" id="linkName" class="form-input" placeholder="Enter link name" required>
                     </div>
                     <div class="form-group">
@@ -746,7 +743,7 @@
                             required>
                     </div>
                     <div class="form-group">
-                        <label for="shiftCode" class="form-label">Shift Code</label>
+                        <label for="shiftCode" class="form-label">Pergeseran</label>
                         <input type="text" id="shiftCode" class="form-input" placeholder="Enter shift code">
                     </div>
                     <button type="submit" class="btn-action" id="submitLinkButton"><i class="fas fa-save"></i> Save
@@ -759,20 +756,19 @@
         <div id="modalEncrypt" class="modal">
             <div class="modal-content">
                 <span class="close" id="closeEncryptModal">&times;</span>
-                <h1>Encrypt Image</h1>
+                <h1>Enkripsi File</h1>
                 <form id="encryptForm">
                     <div class="form-group">
-                        <label for="imageInput" class="form-label">Choose Image</label>
+                        <label for="imageInput" class="form-label"></label>
                         <input type="file" id="imageInput" class="form-input" accept="image/*,video/*" required>
                     </div>
                     <div class="form-group">
-                        <label for="encryptShift" class="form-label">Shift Code</label>
+                        <label for="encryptShift" class="form-label">Pergeseran</label>
                         <input type="number" id="encryptShift" class="form-input" placeholder="Enter shift code"
                             required>
                     </div>
                     <div class="form-group">
-                        <label for="outputFileName" class="form-label">Output File Name (e.g., my_secret.pb)</label>
-                        <!-- Input untuk nama file output, akan diisi otomatis -->
+                        <label for="outputFileName" class="form-label">Nama File (my_secret.pb)</label>
                         <input type="text" id="outputFileName" class="form-input" placeholder="encrypted.pb">
                     </div>
                     <button type="submit" class="btn-action"><i class="fas fa-lock"></i> Encrypt</button>
@@ -787,12 +783,9 @@
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
         <script>
-            // Kata sandi yang benar untuk akses
             const correctPassword = "YQDYIpjYnF7PZtDYs6e8yZJmGqTuB4rgZQSaenc618nmy4x095";
-            // Kunci untuk penyimpanan lokal
             const LOCAL_STORAGE_KEY = 'savedPassword';
 
-            // Elemen-elemen DOM
             const passwordModal = document.getElementById('passwordModal');
             const passwordFile = document.getElementById('passwordFile');
             const btnSubmitPassword = document.getElementById('btnSubmitPassword');
@@ -832,17 +825,14 @@
             const fullScreenContent = document.getElementById('fullScreenContent');
             const closeFullScreenModal = document.getElementById('closeFullScreenModal');
 
-            // Variabel untuk melacak mode tampilan (daftar atau galeri)
             let isGalleryView = false;
 
-            // Fungsi untuk menampilkan konten utama setelah otentikasi
             function showMainContent() {
                 passwordModal.style.display = 'none';
                 mainContent.style.display = 'block';
                 loadLinks();
             }
 
-            // Fungsi untuk memeriksa kata sandi
             async function checkPassword(password) {
                 if (password === correctPassword) {
                     showMainContent();
@@ -854,7 +844,6 @@
                 }
             }
 
-            // Memeriksa kata sandi yang tersimpan saat DOM dimuat
             window.addEventListener('DOMContentLoaded', () => {
                 const savedPassword = localStorage.getItem(LOCAL_STORAGE_KEY);
                 if (savedPassword) {
@@ -862,7 +851,6 @@
                 }
             });
 
-            // Event listener untuk perubahan file kata sandi
             passwordFile.addEventListener('change', () => {
                 if (passwordFile.files.length === 0) {
                     passwordError.textContent = "Mohon pilih file.";
@@ -894,7 +882,6 @@
                 reader.readAsText(file);
             });
 
-            // Event listener untuk tombol submit kata sandi
             btnSubmitPassword.addEventListener('click', async () => {
                 if (passwordFile.files.length === 0) {
                     passwordError.textContent = "Mohon pilih file.";
@@ -926,7 +913,6 @@
                 reader.readAsText(file);
             });
 
-            // Event listener untuk tombol hapus kata sandi yang tersimpan
             btnClearSavedPassword.addEventListener('click', () => {
                 const confirmationModal = document.createElement('div');
                 confirmationModal.className = 'modal';
@@ -963,13 +949,11 @@
                 });
             });
 
-            // Inisialisasi Supabase Client
             const SUPABASE_URL = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
             const SUPABASE_ANON_KEY =
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
             const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            // Fungsi untuk menampilkan notifikasi
             function showNotification(message, isError = false) {
                 notification.textContent = message;
                 notification.style.borderColor = isError ? '#800000' : '#333';
@@ -979,7 +963,6 @@
                 }, 4000);
             }
 
-            // Fungsi untuk menyalin teks ke clipboard
             async function copyToClipboard(text) {
                 try {
                     const textarea = document.createElement('textarea');
@@ -995,13 +978,11 @@
                 }
             }
 
-            // Fungsi untuk mendekripsi dan menampilkan konten
             async function decryptAndDisplay(linkItem, url, shift) {
                 const decryptedContainer = linkItem.querySelector('.decrypted-container');
 
                 if (!decryptedContainer) return;
 
-                // Sembunyikan konten jika sudah ditampilkan dan bukan dalam mode galeri
                 if (!decryptedContainer.classList.contains('hidden') && !isGalleryView) {
                     decryptedContainer.classList.add('hidden');
                     decryptedContainer.innerHTML = '';
@@ -1027,7 +1008,6 @@
                     let fileExtension = '';
                     let dimensionsInfo = '';
 
-                    // Menentukan jenis media dan membuat elemen yang sesuai
                     if (textContent.startsWith('data:image/')) {
                         mediaElement = document.createElement('img');
                         mediaElement.src = textContent;
@@ -1049,7 +1029,7 @@
                             const width = mediaElement.videoWidth;
                             const height = mediaElement.videoHeight;
                             const duration = mediaElement.duration;
-                            dimensionsInfo = `Durasi: ${duration.toFixed(2)}s`; // Menghapus lebar x tinggi untuk video
+                            dimensionsInfo = `Durasi: ${duration.toFixed(2)}s`;
                         });
                     } else {
                         const pre = document.createElement('pre');
@@ -1060,13 +1040,11 @@
                         fileExtension = 'txt';
                     }
 
-                    // Gaya dasar untuk elemen media
                     mediaElement.style.maxWidth = '100%';
                     mediaElement.style.marginTop = '1rem';
                     mediaElement.style.borderRadius = '4px';
                     mediaElement.style.border = '1px solid #666';
 
-                    // Event listener untuk mode layar penuh
                     mediaElement.addEventListener('click', () => {
                         fullScreenContent.innerHTML = '';
                         const fullScreenMedia = mediaElement.cloneNode(true);
@@ -1077,7 +1055,6 @@
                         fullScreenModal.style.display = 'flex';
                     });
 
-                    // Tombol unduh
                     const downloadBtn = document.createElement('button');
                     downloadBtn.className = 'btn-download';
                     downloadBtn.innerHTML = `<i class="fas fa-download"></i> Unduh ${fileExtension.toUpperCase()}`;
@@ -1090,7 +1067,6 @@
                         document.body.removeChild(a);
                     });
 
-                    // Tombol sembunyikan konten (tidak ditampilkan dalam mode galeri)
                     const hideBtn = document.createElement('button');
                     hideBtn.className = 'btn-hide-content';
                     hideBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Sembunyikan Konten';
@@ -1101,11 +1077,10 @@
 
                     decryptedContainer.appendChild(mediaElement);
                     decryptedContainer.appendChild(downloadBtn);
-                    if (!isGalleryView) { // Hanya tampilkan tombol sembunyikan jika bukan mode galeri
+                    if (!isGalleryView) {
                         decryptedContainer.appendChild(hideBtn);
                     }
 
-                    // Tampilkan informasi ukuran file atau dimensi
                     if (contentLength || dimensionsInfo) {
                         const infoDiv = document.createElement('div');
                         infoDiv.style.marginTop = '0.5rem';
@@ -1124,10 +1099,9 @@
                 }
             }
 
-            // Fungsi untuk memuat dan menampilkan tautan
             async function loadLinks(searchQuery = '') {
-                linksContainer.innerHTML = ''; // Pastikan ini selalu ada di awal
-                linksContainer.innerHTML = '<p class="text-center" style="color:#666;">Memuat tautan...</p>'; // Indikator pemuatan
+                linksContainer.innerHTML = '';
+                linksContainer.innerHTML = '<p class="text-center" style="color:#666;">Memuat tautan...</p>';
 
                 let query = supabaseClient.from('links').select('*').order('created_at', {
                     ascending: false
@@ -1147,9 +1121,8 @@
                     return;
                 }
 
-                linksContainer.innerHTML = ''; // Hapus indikator pemuatan dan siapkan untuk konten sebenarnya
+                linksContainer.innerHTML = '';
 
-                // Terapkan atau hapus kelas gallery-view
                 if (isGalleryView) {
                     linksContainer.classList.add('gallery-view');
                 } else {
@@ -1185,13 +1158,11 @@
                     `;
                     linksContainer.appendChild(linkItem);
 
-                    // Secara otomatis dekripsi dan tampilkan dalam mode galeri
                     if (isGalleryView) {
                         decryptAndDisplay(linkItem, link.url, parseInt(link.shift_code) || 0);
                     }
                 });
 
-                // Event listener untuk tombol salin
                 document.querySelectorAll('.btn-copy').forEach(button => {
                     button.addEventListener('click', () => {
                         const url = button.getAttribute('data-url');
@@ -1199,7 +1170,6 @@
                     });
                 });
 
-                // Event listener untuk tombol dekripsi
                 document.querySelectorAll('.btn-decrypt').forEach(button => {
                     button.addEventListener('click', async () => {
                         const url = button.getAttribute('data-url');
@@ -1209,7 +1179,6 @@
                     });
                 });
 
-                // Event listener untuk tombol edit
                 document.querySelectorAll('.btn-edit').forEach(button => {
                     button.addEventListener('click', () => {
                         const id = button.getAttribute('data-id');
@@ -1231,7 +1200,6 @@
                     });
                 });
 
-                // Event listener untuk tombol hapus
                 document.querySelectorAll('.btn-delete').forEach(button => {
                     button.addEventListener('click', async () => {
                         const deleteConfirmationModal = document.createElement('div');
@@ -1247,7 +1215,7 @@
                         document.body.appendChild(deleteConfirmationModal);
                         deleteConfirmationModal.style.display = 'block';
 
-                        document.getElementById('confirmDelete').addEventListener('click', async () => {
+                        document.getElementById('confirmClear').addEventListener('click', async () => {
                             const id = button.getAttribute('data-id');
                             const { error } = await supabaseClient
                                 .from('links')
@@ -1263,7 +1231,7 @@
                             deleteConfirmationModal.remove();
                         });
 
-                        document.getElementById('cancelDelete').addEventListener('click', () => {
+                        document.getElementById('cancelClear').addEventListener('click', () => {
                             deleteConfirmationModal.remove();
                         });
 
@@ -1276,7 +1244,6 @@
                 });
             }
 
-            // Event listener untuk menampilkan formulir tambah/edit
             btnShowForm.addEventListener('click', () => {
                 linkForm.reset();
                 linkIdInput.value = '';
@@ -1287,19 +1254,16 @@
                 document.body.classList.remove('sidebar-open');
             });
 
-            // Event listener untuk menutup modal formulir
             closeModal.addEventListener('click', () => {
                 modalForm.style.display = 'none';
             });
 
-            // Event listener untuk menutup modal formulir saat mengklik di luar konten
             window.addEventListener('click', (event) => {
                 if (event.target == modalForm) {
                     modalForm.style.display = 'none';
                 }
             });
 
-            // Event listener untuk submit formulir tautan
             linkForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const id = linkIdInput.value;
@@ -1337,7 +1301,6 @@
                 }
             });
 
-            // Fungsi debounce untuk pencarian
             function debounce(func, delay) {
                 let timeout;
                 return function (...args) {
@@ -1347,25 +1310,21 @@
                 };
             }
 
-            // Terapkan debounce ke input pencarian
             const debouncedLoadLinks = debounce((query) => {
                 loadLinks(query);
-            }, 300); // Penundaan 300ms
+            }, 300);
 
-            // Event listener untuk input pencarian
             searchInput.addEventListener('input', () => {
                 const query = searchInput.value;
                 debouncedLoadLinks(query);
             });
 
-            // Event listener untuk submit formulir pencarian
             searchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const query = searchInput.value;
-                loadLinks(query); // Tidak ada debounce pada submit eksplisit
+                loadLinks(query);
             });
 
-            // Fungsi untuk menghasilkan string acak
             function generateRandomString(length) {
                 const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
                 let result = '';
@@ -1376,28 +1335,23 @@
                 return result;
             }
 
-            // Event listener untuk menampilkan modal enkripsi
             btnShowEncrypt.addEventListener('click', () => {
-                // Mengisi input outputFileName dengan nama acak saat modal dibuka
-                outputFileNameInput.value = generateRandomString(12) + '.pb'; // Contoh: 12 karakter acak + ekstensi .ais
+                outputFileNameInput.value = generateRandomString(12) + '.pb';
                 modalEncrypt.style.display = 'block';
                 sidebar.classList.remove('open');
                 document.body.classList.remove('sidebar-open');
             });
 
-            // Event listener untuk menutup modal enkripsi
             closeEncryptModal.addEventListener('click', () => {
                 modalEncrypt.style.display = 'none';
             });
 
-            // Event listener untuk menutup modal enkripsi saat mengklik di luar konten
             window.addEventListener('click', (event) => {
                 if (event.target == modalEncrypt) {
                     modalEncrypt.style.display = 'none';
                 }
             });
 
-            // Event listener untuk submit formulir enkripsi
             encryptForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const fileInput = document.getElementById('imageInput');
@@ -1435,7 +1389,6 @@
                 reader.readAsDataURL(file);
             });
 
-            // Fungsi Caesar Cipher (enkripsi)
             function caesarCipher(str, shift) {
                 return str.replace(/[a-zA-Z]/g, function (c) {
                     const base = c <= 'Z' ? 65 : 97;
@@ -1443,7 +1396,6 @@
                 });
             }
 
-            // Fungsi Caesar Decipher (dekripsi)
             function caesarDecipher(str, shift) {
                 return str.replace(/[a-zA-Z]/g, function (c) {
                     const base = c <= 'Z' ? 65 : 97;
@@ -1451,7 +1403,6 @@
                 });
             }
 
-            // Event listener untuk tombol toggle sidebar
             sidebarToggle.addEventListener('click', () => {
                 sidebar.classList.toggle('open');
                 document.body.classList.toggle('sidebar-open');
@@ -1464,7 +1415,6 @@
                 }
             });
 
-            // Event listener untuk menutup sidebar saat mengklik di luar sidebar
             mainContent.addEventListener('click', (event) => {
                 if (sidebar.classList.contains('open')) {
                     if (!sidebar.contains(event.target) && event.target !== sidebarToggle) {
@@ -1476,7 +1426,6 @@
                 }
             });
 
-            // Event listener untuk tombol-tombol di sidebar (menutup sidebar saat diklik)
             sidebar.querySelectorAll('button').forEach(button => {
                 button.addEventListener('click', () => {
                     if (!button.closest('.modal')) {
@@ -1488,13 +1437,11 @@
                 });
             });
 
-            // Event listener untuk menutup modal layar penuh
             closeFullScreenModal.addEventListener('click', () => {
                 fullScreenModal.style.display = 'none';
                 fullScreenContent.innerHTML = '';
             });
 
-            // Event listener untuk menutup modal layar penuh saat mengklik di luar konten
             fullScreenModal.addEventListener('click', (event) => {
                 if (event.target === fullScreenModal) {
                     fullScreenModal.style.display = 'none';
@@ -1502,12 +1449,9 @@
                 }
             });
 
-            // Event listener untuk tombol toggle tampilan (galeri/daftar)
             btnToggleView.addEventListener('click', () => {
                 isGalleryView = !isGalleryView;
                 loadLinks(searchInput.value);
-                sidebar.classList.remove('open');
-                document.body.classList.remove('sidebar-open');
             });
         </script>
     </div>
