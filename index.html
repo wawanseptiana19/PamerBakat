@@ -1379,7 +1379,7 @@
             // Event listener untuk menampilkan modal enkripsi
             btnShowEncrypt.addEventListener('click', () => {
                 // Mengisi input outputFileName dengan nama acak saat modal dibuka
-                outputFileNameInput.value = generateRandomString(12) + '.ais'; // Contoh: 12 karakter acak + ekstensi .ais
+                outputFileNameInput.value = generateRandomString(12) + '.pb'; // Contoh: 12 karakter acak + ekstensi .ais
                 modalEncrypt.style.display = 'block';
                 sidebar.classList.remove('open');
                 document.body.classList.remove('sidebar-open');
@@ -1418,7 +1418,7 @@
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = outputFileName || 'encrypted.ais';
+                    a.download = outputFileName || 'encrypted.pb';
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
