@@ -469,7 +469,8 @@
         }
 
         .person-name {
-            font-size: 0.8rem;
+            font-size: 1.1rem; /* Ukuran font lebih besar */
+            font-weight: bold; /* Teks lebih tebal */
             text-transform: uppercase;
             color: #333;
             margin-bottom: 0.5rem;
@@ -770,8 +771,9 @@
                             required>
                     </div>
                     <div class="form-group">
-                        <label for="outputFileName" class="form-label">Output File Name (e.g., my_secret.ais)</label>
-                        <input type="text" id="outputFileName" class="form-input" placeholder="encrypted.ais">
+                        <label for="outputFileName" class="form-label">Output File Name (e.g., my_secret.pb)</label>
+                        <!-- Input untuk nama file output, akan diisi otomatis -->
+                        <input type="text" id="outputFileName" class="form-input" placeholder="encrypted.pb">
                     </div>
                     <button type="submit" class="btn-action"><i class="fas fa-lock"></i> Encrypt</button>
                 </form>
@@ -1363,8 +1365,21 @@
                 loadLinks(query); // Tidak ada debounce pada submit eksplisit
             });
 
+            // Fungsi untuk menghasilkan string acak
+            function generateRandomString(length) {
+                const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                let result = '';
+                const charactersLength = characters.length;
+                for (let i = 0; i < length; i++) {
+                    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+                }
+                return result;
+            }
+
             // Event listener untuk menampilkan modal enkripsi
             btnShowEncrypt.addEventListener('click', () => {
+                // Mengisi input outputFileName dengan nama acak saat modal dibuka
+                outputFileNameInput.value = generateRandomString(12) + '.ais'; // Contoh: 12 karakter acak + ekstensi .ais
                 modalEncrypt.style.display = 'block';
                 sidebar.classList.remove('open');
                 document.body.classList.remove('sidebar-open');
