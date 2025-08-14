@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.0/build/qrcode.min.js"></script>
     <style>
         body {
             font-family: 'Courier Prime', 'Courier New', monospace;
@@ -461,6 +462,7 @@
         .btn-download,
         .btn-delete,
         .btn-edit,
+        .btn-qr,
         .btn-hide-content {
             padding: 0.5rem 1rem;
             margin: 0.3rem;
@@ -478,6 +480,7 @@
         .btn-download:hover,
         .btn-delete:hover,
         .btn-edit:hover,
+        .btn-qr:hover,
         .btn-hide-content:hover {
             background-color: #CCC;
             transform: scale(1.05);
@@ -564,6 +567,37 @@
             object-fit: contain;
             border: 3px solid #FFF;
             border-radius: 0.5rem;
+        }
+
+        #qrModal {
+            display: none;
+            position: fixed;
+            z-index: 1500;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(128, 128, 128, 0.8);
+            backdrop-filter: blur(4px);
+        }
+
+        #qrModal .modal-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #qrModal .close {
+            align-self: flex-end;
+        }
+
+        #qrCodeContainer {
+            margin-top: 1rem;
+            background-color: #FFF;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #333;
         }
 
         @media screen and (max-width: 768px) {
@@ -733,6 +767,10 @@
             <i class="fas fa-plus"></i>
             <span class="tooltip-text">Tambahkan Konten</span>
         </button>
+        <button id="btnWallpaper">
+            <i class="fas fa-image"></i>
+            <span class="tooltip-text">Wallpaper</span>
+        </button>
         <button id="btnClearSavedPassword" style="margin-top: auto;">
             <i class="fas fa-sign-out-alt"></i>
             <span class="tooltip-text">Logout</span>
@@ -750,7 +788,7 @@
         <div id="modalForm" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
-                <h1 id="modalFormTitle">Tambahakan Daftar</h1>
+                <h1 id="modalFormTitle">Tambahkan Daftar</h1>
                 <form id="linkForm">
                     <input type="hidden" id="linkId">
                     <div class="form-group">
@@ -805,10 +843,23 @@
             <div id="fullScreenContent" class="flex justify-center items-center w-full h-full"></div>
         </div>
 
+        <div id="qrModal" class="modal">
+            <div class="modal-content">
+                <span class="close" id="closeQrModal">&times;</span>
+                <h1>Kode QR</h1>
+                <div id="qrCodeContainer"></div>
+                <button id="btnDownloadQr" class="btn-download" style="margin-top: 1rem;">
+                    <i class="fas fa-download"></i> Unduh QR Code
+                </button>
+            </div>
+        </div>
+
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
         <script>
             const correctPassword = "YQDYIpjYnF7PZtDYs6e8yZJmGqTuB4rgZQSaenc618nmy4x095";
             const LOCAL_STORAGE_KEY = 'savedPassword';
+            const ITEMS_PER_PAGE_KEY = 'itemsPerPage';
+            const WALLPAPER_URL = 'https://www.example.com/wallpaper'; // Replace with actual wallpaper URL
 
             const passwordModal = document.getElementById('passwordModal');
             const passwordFile = document.getElementById('passwordFile');
@@ -821,6 +872,7 @@
             const sidebarToggle = document.getElementById('sidebar-toggle');
             const btnShowEncrypt = document.getElementById('btnShowEncrypt');
             const btnShowForm = document.getElementById('btnShowForm');
+            const btnWallpaper = document.getElementById('btnWallpaper');
             const btnClearSavedPassword = document.getElementById('btnClearSavedPassword');
 
             const modalForm = document.getElementById('modalForm');
@@ -848,9 +900,14 @@
             const fullScreenContent = document.getElementById('fullScreenContent');
             const closeFullScreenModal = document.getElementById('closeFullScreenModal');
 
+            const qrModal = document.getElementById('qrModal');
+            const closeQrModal = document.getElementById('closeQrModal');
+            const qrCodeContainer = document.getElementById('qrCodeContainer');
+            const btnDownloadQr = document.getElementById('btnDownloadQr');
+
             // Pagination variables
             let currentPage = 1;
-            let itemsPerPage = 10;
+            let itemsPerPage = parseInt(localStorage.getItem(ITEMS_PER_PAGE_KEY)) || 10;
             const maxPageButtons = 5; // Maximum page buttons to show
 
             function showMainContent() {
@@ -973,6 +1030,14 @@
                         confirmationModal.remove();
                     }
                 });
+            });
+
+            btnWallpaper.addEventListener('click', () => {
+                window.open(WALLPAPER_URL, '_blank');
+                sidebar.classList.remove('open');
+                document.body.classList.remove('sidebar-open');
+                sidebarToggle.style.opacity = '1';
+                sidebarToggle.style.pointerEvents = 'auto';
             });
 
             const SUPABASE_URL = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
@@ -1125,6 +1190,18 @@
                 }
             }
 
+            function generateQRCode(text) {
+                qrCodeContainer.innerHTML = ''; // Clear previous QR code
+                const qrCodeCanvas = document.createElement('canvas');
+                qrCodeContainer.appendChild(qrCodeCanvas);
+                QRCode.toCanvas(qrCodeCanvas, text, { width: 200 }, function (error) {
+                    if (error) {
+                        console.error('Gagal membuat QR code:', error);
+                        showNotification('Gagal membuat QR code.', true);
+                    }
+                });
+            }
+
             async function loadLinks(searchQuery = '', page = 1) {
                 linksContainer.innerHTML = '<div class="loading-spinner" role="status" aria-label="Memuat tautan"></div>';
 
@@ -1190,6 +1267,9 @@
                             </button>
                             <button class="btn-edit" data-id="${link.id}" data-person="${link.person_name || ''}" data-name="${link.name}" data-url="${link.url}" data-shift="${link.shift_code || ''}">
                                 <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn-qr" data-url="${link.url}" data-shift="${link.shift_code || ''}">
+                                <i class="fas fa-qrcode"></i> QR Code
                             </button>
                             <button class="btn-delete" data-id="${link.id}">
                                 <i class="fas fa-trash"></i> Hapus
@@ -1335,6 +1415,7 @@
 
                 itemsPerPageSelect.addEventListener('change', () => {
                     itemsPerPage = parseInt(itemsPerPageSelect.value);
+                    localStorage.setItem(ITEMS_PER_PAGE_KEY, itemsPerPage);
                     currentPage = 1; // Reset to first page
                     loadLinks(searchInput.value, currentPage);
                 });
@@ -1387,6 +1468,16 @@
                         submitLinkButton.innerHTML = '<i class="fas fa-save"></i> Perbarui Tautan';
 
                         modalForm.style.display = 'block';
+                    });
+                });
+
+                document.querySelectorAll('.btn-qr').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const url = button.getAttribute('data-url');
+                        const shiftCode = button.getAttribute('data-shift');
+                        const qrText = `${url} || ${shiftCode || '-'}`;
+                        generateQRCode(qrText);
+                        qrModal.style.display = 'block';
                     });
                 });
 
@@ -1596,6 +1687,29 @@
                 });
             }
 
+            function generateQRCode(text) {
+                qrCodeContainer.innerHTML = ''; // Clear previous QR code
+                const qrCodeCanvas = document.createElement('canvas');
+                qrCodeContainer.appendChild(qrCodeCanvas);
+                QRCode.toCanvas(qrCodeCanvas, text, { width: 200 }, function (error) {
+                    if (error) {
+                        console.error('Gagal membuat QR code:', error);
+                        showNotification('Gagal membuat QR code.', true);
+                    } else {
+                        btnDownloadQr.onclick = () => {
+                            const dataUrl = qrCodeCanvas.toDataURL('image/png');
+                            const a = document.createElement('a');
+                            a.href = dataUrl;
+                            a.download = `qrcode_${generateRandomString(8)}.png`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            showNotification('QR code berhasil diunduh.');
+                        };
+                    }
+                });
+            }
+
             sidebarToggle.addEventListener('click', () => {
                 sidebar.classList.toggle('open');
                 document.body.classList.toggle('sidebar-open');
@@ -1621,7 +1735,7 @@
 
             sidebar.querySelectorAll('button').forEach(button => {
                 button.addEventListener('click', () => {
-                    if (!button.closest('.modal')) {
+                    if (!button.closest('.modal') && button !== btnWallpaper) {
                         sidebar.classList.remove('open');
                         document.body.classList.remove('sidebar-open');
                         sidebarToggle.style.opacity = '1';
@@ -1639,6 +1753,18 @@
                 if (event.target === fullScreenModal) {
                     fullScreenModal.style.display = 'none';
                     fullScreenContent.innerHTML = '';
+                }
+            });
+
+            closeQrModal.addEventListener('click', () => {
+                qrModal.style.display = 'none';
+                qrCodeContainer.innerHTML = '';
+            });
+
+            qrModal.addEventListener('click', (event) => {
+                if (event.target === qrModal) {
+                    qrModal.style.display = 'none';
+                    qrCodeContainer.innerHTML = '';
                 }
             });
         </script>
