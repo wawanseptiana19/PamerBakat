@@ -23,7 +23,7 @@
 <div class="container">
     <div class="mb-4 text-center">
         <h1>Advanced HTML Runner</h1>
-        <p>Editor dengan preview real-time, Supabase, buka tab baru, dan impor kode</p>
+        <p>Editor dengan preview real-time, Supabase, dan impor kode</p>
     </div>
 
     <ul class="nav nav-tabs" id="editorTab">
@@ -54,8 +54,11 @@
     <div class="mt-4">
         <h4>Preview</h4>
         <iframe id="preview" title="Preview Output"></iframe>
-        <!-- Tombol Buka Tab Baru di bawah preview -->
-        <button class="btn btn-dark w-100 mt-2" onclick="openMenuInNewTab()">Buka di Tab Baru</button>
+    </div>
+
+    <!-- Tombol Buka Tab Baru di paling bawah -->
+    <div class="mt-3">
+        <button class="btn btn-dark w-100" onclick="openMenuInNewTab()">Buka di Tab Baru</button>
     </div>
 </div>
 
@@ -77,14 +80,14 @@
     // Fungsi debounce agar tidak double run
     function debounce(func, delay) {
         let timer;
-        return function() {
+        return function(...args) {
             clearTimeout(timer);
-            timer = setTimeout(func, delay);
+            timer = setTimeout(() => func.apply(this, args), delay);
         };
     }
 
-    // Jalankan otomatis setiap ada perubahan
-    const autoRun = debounce(runCode, 500);
+    // Jalankan otomatis setiap ada perubahan di editor (1 listener saja)
+    const autoRun = debounce(() => runCode(), 500);
     htmlEditor.on("change", autoRun);
     cssEditor.on("change", autoRun);
     jsEditor.on("change", autoRun);
@@ -96,7 +99,7 @@
         const jsContent = "<script>" + jsEditor.getValue() + "<\/script>";
         document.getElementById("preview").srcdoc = htmlContent + cssContent + jsContent;
         autosaveCode();
-        setTimeout(hideLoading, 200);
+        hideLoading();
     }
 
     function downloadCode() {
