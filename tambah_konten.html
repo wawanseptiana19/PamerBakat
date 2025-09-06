@@ -43,7 +43,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Supabase configuration from the original code.
         const SUPABASE_URL = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -51,7 +50,6 @@
         const form = document.getElementById('singleAddForm');
         const notification = document.getElementById('notification');
 
-        // Function to display notifications with updated styling.
         function showNotification(msg, isError = false) {
             notification.textContent = msg;
             notification.style.opacity = 1;
@@ -62,7 +60,6 @@
                 notification.classList.remove('text-red-500');
                 notification.classList.add('text-green-500');
             }
-            // Hide notification after 3 seconds
             setTimeout(() => {
                 notification.style.opacity = 0;
             }, 3000);
@@ -80,7 +77,6 @@
                 return;
             }
 
-            // Insert data into the 'links' table.
             const { error } = await supabaseClient.from('links').insert([
                 { person_name: personName, name: linkName, url: linkUrl, shift_code: shiftCode }
             ]);
@@ -91,9 +87,10 @@
             } else {
                 showNotification('Konten berhasil ditambahkan.');
                 form.reset();
+                // Menutup tab setelah berhasil disimpan.
+                window.close();
             }
         });
     </script>
 </body>
 </html>
-<style></style><script></script>
