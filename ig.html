@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Galeri - Instagram Style</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fafafa;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #dbdbdb;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #b5b5b5;
+        }
+
+        .shadow-instagram {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .media-container img, .media-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 text-gray-800 min-h-screen">
+
+    <!-- Top Bar Navigation -->
+    <header class="bg-white border-b border-gray-200 py-3 px-4 md:px-6 sticky top-0 z-10">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <h1 class="font-bold text-2xl text-black">
+                <i class="fab fa-instagram mr-2 text-3xl"></i>
+                Instagram
+            </h1>
+            <div class="flex items-center space-x-4">
+                <button class="text-xl text-gray-700 hover:text-gray-900 focus:outline-none">
+                    <i class="far fa-heart"></i>
+                </button>
+                <button class="text-xl text-gray-700 hover:text-gray-900 focus:outline-none">
+                    <i class="fab fa-facebook-messenger"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-4 md:p-6">
+        
+        <!-- Profile Header Section -->
+        <div class="bg-white rounded-lg shadow-instagram p-6 mb-6">
+            <div class="flex items-center space-x-6">
+                <div class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gray-300 overflow-hidden flex-shrink-0">
+                    <img src="https://placehold.co/96x96/e5e7eb/4b5563?text=Profil" alt="Foto Profil" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <h2 id="profileUsername" class="text-xl md:text-2xl font-semibold text-gray-900">Pengguna</h2>
+                    <p id="profileFollowers" class="text-sm text-gray-500 mt-1">
+                        <span id="postCount" class="font-bold">0</span> unggahan • <span id="followerCount" class="font-bold">0</span> pengikut
+                    </p>
+                    <button id="showNamesBtn" class="mt-2 w-full md:w-auto px-4 py-1 text-sm bg-blue-500 text-white rounded-md font-medium hover:bg-blue-600 transition-colors duration-200">Lihat Nama Pengguna</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="relative mb-6">
+            <input type="text" id="searchInput" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all duration-200" placeholder="Cari...">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        </div>
+
+        <!-- Image Gallery Grid -->
+        <div id="galleryContainer" class="grid grid-cols-3 gap-1"></div>
+        
+        <!-- Pagination & Loading -->
+        <div id="loading" class="text-center mt-6 hidden text-gray-500">
+            <i class="fas fa-spinner fa-spin mr-2"></i> Memuat...
+        </div>
+        <div class="flex justify-center items-center gap-4 mt-8">
+            <button id="btnPrev" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md font-semibold hover:bg-gray-300 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+                <i class="fas fa-arrow-left"></i> Sebelumnya
+            </button>
+            <button id="btnNext" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md font-semibold hover:bg-gray-300 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+                Berikutnya <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </main>
+
+    <!-- Names Popup -->
+    <div id="namesPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-sm w-full max-h-[80vh] overflow-y-auto transform scale-95 transition-transform duration-300">
+            <h2 class="text-xl font-bold text-gray-900 mb-4 text-center">Daftar Nama Pengguna</h2>
+            <ul id="namesList" class="space-y-3"></ul>
+            <button id="closePopup" class="mt-6 w-full px-6 py-2 bg-gray-200 text-gray-800 rounded-full font-semibold hover:bg-gray-300 transition-colors duration-200">Tutup</button>
+        </div>
+    </div>
+
+    <!-- Fullscreen Modal -->
+    <div id="fullscreenModal" class="fixed inset-0 bg-black bg-opacity-80 hidden flex items-center justify-center z-50 p-4">
+        <div class="relative w-full max-w-3xl max-h-full">
+            <button id="closeModal" class="absolute top-4 right-4 text-white text-3xl z-50 focus:outline-none">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="modalContent" class="bg-white rounded-lg overflow-hidden flex flex-col md:flex-row shadow-2xl">
+                <!-- Media Container for image/video -->
+                <div class="md:w-3/5 relative bg-black flex items-center justify-center">
+                    <div id="modalMedia"></div>
+                </div>
+                <!-- Right side for comments/info -->
+                <div class="md:w-2/5 p-4 flex flex-col justify-between">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-8 h-8 rounded-full bg-gray-300"></div>
+                        <span id="modalUsername" class="font-semibold text-sm"></span>
+                    </div>
+                    <div class="overflow-y-auto flex-grow text-sm text-gray-700">
+                        <p id="modalDescription" class="mb-4"></p>
+                        <div id="commentSection" class="space-y-2 text-xs">
+                            <div class="flex items-start space-x-2">
+                                <span class="font-semibold text-gray-900">Pengguna1:</span>
+                                <span>Keren sekali!</span>
+                            </div>
+                            <div class="flex items-start space-x-2">
+                                <span class="font-semibold text-gray-900">Pengguna2:</span>
+                                <span>Bagian favorit saya adalah...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-200 pt-4 mt-4">
+                        <div class="flex items-center space-x-4 mb-2">
+                            <button class="text-xl"><i class="far fa-heart"></i></button>
+                            <button class="text-xl"><i class="far fa-comment"></i></button>
+                            <button class="text-xl"><i class="far fa-paper-plane"></i></button>
+                        </div>
+                        <p id="modalLikes" class="text-xs font-semibold text-gray-900 mb-1"></p>
+                        <p id="modalTime" class="text-xs text-gray-400"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase configuration - DO NOT CHANGE
+        function caesarDecipher(str, shift) {
+            return str.replace(/[a-zA-Z]/g, function (c) {
+                const base = c <= 'Z' ? 65 : 97;
+                return String.fromCharCode((c.charCodeAt(0) - base - shift + 26) % 26 + base);
+            });
+        }
+
+        const SUPABASE_URL = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const searchInput = document.getElementById('searchInput');
+        const galleryContainer = document.getElementById('galleryContainer');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnNext = document.getElementById('btnNext');
+        const loading = document.getElementById('loading');
+        const showNamesBtn = document.getElementById('showNamesBtn');
+        const namesPopup = document.getElementById('namesPopup');
+        const namesList = document.getElementById('namesList');
+        const closePopup = document.getElementById('closePopup');
+        const fullscreenModal = document.getElementById('fullscreenModal');
+        const closeModalBtn = document.getElementById('closeModal');
+        const modalMedia = document.getElementById('modalMedia');
+        const modalUsername = document.getElementById('modalUsername');
+        const modalDescription = document.getElementById('modalDescription');
+        const modalLikes = document.getElementById('modalLikes');
+        const modalTime = document.getElementById('modalTime');
+        const postCountEl = document.getElementById('postCount');
+        const followerCountEl = document.getElementById('followerCount');
+        const profileUsernameEl = document.getElementById('profileUsername');
+
+        let currentPage = 1;
+        const pageSize = 12;
+        let totalItems = 0;
+        let searchQuery = '';
+
+        function showNotification(message, isError = false) {
+            console.log(message);
+        }
+
+        async function decryptAndDisplay(url, shift, container) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('Gagal mengambil file untuk dekripsi.');
+                }
+                let content = await response.text();
+                if (shift !== 0) {
+                    content = caesarDecipher(content, shift);
+                }
+                let mediaElement;
+                if (content.startsWith('data:image')) {
+                    mediaElement = document.createElement('img');
+                } else if (content.startsWith('data:video')) {
+                    mediaElement = document.createElement('video');
+                    mediaElement.autoplay = true;
+                    mediaElement.loop = true;
+                    mediaElement.muted = true;
+                } else {
+                    throw new Error('Format media tidak didukung.');
+                }
+                mediaElement.src = content;
+                mediaElement.className = 'media-element w-full h-full object-cover';
+                mediaElement.style.aspectRatio = '1 / 1';
+                container.innerHTML = '';
+                container.appendChild(mediaElement);
+            } catch (error) {
+                container.innerHTML = `<p class="text-center text-xs text-red-500">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function loadGallery(page = 1, query = '') {
+            loading.classList.remove('hidden');
+            galleryContainer.innerHTML = '';
+            let supabaseQuery = supabaseClient.from('links').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range((page - 1) * pageSize, page * pageSize - 1);
+            if (query.trim() !== '') {
+                supabaseQuery = supabaseQuery.or(`person_name.ilike.%${query}%,name.ilike.%${query}%`);
+            }
+            const { data, error, count } = await supabaseQuery;
+            loading.classList.add('hidden');
+            if (error) {
+                console.error(error);
+                showNotification('Terjadi kesalahan saat memuat galeri.', true);
+                return;
+            }
+            totalItems = count || 0;
+            postCountEl.textContent = totalItems;
+            if (!data || data.length === 0) {
+                galleryContainer.innerHTML = '<p class="text-center col-span-full text-gray-500">Tidak ada media yang tersimpan.</p>';
+            }
+            for (const link of data) {
+                const galleryItem = document.createElement('div');
+                galleryItem.className = 'relative w-full aspect-square bg-gray-200 overflow-hidden cursor-pointer group';
+                galleryItem.innerHTML = `<div class="media-preview w-full h-full"></div>`;
+                
+                const mediaPreview = galleryItem.querySelector('.media-preview');
+                await decryptAndDisplay(link.url, parseInt(link.shift_code) || 0, mediaPreview);
+
+                const overlay = document.createElement('div');
+                overlay.className = 'absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300';
+                overlay.innerHTML = `
+                    <div class="flex flex-col text-white text-lg font-semibold space-y-2">
+                        <div class="flex items-center">
+                            <i class="fas fa-heart mr-2"></i> 0
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-comment mr-2"></i> 0
+                        </div>
+                    </div>
+                `;
+                galleryItem.appendChild(overlay);
+
+                galleryItem.addEventListener('click', () => showFullscreenModal(link));
+                galleryContainer.appendChild(galleryItem);
+            }
+
+            btnPrev.classList.toggle('hidden', page === 1);
+            btnNext.classList.toggle('hidden', page * pageSize >= totalItems);
+            
+            // Set dummy follower count
+            followerCountEl.textContent = Math.floor(Math.random() * 1000) + 100;
+        }
+        
+        async function showFullscreenModal(link) {
+            fullscreenModal.classList.remove('hidden');
+            
+            // Reset modal content
+            modalMedia.innerHTML = '<i class="fas fa-spinner fa-spin text-white text-3xl"></i>';
+            modalUsername.textContent = link.person_name || 'Pengguna';
+            modalDescription.textContent = link.name || '';
+            modalLikes.textContent = `${Math.floor(Math.random() * 50)} suka`;
+            modalTime.textContent = new Date(link.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            // Decrypt and display media
+            await decryptAndDisplay(link.url, parseInt(link.shift_code) || 0, modalMedia);
+        }
+
+        closeModalBtn.addEventListener('click', () => {
+            fullscreenModal.classList.add('hidden');
+        });
+
+        async function loadNamesList() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('links')
+                    .select('person_name')
+                    .order('person_name', { ascending: true });
+
+                if (error) {
+                    throw new Error('Gagal memuat daftar nama: ' + error.message);
+                }
+
+                const names = [...new Set(data.map(item => item.person_name || 'Tidak Diketahui'))];
+
+                namesList.innerHTML = '';
+                names.forEach((name) => {
+                    const li = document.createElement('li');
+                    li.textContent = name;
+                    li.className = "cursor-pointer p-3 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors duration-200 font-medium text-center";
+                    li.addEventListener('click', () => {
+                        searchInput.value = name;
+                        searchQuery = name;
+                        currentPage = 1;
+                        loadGallery(currentPage, searchQuery);
+                        namesPopup.classList.add('opacity-0');
+                        namesPopup.classList.add('pointer-events-none');
+                        setTimeout(() => namesPopup.classList.add('hidden'), 300);
+                    });
+                    namesList.appendChild(li);
+                });
+            } catch (error) {
+                showNotification(error.message, true);
+            }
+        }
+
+        showNamesBtn.addEventListener('click', () => {
+            namesPopup.classList.remove('hidden');
+            namesPopup.classList.remove('pointer-events-none');
+            namesPopup.classList.add('opacity-100');
+            loadNamesList();
+        });
+
+        closePopup.addEventListener('click', () => {
+            namesPopup.classList.remove('opacity-100');
+            namesPopup.classList.add('opacity-0');
+            namesPopup.classList.add('pointer-events-none');
+            setTimeout(() => namesPopup.classList.add('hidden'), 300);
+        });
+
+        namesPopup.addEventListener('click', (e) => {
+            if (e.target === namesPopup) {
+                namesPopup.classList.remove('opacity-100');
+                namesPopup.classList.add('opacity-0');
+                namesPopup.classList.add('pointer-events-none');
+                setTimeout(() => namesPopup.classList.add('hidden'), 300);
+            }
+        });
+
+        searchInput.addEventListener('input', () => {
+            searchQuery = searchInput.value;
+            currentPage = 1;
+            loadGallery(currentPage, searchQuery);
+        });
+
+        btnPrev.addEventListener('click', () => {
+            if (!btnPrev.classList.contains('disabled') && currentPage > 1) {
+                currentPage--;
+                loadGallery(currentPage, searchQuery);
+            }
+        });
+
+        btnNext.addEventListener('click', () => {
+            if (!btnNext.classList.contains('disabled')) {
+                currentPage++;
+                loadGallery(currentPage, searchQuery);
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadGallery(currentPage);
+            // Add a simple check to set the profile username from the first item
+            setTimeout(async () => {
+                const { data, error } = await supabaseClient.from('links').select('person_name').limit(1);
+                if (!error && data && data.length > 0) {
+                    profileUsernameEl.textContent = data[0].person_name || 'Pengguna';
+                }
+            }, 1000); // Wait a bit to ensure data is loaded
+        });
+    </script>
+</body>
+
+</html>
