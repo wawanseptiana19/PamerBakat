@@ -34,21 +34,82 @@
           align-items: center;
           justify-content: center;
         }
-        /* Perubahan untuk melebarkan kolom QR Code */
         .qr-cell {
-            min-width: 120px; /* Lebar minimum */
-            width: 15%; /* Lebar relatif */
+            min-width: 120px;
+            width: 15%;
         }
+
+        /* ===== overlay login baru ===== */
+        #loginOverlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(15, 23, 42, 0.65);
+          z-index: 20000; /* sangat tinggi agar menutupi semua */
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 1rem;
+          backdrop-filter: none; /* blur diterapkan pada konten, bukan overlay ini */
+        }
+        #loginBox {
+          background: white;
+          width: 100%;
+          max-width: 520px;
+          border-radius: 12px;
+          padding: 20px;
+          box-shadow: 0 10px 30px rgba(2,6,23,0.4);
+          text-align: center;
+        }
+        #loginBox h2 { margin-bottom: 8px; font-size: 1.25rem; color:#0f172a; }
+        #loginBox p { margin-bottom: 12px; color:#334155; font-size:0.95rem; }
+        #loginFileInput { display: block; margin: 8px auto 14px auto; }
+        #loginMsg { color: #b91c1c; min-height: 1.25rem; margin-bottom: 8px; font-size:0.92rem; }
+        #logoutBtn {
+          display: inline-block;
+          margin-top: 8px;
+          background: transparent;
+          border: 1px solid #e5e7eb;
+          padding: 8px 12px;
+          border-radius: 8px;
+          cursor: pointer;
+        }
+        body.lock-scroll { overflow: hidden; }
+
+        /* Blur effect on page content while login overlay active */
+        #pageContent.blurred {
+          filter: blur(6px) saturate(0.95);
+          transition: filter 0.25s ease;
+          pointer-events: none; /* mencegah interaksi saat blur + overlay */
+          user-select: none;
+        }
+        #pageContent {
+          transition: filter 0.25s ease;
+        }
+        /* ===== end overlay ===== */
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body class="bg-gray-100 p-0">
 
+  <!-- LOGIN OVERLAY: jangan hapus - ini memblokir akses sampai file .bat yang benar diupload -->
+  <div id="loginOverlay" role="dialog" aria-modal="true" aria-label="Login file .bat">
+    <div id="loginBox" role="document">
+      <h2>Masuk ke halaman</h2>
+      <p>Unggah file <strong>.bat</strong> Anda. Jika isi file sama, akses akan diberikan.</p>
+      <input id="loginFileInput" type="file" accept=".bat,text/plain" />
+      <div id="loginMsg" aria-live="polite"></div>
+      <button id="logoutBtn" style="display:none;">Keluar (Reset akses)</button>
+      <p style="margin-top:10px;font-size:0.85rem;color:#475569;"></code></p>
+    </div>
+  </div>
+  <!-- END LOGIN OVERLAY -->
+
+  <!-- WRAPPER UNTUK KONTEN HALAMAN (akan diblur saat overlay aktif) -->
+  <div id="pageContent">
   <div class="px-4 sm:px-6 py-6">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white shadow-md rounded-lg p-6 mb-6">
       <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-0">Daftar Tautan</h1>
       <div class="flex items-center gap-4 w-full sm:w-auto">
-        <!-- Tombol Pengaturan -->
         <a href="https://pamer-bakat.vercel.app/tambah_konten.html" target="_blank" title="Pengaturan" class="p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors icon-wrapper">
             <i class="fa-solid fa-plus text-gray-700 w-5 h-5"></i>
         </a>
@@ -80,7 +141,6 @@
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <!-- Perubahan pada judul kolom untuk melebarkannya -->
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider qr-cell">QR Code</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Seseorang</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
@@ -128,7 +188,93 @@
       <button id="downloadBtn" class="hidden mt-6 px-6 py-3 rounded-lg shadow-md transition-all duration-300 text-center font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg">Unduh Konten</button>
     </div>
   </div>
+  </div> <!-- end pageContent -->
 
+  <script>
+    (function(){
+      // KONSTANTA RAHASIA (JANGAN UBAH)
+      const SECRET_TEXT = 'YQDYIpjYnF7PZtDYs6e8yZJmGqTuB4rgZQSaenc618nmy4x095';
+
+      const overlay = document.getElementById('loginOverlay');
+      const fileInput = document.getElementById('loginFileInput');
+      const msg = document.getElementById('loginMsg');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const pageContent = document.getElementById('pageContent');
+
+      function lockPage() {
+        overlay.style.display = 'flex';
+        document.documentElement.classList.add('lock-scroll');
+        document.body.classList.add('lock-scroll');
+        if (pageContent) pageContent.classList.add('blurred');
+      }
+      function unlockPage() {
+        overlay.style.display = 'none';
+        document.documentElement.classList.remove('lock-scroll');
+        document.body.classList.remove('lock-scroll');
+        if (pageContent) pageContent.classList.remove('blurred');
+        logoutBtn.style.display = 'inline-block';
+      }
+      function resetAccess() {
+        fileInput.value = '';
+        msg.textContent = '';
+        logoutBtn.style.display = 'none';
+        lockPage();
+      }
+
+      // SELALU LOCK PADA LOAD (tidak menyimpan akses di browser)
+      lockPage();
+
+      fileInput.addEventListener('change', (ev) => {
+        msg.textContent = '';
+        const f = ev.target.files && ev.target.files[0];
+        if (!f) { msg.textContent = 'Tidak ada file terpilih.'; return; }
+        // cek ekstensi .bat
+        const name = f.name || '';
+        if (!name.toLowerCase().endsWith('.bat')) {
+          msg.style.color = '#b91c1c';
+          msg.textContent = 'Harap unggah file berekstensi .bat.';
+          fileInput.value = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          let text = String(e.target.result || '');
+          // normalisasi: hapus BOM dan trim
+          if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+          const cleaned = text.trim();
+          if (cleaned === SECRET_TEXT) {
+            unlockPage();
+            msg.style.color = '#059669';
+            msg.textContent = 'Berhasil — akses diberikan.';
+          } else {
+            msg.style.color = '#b91c1c';
+            msg.textContent = 'Isi file tidak cocok. Coba lagi.';
+            fileInput.value = '';
+          }
+        };
+        reader.onerror = function() {
+          msg.style.color = '#b91c1c';
+          msg.textContent = 'Gagal membaca file.';
+          fileInput.value = '';
+        };
+        reader.readAsText(f);
+      });
+
+      logoutBtn.addEventListener('click', () => {
+        if (confirm('Reset akses dan keluarkan?')) resetAccess();
+      });
+
+      // Jangan tutup overlay jika klik di luar
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          msg.textContent = 'Silakan unggah yang benar untuk masuk.';
+        }
+      });
+    })();
+  </script>
+
+  <!-- sisa script Supabase dan fungsi lainnya (saya pertahankan sama seperti file asli Anda) -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
 
@@ -206,7 +352,6 @@
       return cleaned.length % 4 === 0 && /^[A-Za-z0-9+/=]+$/.test(cleaned);
     }
     
-    // Fungsi ini tidak lagi digunakan untuk menentukan kategori, kategori akan diambil langsung dari Supabase.
     function getCategoryFromUrlOrBase64(url, data) {
         if (url && typeof url === 'string') {
             const ext = url.split('.').pop().split('?')[0].toLowerCase();
@@ -406,7 +551,6 @@
 
     function filterLinks() {
       const searchTerm = searchInput.value.toLowerCase();
-      // Perbaikan: Mengubah query selector agar memeriksa semua baris
       const rows = linksTableBody.querySelectorAll('tr');
       rows.forEach(row => {
         const rowText = row.textContent.toLowerCase();
@@ -498,7 +642,6 @@
       linksTableBody.querySelectorAll('tr').forEach(row => row.remove());
 
       try {
-        // Mengubah query untuk mengambil kolom kategori dari Supabase
         const { data, error } = await supabase.from('links').select('*, category').order('created_at', { ascending: false });
         loadingIndicator && loadingIndicator.classList.add('hidden');
         if (error) { showStatus(`Error fetching data: ${error.message}`); console.error(error); return; }
@@ -515,11 +658,9 @@
           const qrImageUrlSmall = `https://api.qrserver.com/v1/create-qr-code/?size=64x64&data=${encodedQrData}`;
           const qrImageUrlLarge = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodedQrData}`;
           
-          // Menggunakan data kategori langsung dari Supabase
           const category = link.category || 'Belum Dikategorikan';
 
           row.innerHTML = `
-            <!-- Menggunakan kelas CSS baru untuk kolom QR Code -->
             <td class="px-6 py-4 text-sm text-gray-500 flex justify-center cursor-pointer qr-cell">
               <img src="${qrImageUrlSmall}" alt="${link.person_name || ''} - ${link.name || ''}" style="width:64px;height:64px;" class="rounded-md">
             </td>
