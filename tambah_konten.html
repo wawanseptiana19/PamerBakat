@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tambah Tautan</title>
+    <title>Sistem Enkripsi</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
@@ -12,44 +12,145 @@
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
         }
+        .tab-content.hidden {
+            display: none;
+        }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body class="flex items-center justify-center min-h-screen p-4 bg-gray-100">
     <div class="max-w-sm w-full md:max-w-md">
-        <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Tambah Tautan</h1>
-        <form id="singleAddForm">
-            <div class="mb-4">
-                <label for="personName" class="block text-sm font-medium text-gray-700 mb-2">Nama Orang</label>
-                <input type="text" id="personName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" required>
-            </div>
-            <div class="mb-4">
-                <label for="linkName" class="block text-sm font-medium text-gray-700 mb-2">Nama Tautan</label>
-                <input type="text" id="linkName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" required>
-            </div>
-            <div class="mb-4">
-                <label for="linkUrl" class="block text-sm font-medium text-gray-700 mb-2">URL Link</label>
-                <input type="url" id="linkUrl" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" placeholder="https://contoh.com" required>
-            </div>
-            <div class="mb-6">
-                <label for="shiftCode" class="block text-sm font-medium text-gray-700 mb-2">Pergeseran</label>
-                <input type="text" id="shiftCode" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
-            </div>
-            <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
-                <i class="fas fa-save mr-2"></i> Simpan
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Sistem Enkripsi</h1>
+
+        <!-- Tab Buttons -->
+        <div class="flex border-b border-gray-300 mb-6">
+            <button id="tab1-btn" class="flex-1 py-3 text-center text-base font-medium text-gray-700 hover:text-blue-600 focus:outline-none focus:text-blue-600 border-b-2 border-transparent hover:border-blue-500 transition-colors duration-200">
+                Tambah Tautan
             </button>
-        </form>
-        <div id="notification" class="mt-4 text-center text-sm font-medium transition-opacity duration-300 opacity-0"></div>
+            <button id="tab2-btn" class="flex-1 py-3 text-center text-base font-medium text-gray-700 hover:text-blue-600 focus:outline-none focus:text-blue-600 border-b-2 border-transparent hover:border-blue-500 transition-colors duration-200">
+                Enkripsi File
+            </button>
+        </div>
+
+        <!-- Tab Content 1: Tambah Tautan -->
+        <div id="tab1-content" class="tab-content">
+            <form id="singleAddForm">
+                <div class="mb-4">
+                    <label for="personName" class="block text-sm font-medium text-gray-700 mb-2">Nama Orang</label>
+                    <input type="text" id="personName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" required>
+                </div>
+                <div class="mb-4">
+                    <label for="linkName" class="block text-sm font-medium text-gray-700 mb-2">Nama Tautan</label>
+                    <input type="text" id="linkName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" required>
+                </div>
+                <div class="mb-4">
+                    <label for="linkUrl" class="block text-sm font-medium text-gray-700 mb-2">URL Link</label>
+                    <input type="url" id="linkUrl" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" placeholder="https://contoh.com" required>
+                </div>
+                <div class="mb-4">
+                    <label for="category" class="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
+                    <input type="text" id="category" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                </div>
+                <div class="mb-6">
+                    <label for="shiftCode" class="block text-sm font-medium text-gray-700 mb-2">Pergeseran</label>
+                    <input type="text" id="shiftCode" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
+                    <i class="fas fa-save mr-2"></i> Simpan
+                </button>
+            </form>
+            <div id="notification" class="mt-4 text-center text-sm font-medium transition-opacity duration-300 opacity-0"></div>
+        </div>
+
+        <!-- Tab Content 2: Enkripsi File -->
+        <div id="tab2-content" class="tab-content hidden">
+            <label for="fileInput" class="block text-sm font-medium text-gray-700 mb-2">Pilih gambar atau video</label>
+            <input id="fileInput" type="file" class="w-full px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" accept="image/*,video/*">
+            
+            <div class="mt-4">
+                <label for="shiftInput" class="block text-sm font-medium text-gray-700 mb-2">Pergeseran (angka, contoh: 3)</label>
+                <input id="shiftInput" type="number" value="0" min="0" step="1" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+            </div>
+            
+            <div class="mt-4">
+                <label for="filenameDisplay" class="block text-sm font-medium text-gray-700 mb-2">Nama file hasil (.pb)</label>
+                <input id="filenameDisplay" type="text" readonly class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors bg-gray-100 cursor-not-allowed">
+            </div>
+            
+            <button id="encryptBtn" class="w-full bg-green-600 text-white font-semibold py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center mt-6">
+                <i class="fas fa-lock mr-2"></i> Enkripsi & Unduh
+            </button>
+
+            <p class="text-xs text-gray-500 mt-4 text-center">Teknik: membaca file &rarr; Data URL (base64) &rarr; geser huruf A&ndash;Z/a&ndash;z &rarr; simpan sebagai .pb</p>
+        </div>
+    </div>
+    
+    <!-- Modal for notifications -->
+    <div id="modal-container" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+            <p id="modal-title" class="text-lg font-bold mb-4"></p>
+            <p id="modal-message"></p>
+            <button id="modal-close-btn" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Tutup</button>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // Supabase config
         const SUPABASE_URL = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // UI Elements
+        const tab1Btn = document.getElementById('tab1-btn');
+        const tab2Btn = document.getElementById('tab2-btn');
+        const tab1Content = document.getElementById('tab1-content');
+        const tab2Content = document.getElementById('tab2-content');
         const form = document.getElementById('singleAddForm');
         const notification = document.getElementById('notification');
+        const fileInput = document.getElementById('fileInput');
+        const shiftInput = document.getElementById('shiftInput');
+        const filenameDisplay = document.getElementById('filenameDisplay');
+        const encryptBtn = document.getElementById('encryptBtn');
+        const modalContainer = document.getElementById('modal-container');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
 
+        // Function to show custom modal
+        function showModal(title, message) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modalContainer.classList.remove('hidden');
+        }
+
+        modalCloseBtn.addEventListener('click', () => {
+            modalContainer.classList.add('hidden');
+        });
+
+        // Function to switch tabs
+        function switchTab(tabNumber) {
+            tab1Btn.classList.remove('border-blue-500', 'text-blue-600');
+            tab2Btn.classList.remove('border-blue-500', 'text-blue-600');
+            tab1Content.classList.add('hidden');
+            tab2Content.classList.add('hidden');
+
+            if (tabNumber === 1) {
+                tab1Btn.classList.add('border-blue-500', 'text-blue-600');
+                tab1Content.classList.remove('hidden');
+            } else {
+                tab2Btn.classList.add('border-blue-500', 'text-blue-600');
+                tab2Content.classList.remove('hidden');
+            }
+        }
+
+        // Initially show the first tab and activate its button
+        switchTab(1);
+
+        // Event Listeners for Tab Buttons
+        tab1Btn.addEventListener('click', () => switchTab(1));
+        tab2Btn.addEventListener('click', () => switchTab(2));
+        
+        // --- Logic for Tab 1 (Tambah Tautan) ---
         function showNotification(msg, isError = false) {
             notification.textContent = msg;
             notification.style.opacity = 1;
@@ -70,6 +171,7 @@
             const personName = document.getElementById('personName').value.trim();
             const linkName = document.getElementById('linkName').value.trim();
             const linkUrl = document.getElementById('linkUrl').value.trim();
+            const category = document.getElementById('category').value.trim();
             const shiftCode = document.getElementById('shiftCode').value.trim();
 
             if (!personName || !linkName || !linkUrl) {
@@ -78,7 +180,7 @@
             }
 
             const { error } = await supabaseClient.from('links').insert([
-                { person_name: personName, name: linkName, url: linkUrl, shift_code: shiftCode }
+                { person_name: personName, name: linkName, url: linkUrl, category: category, shift_code: shiftCode }
             ]);
 
             if (error) {
@@ -87,9 +189,60 @@
             } else {
                 showNotification('Konten berhasil ditambahkan.');
                 form.reset();
-                // Menutup tab setelah berhasil disimpan.
-                window.close();
             }
+        });
+
+        // --- Logic for Tab 2 (Enkripsi File) ---
+        // Fungsi Caesar cipher hanya untuk huruf A-Z dan a-z
+        function caesarCipher(str, shift) {
+            shift = ((shift % 26) + 26) % 26;
+            return str.replace(/[a-zA-Z]/g, function (c) {
+                const base = (c <= 'Z') ? 65 : 97;
+                return String.fromCharCode((c.charCodeAt(0) - base + shift) % 26 + base);
+            });
+        }
+
+        encryptBtn.addEventListener('click', function () {
+            const shift = parseInt(shiftInput.value) || 0;
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showModal("Peringatan", "Silakan pilih file gambar atau video terlebih dahulu.");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const dataUrl = e.target.result;
+                const encrypted = caesarCipher(dataUrl, shift);
+                const blob = new Blob([encrypted], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                
+                // Generate a random filename with a date and a unique ID
+                const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+                const randomId = crypto.randomUUID().split('-')[0];
+                const newFilename = `${randomId}.pb`;
+                
+                // Update the filename display field
+                filenameDisplay.value = newFilename;
+
+                a.href = url;
+                a.download = newFilename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showModal("Berhasil", `Proses enkripsi selesai. File .pb berhasil diunduh dengan nama:\n${newFilename}`);
+            };
+
+            reader.onerror = function () {
+                showModal("Gagal", "Gagal membaca file. Coba ulangi.");
+            };
+
+            reader.readAsDataURL(file);
         });
     </script>
 </body>
