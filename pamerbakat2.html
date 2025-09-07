@@ -406,7 +406,8 @@
 
     function filterLinks() {
       const searchTerm = searchInput.value.toLowerCase();
-      const rows = linksTableBody.querySelectorAll('tr:not(:first-child)');
+      // Perbaikan: Mengubah query selector agar memeriksa semua baris
+      const rows = linksTableBody.querySelectorAll('tr');
       rows.forEach(row => {
         const rowText = row.textContent.toLowerCase();
         row.style.display = rowText.includes(searchTerm) ? '' : 'none';
