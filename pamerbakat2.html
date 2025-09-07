@@ -29,6 +29,11 @@
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
+        .icon-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -38,16 +43,20 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white shadow-md rounded-lg p-6 mb-6">
       <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-0">Daftar Tautan</h1>
       <div class="flex items-center gap-4 w-full sm:w-auto">
-        <div class="relative w-full sm:w-auto">
-          <input type="text" id="searchInput" placeholder="Cari..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-8">
-          <button id="clearSearchBtn" class="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none hidden">
+        <!-- Tombol Pengaturan -->
+<div class="flex items-center justify-center space-x-4">
+    <a href="https://pamer-bakat.vercel.app/tambah_konten.html" target="_blank" title="Pengaturan" class="p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors icon-wrapper">
+        <i class="fa-solid fa-plus text-gray-700 w-5 h-5"></i>
+    </a>
+    <div class="relative w-full sm:w-auto">
+        <input type="text" id="searchInput" placeholder="Cari..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-8">
+        <button id="clearSearchBtn" class="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none hidden">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
-          </button>
-        </div>
-      </div>
+        </button>
     </div>
+</div>
 
     <div class="px-0">
       <div id="statusMessage" class="hidden text-center p-4 rounded-lg mb-4 text-sm" role="alert"></div>
@@ -70,23 +79,14 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Seseorang</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">URL</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode Shift</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dibuat Pada</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deskripsi</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hapus</th>
             </tr>
           </thead>
           <tbody id="links-table-body" class="bg-white divide-y divide-gray-200">
-            <tr class="bg-gray-50 hover:bg-gray-100 transition-colors">
-              <td colspan="8" class="p-4 text-center">
-                <a href="https://pamer-bakat.vercel.app/tambah_konten.html" class="flex items-center justify-center gap-2 text-blue-500 font-semibold hover:text-blue-700 transition-colors" target="_blank">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                  </svg>
-                  Tambah Tautan
-                </a>
-              </td>
-            </tr>
           </tbody>
         </table>
       </div>
@@ -205,11 +205,21 @@
         const match = url.match(/\.([a-zA-Z0-9]+)(?:\?|$)/);
         if (!match) return null;
         const ext = match[1].toLowerCase();
-        const map = { png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', gif:'image/gif', webp:'image/webp', mp4:'video/mp4', webm:'video/webm', mov:'video/quicktime', avi:'video/x-msvideo', svg:'image/svg+xml' };
+        const map = {
+          png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', gif:'image/gif', webp:'image/webp', svg:'image/svg+xml',
+          mp4:'video/mp4', webm:'video/webm', mov:'video/quicktime', avi:'video/x-msvideo'
+        };
         return map[ext] || null;
       } catch (e) {
         return null;
       }
+    }
+    
+    function getCategoryFromMime(mime) {
+        if (!mime) return 'Lainnya';
+        if (mime.startsWith('image/')) return 'Gambar';
+        if (mime.startsWith('video/')) return 'Video';
+        return 'Teks/Lainnya';
     }
 
     function getMimeFromBase64Sample(b64) {
@@ -483,7 +493,7 @@
     async function fetchLinks() {
       loadingIndicator && loadingIndicator.classList.remove('hidden');
       statusMessage && statusMessage.classList.add('hidden');
-      linksTableBody.querySelectorAll('tr:not(:first-child)').forEach(row => row.remove());
+      linksTableBody.querySelectorAll('tr').forEach(row => row.remove());
 
       try {
         const { data, error } = await supabase.from('links').select('*').order('created_at', { ascending: false });
@@ -501,6 +511,8 @@
           const encodedQrData = encodeURIComponent(qrData);
           const qrImageUrlSmall = `https://api.qrserver.com/v1/create-qr-code/?size=64x64&data=${encodedQrData}`;
           const qrImageUrlLarge = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodedQrData}`;
+          const mimeType = getMimeTypeFromUrl(link.url);
+          const category = getCategoryFromMime(mimeType);
 
           row.innerHTML = `
             <td class="px-6 py-4 text-sm text-gray-500 flex justify-center cursor-pointer">
@@ -509,6 +521,7 @@
             <td class="px-6 py-4 text-sm text-gray-500" data-column="person_name">${link.person_name || '-'}</td>
             <td class="px-6 py-4 text-sm text-gray-500" data-column="name">${link.name || '-'}</td>
             <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs" data-column="url">${link.url || '-'}</td>
+            <td class="px-6 py-4 text-sm text-gray-500" data-column="category">${category}</td>
             <td class="px-6 py-4 text-sm text-gray-500" data-column="shift_code">${link.shift_code || '-'}</td>
             <td class="px-6 py-4 text-sm text-gray-500">${formattedDate}</td>
             <td class="px-6 py-4 text-sm text-gray-500"><button class="view-description-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition-colors">Lihat</button></td>
