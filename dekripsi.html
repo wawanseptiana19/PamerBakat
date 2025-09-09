@@ -1,24 +1,73 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Dekripsi & Preview</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dekripsi & Preview — Dekripsi</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+    .container { max-width: 1000px; }
+    .video-wrap { width: 100%; display:flex; flex-direction:column; gap:12px; align-items:center; }
+    .controls-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .size-badge { background: #eef2ff; color:#3730a3; padding:6px 10px; border-radius:999px; font-weight:600; }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-6">
+<body class="bg-gray-50 min-h-screen py-8">
+  <div class="container mx-auto px-4">
+    <div class="bg-white shadow p-6 rounded-lg">
+      <h1 class="text-2xl font-bold mb-2">Hasil Dekripsi & Preview</h1>
+      <p class="text-sm text-gray-600 mb-4">Halaman ini memuat file hasil dekripsi. Jika file adalah video, atur ukuran lewat kontrol di bawah.</p>
 
-  <h1 class="text-2xl font-bold mb-4">Hasil Dekripsi</h1>
-  <div id="loading" class="text-gray-500">Memuat & mendekripsi...</div>
-  <div id="content" class="hidden flex flex-col items-center gap-4"></div>
-  <button id="downloadBtn" class="hidden mt-4 px-6 py-2 rounded-lg bg-blue-600 text-white">Unduh</button>
+      <div id="status" class="mb-4 text-sm text-gray-700">Memuat...</div>
+
+      <div id="meta" class="mb-4 hidden">
+        <div class="flex items-center gap-3">
+          <div class="size-badge" id="fileSize">Ukuran: -</div>
+          <div class="text-sm text-gray-600" id="detectedMime">Tipe: -</div>
+        </div>
+      </div>
+
+      <div id="preview" class="mb-6"></div>
+
+      <!-- Kontrol khusus video -->
+      <div id="videoControls" class="mb-6 hidden">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Atur ukuran video</label>
+        <div class="controls-row mb-2">
+          <button id="smallBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Small (480px)</button>
+          <button id="mediumBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Medium (800px)</button>
+          <button id="largeBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Large (1200px)</button>
+          <button id="fullBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Full width</button>
+        </div>
+        <div class="controls-row items-center">
+          <label class="text-sm text-gray-600 mr-2">Resize (persentase):</label>
+          <input id="sizeRange" type="range" min="20" max="150" value="100" class="w-48">
+          <div id="sizeLabel" class="text-sm text-gray-700 ml-3">100%</div>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button id="downloadBtn" class="px-4 py-2 bg-blue-600 text-white rounded shadow hidden">Unduh</button>
+        <a id="openRawLink" target="_blank" class="px-4 py-2 bg-gray-100 text-gray-700 rounded hidden">Buka asli di tab baru</a>
+      </div>
+    </div>
+
+    <div class="text-sm text-gray-500 mt-4">
+      <p>Parameter yang diterima: <code>?url=&lt;URL&gt;&amp;shift=&lt;angka&gt;&amp;person=&lt;nama&gt;&amp;name=&lt;judul&gt;</code></p>
+      <p class="mt-2">Contoh: <code>dekripsi.html?url=https://example.com/file.txt&amp;shift=3</code></p>
+    </div>
+  </div>
 
   <script>
-    function getQueryParam(name) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(name) || '';
+    // Utility: ambil query param
+    function q(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name) || '';
     }
 
+    // Caesar decrypt (hanya huruf latin)
     function decryptCaesar(text, shift) {
+      if (typeof text !== 'string') return text;
       const s = Number(shift);
       if (isNaN(s)) return text;
       let result = '';
@@ -34,90 +83,279 @@
       return result;
     }
 
+    // Normalisasi base64 (hapus header data:...;base64, jika ada)
     function normalizeBase64(b64) {
-      if (!b64) return '';
+      if (!b64 || typeof b64 !== 'string') return '';
       let s = b64.replace(/\s+/g, '');
-      const match = s.match(/^data:.*;base64,(.*)$/i);
-      if (match) s = match[1];
+      const m = s.match(/^data:.*;base64,(.*)$/i);
+      if (m) s = m[1];
       s = s.replace(/-/g, '+').replace(/_/g, '/');
       const pad = s.length % 4;
       if (pad === 2) s += '=='; else if (pad === 3) s += '=';
       return s;
     }
 
+    // Convert base64 to Blob (safe-ish)
     function base64ToBlob(base64, mime) {
-      const binary = atob(base64);
+      const cleaned = normalizeBase64(base64);
+      const binary = atob(cleaned);
       const len = binary.length;
       const arr = new Uint8Array(len);
       for (let i = 0; i < len; i++) arr[i] = binary.charCodeAt(i);
       return new Blob([arr], { type: mime || 'application/octet-stream' });
     }
 
-    async function run() {
-      const url = getQueryParam('url');
-      const shift = getQueryParam('shift');
-      const person = getQueryParam('person');
-      const name = getQueryParam('name');
-
-      if (!url) {
-        document.getElementById('loading').textContent = 'URL tidak ditemukan.';
-        return;
-      }
-
+    // Deteksi mime dari sample awal base64 (heuristik)
+    function detectMimeFromBase64(b64) {
       try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Gagal memuat file.');
-        const encryptedText = await res.text();
-
-        const decrypted = decryptCaesar(encryptedText, shift).trim();
-        const cleaned = normalizeBase64(decrypted);
-
-        const contentDiv = document.getElementById('content');
-        document.getElementById('loading').classList.add('hidden');
-        contentDiv.classList.remove('hidden');
-
-        // coba deteksi tipe
-        let mime = '';
-        if (cleaned.startsWith('/9j/')) mime = 'image/jpeg';
-        else if (cleaned.startsWith('iVBOR')) mime = 'image/png';
-        else if (cleaned.includes('ftyp')) mime = 'video/mp4';
-
-        if (mime.startsWith('image/')) {
-          const img = document.createElement('img');
-          img.src = `data:${mime};base64,${cleaned}`;
-          img.className = "max-w-full rounded-lg";
-          contentDiv.appendChild(img);
-        } else if (mime.startsWith('video/')) {
-          const video = document.createElement('video');
-          video.src = URL.createObjectURL(base64ToBlob(cleaned, mime));
-          video.controls = true;
-          video.className = "max-w-full rounded-lg";
-          contentDiv.appendChild(video);
-        } else {
-          const pre = document.createElement('pre');
-          pre.textContent = decrypted.slice(0,2000);
-          pre.className = "p-4 bg-gray-50 rounded-lg text-sm";
-          contentDiv.appendChild(pre);
+        const cleaned = normalizeBase64(b64).slice(0, 2000);
+        if (!cleaned) return null;
+        const bin = atob(cleaned.slice(0, 1000)); // cukup sample kecil
+        if (bin.startsWith('\x89PNG')) return 'image/png';
+        if (bin.charCodeAt(0) === 0xFF && bin.charCodeAt(1) === 0xD8) return 'image/jpeg';
+        if (bin.startsWith('GIF87a') || bin.startsWith('GIF89a')) return 'image/gif';
+        if (bin.indexOf('ftyp') !== -1) return 'video/mp4';
+        if (bin.toLowerCase().indexOf('webm') !== -1) return 'video/webm';
+        if (cleaned.startsWith('iVBOR') || cleaned.startsWith('/9j/')) {
+          if (cleaned.startsWith('iVBOR')) return 'image/png';
+          if (cleaned.startsWith('/9j/')) return 'image/jpeg';
         }
-
-        // unduh
-        const blob = base64ToBlob(cleaned, mime || 'text/plain');
-        const filename = `${person || 'anonim'}-${name || 'konten'}.${mime.split('/')[1] || 'txt'}`;
-        const dlBtn = document.getElementById('downloadBtn');
-        dlBtn.classList.remove('hidden');
-        dlBtn.onclick = () => {
-          const a = document.createElement('a');
-          a.href = URL.createObjectURL(blob);
-          a.download = filename;
-          a.click();
-        };
-
-      } catch (err) {
-        document.getElementById('loading').textContent = "Gagal: " + err.message;
+        return null;
+      } catch (e) {
+        return null;
       }
     }
 
-    run();
+    // Format bytes ke MB dengan 2 desimal
+    function bytesToMB(n) {
+      if (typeof n !== 'number' || isNaN(n)) return '-';
+      return (n / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+
+    (async function main(){
+      const url = q('url');
+      const shift = q('shift') || '0';
+      const person = q('person') || '';
+      const name = q('name') || '';
+
+      const statusEl = document.getElementById('status');
+      const previewEl = document.getElementById('preview');
+      const metaEl = document.getElementById('meta');
+      const fileSizeEl = document.getElementById('fileSize');
+      const mimeEl = document.getElementById('detectedMime');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const openRawLink = document.getElementById('openRawLink');
+      const videoControls = document.getElementById('videoControls');
+      const sizeRange = document.getElementById('sizeRange');
+      const sizeLabel = document.getElementById('sizeLabel');
+      const smallBtn = document.getElementById('smallBtn');
+      const mediumBtn = document.getElementById('mediumBtn');
+      const largeBtn = document.getElementById('largeBtn');
+      const fullBtn = document.getElementById('fullBtn');
+
+      let objectUrl = null;
+      let currentBlob = null;
+      let detectedMime = null;
+      let approxBytes = null;
+      let videoEl = null;
+
+      if (!url) {
+        statusEl.textContent = 'Parameter url tidak ditemukan. Pastikan ?url= di query string.';
+        return;
+      }
+
+      statusEl.textContent = 'Memuat file...';
+      openRawLink.href = decodeURIComponent(url);
+      openRawLink.classList.remove('hidden');
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Gagal memuat file: ' + res.status);
+        const encryptedText = await res.text();
+
+        statusEl.textContent = 'Mendekripsi...';
+
+        const decrypted = decryptCaesar(encryptedText, shift);
+        const probableBase64 = decrypted.trim();
+
+        // Coba deteksi; jika bukan base64 -> tampil sebagai teks
+        const cleaned = normalizeBase64(probableBase64);
+        const looksLikeBase64 = cleaned && /^[A-Za-z0-9+/=]+$/.test(cleaned);
+
+        // Jika kelihatan base64, coba deteksi mime dan blob
+        if (looksLikeBase64) {
+          detectedMime = detectMimeFromBase64(cleaned) || '';
+          // hitung ukuran dari panjang base64 (perkiraan bytes)
+          approxBytes = Math.ceil((cleaned.length * 3) / 4);
+
+          try {
+            currentBlob = base64ToBlob(cleaned, detectedMime || 'application/octet-stream');
+          } catch (e) {
+            console.warn('Gagal buat blob dari base64, fallback ke data URI', e);
+            currentBlob = null;
+          }
+
+          // Jika blob berhasil dibuat, gunakan ukurannya yang akurat
+          const bytesToShow = currentBlob ? currentBlob.size : approxBytes;
+          fileSizeEl.textContent = 'Ukuran: ' + bytesToMB(bytesToShow);
+          mimeEl.textContent = 'Tipe: ' + (detectedMime || 'Tidak terdeteksi');
+          metaEl.classList.remove('hidden');
+
+          // Buat object URL / data URL untuk preview
+          if (currentBlob) {
+            objectUrl = URL.createObjectURL(currentBlob);
+          } else {
+            // fallback ke data URL (untuk file kecil)
+            objectUrl = `data:${detectedMime || 'application/octet-stream'};base64,${cleaned}`;
+          }
+
+          // Jika terdeteksi video -> tampilkan video dan kontrol
+          if (detectedMime && detectedMime.startsWith('video/')) {
+            previewEl.innerHTML = '';
+            videoEl = document.createElement('video');
+            videoEl.controls = true;
+            videoEl.playsInline = true;
+            videoEl.className = 'rounded-md shadow-sm';
+            videoEl.style.maxWidth = '100%';
+            videoEl.style.width = '100%';
+            videoEl.src = objectUrl;
+            previewEl.appendChild(createLabel(`${person} - ${name}`));
+            const wrap = document.createElement('div');
+            wrap.className = 'video-wrap w-full';
+            wrap.appendChild(videoEl);
+            previewEl.appendChild(wrap);
+
+            // tampilkan kontrol size
+            videoControls.classList.remove('hidden');
+
+            // preset buttons
+            smallBtn.addEventListener('click', () => { setVideoWidthPx(480); });
+            mediumBtn.addEventListener('click', () => { setVideoWidthPx(800); });
+            largeBtn.addEventListener('click', () => { setVideoWidthPx(1200); });
+            fullBtn.addEventListener('click', () => { setVideoWidthPercent(100); });
+
+            sizeRange.addEventListener('input', () => {
+              const val = Number(sizeRange.value);
+              sizeLabel.textContent = val + '%';
+              setVideoWidthPercent(val);
+            });
+
+            // helper set
+            function setVideoWidthPx(px) {
+              if (!videoEl) return;
+              videoEl.style.width = px + 'px';
+              videoEl.style.maxWidth = '100%';
+              sizeRange.value = Math.round((px / Math.min(window.innerWidth, 1200)) * 100);
+              sizeLabel.textContent = sizeRange.value + '%';
+            }
+            function setVideoWidthPercent(pct) {
+              if (!videoEl) return;
+              videoEl.style.width = pct + '%';
+              sizeLabel.textContent = pct + '%';
+            }
+
+          } else if (detectedMime && detectedMime.startsWith('image/')) {
+            previewEl.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = objectUrl;
+            img.alt = `${person} - ${name}`;
+            img.className = 'rounded-md shadow-sm max-w-full';
+            previewEl.appendChild(createLabel(`${person} - ${name}`));
+            previewEl.appendChild(img);
+            videoControls.classList.add('hidden');
+          } else {
+            // non-media but base64 -> buat link unduh dan tampil hex/text preview
+            previewEl.innerHTML = '';
+            previewEl.appendChild(createLabel(`${person} - ${name}`));
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = sanitizeFilename(`${person || 'anonim'} - ${name || 'konten'}.${(detectedMime && detectedMime.split('/')[1]) || 'bin'}`);
+            a.textContent = 'Unduh file (tipe tidak umum)';
+            a.className = 'underline text-blue-600';
+            previewEl.appendChild(a);
+
+            const pre = document.createElement('pre');
+            pre.className = 'mt-3 p-3 bg-gray-50 rounded text-sm max-h-64 overflow-auto';
+            pre.textContent = '[Preview base64 (dipotong)]\n' + cleaned.slice(0, 1500) + (cleaned.length > 1500 ? '\n\n... (terpotong) ...' : '');
+            previewEl.appendChild(pre);
+            videoControls.classList.add('hidden');
+          }
+
+          // siapkan tombol unduh (pakai blob bila ada)
+          if (currentBlob) {
+            downloadBtn.onclick = () => {
+              const a = document.createElement('a');
+              a.href = objectUrl;
+              a.download = sanitizeFilename(`${person || 'anonim'} - ${name || 'konten'}.${(detectedMime && detectedMime.split('/')[1]) || 'bin'}`);
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+            };
+            downloadBtn.classList.remove('hidden');
+          } else {
+            // fallback: data URL unduh
+            downloadBtn.onclick = () => {
+              const a = document.createElement('a');
+              a.href = objectUrl;
+              a.download = sanitizeFilename(`${person || 'anonim'} - ${name || 'konten'}.${(detectedMime && detectedMime.split('/')[1]) || 'bin'}`);
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+            };
+            downloadBtn.classList.remove('hidden');
+          }
+
+        } else {
+          // bukan base64 -> tampil sebagai teks biasa
+          const textBlob = new Blob([decrypted], { type: 'text/plain' });
+          const sizeBytes = textBlob.size;
+          approxBytes = sizeBytes;
+          fileSizeEl.textContent = 'Ukuran: ' + bytesToMB(sizeBytes);
+          mimeEl.textContent = 'Tipe: text/plain';
+          metaEl.classList.remove('hidden');
+          previewEl.innerHTML = '';
+          previewEl.appendChild(createLabel(`${person} - ${name}`));
+          const pre = document.createElement('pre');
+          pre.className = 'mt-3 p-4 bg-gray-50 rounded text-sm whitespace-pre-wrap';
+          pre.textContent = decrypted;
+          previewEl.appendChild(pre);
+
+          objectUrl = URL.createObjectURL(textBlob);
+          downloadBtn.onclick = () => {
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = sanitizeFilename(`${person || 'anonim'} - ${name || 'konten'}.txt`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          };
+          downloadBtn.classList.remove('hidden');
+          videoControls.classList.add('hidden');
+        }
+
+        statusEl.textContent = 'Selesai.';
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Gagal memuat/mendekripsi: ' + err.message;
+      }
+
+      // helpers
+      function createLabel(text) {
+        const h = document.createElement('div');
+        h.className = 'text-sm text-gray-700 font-semibold mb-2';
+        h.textContent = text || '';
+        return h;
+      }
+      function sanitizeFilename(name) {
+        return name.replace(/[<>:"/\\|?*\x00-\x1F]/g, '-').slice(0, 200);
+      }
+
+      // revoke object URL on unload
+      window.addEventListener('beforeunload', () => {
+        if (objectUrl && objectUrl.startsWith('blob:')) URL.revokeObjectURL(objectUrl);
+      });
+
+    })();
   </script>
 </body>
 </html>
