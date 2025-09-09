@@ -13,6 +13,32 @@
     .size-badge { background: #eef2ff; color:#3730a3; padding:6px 10px; border-radius:999px; font-weight:600; }
     .toggle-btn { background:#f3f4f6; padding:6px 10px; border-radius:8px; cursor:pointer; }
     .toggle-btn.active { background:#dbeafe; color:#1e40af; }
+
+    /* overlay kunci (ditambahkan) */
+    #lockedOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+      z-index: 99999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      color: white;
+    }
+    #lockedBox {
+      background: rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 20px;
+      width: 100%;
+      max-width: 560px;
+      text-align: center;
+      box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+      backdrop-filter: blur(4px);
+    }
+    #lockedBox h2 { font-size: 1.25rem; margin-bottom: 6px; }
+    #lockedBox p { margin-bottom: 12px; color: #e6eef8; }
+    #lockedBox button { margin: 6px; }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen py-8">
@@ -76,6 +102,20 @@
     <div class="text-sm text-gray-500 mt-4">
       <p>Parameter yang diterima: <code>?url=&lt;URL&gt;&amp;shift=&lt;angka&gt;&amp;person=&lt;nama&gt;&amp;name=&lt;judul&gt;</code></p>
       <p class="mt-2">Contoh: <code>dekripsi.html?url=https://example.com/file.txt&amp;shift=3</code></p>
+    </div>
+  </div>
+
+  <!-- Locked overlay (ditampilkan bila akses tak valid) -->
+  <div id="lockedOverlay" role="dialog" aria-modal="true">
+    <div id="lockedBox" role="document">
+      <h2>Akses Terkunci</h2>
+      <p>Halaman dekripsi hanya bisa diakses setelah Anda masuk melalui halaman utama (index).<br>
+         Buka halaman utama dan lakukan proses login di sana, lalu kembali atau gunakan tombol di bawah.</p>
+      <div>
+        <button id="openIndexBtn" class="px-4 py-2 bg-indigo-600 text-white rounded">Buka Halaman Utama</button>
+        <button id="tryCheckBtn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded">Periksa lagi</button>
+      </div>
+      <p style="margin-top:10px;font-size:0.85rem;color:#dbeafe;">Jika halaman index membuka dekripsi menggunakan window.open, akses akan otomatis diberikan.</p>
     </div>
   </div>
 
@@ -157,7 +197,119 @@
     const KEY_IMG = 'dekrip_image_size_pct';
     const KEY_VID = 'dekrip_video_size_pct';
 
-    (async function main(){
+    // --- BAGIAN BARU: mekanisme pengecekan akses dari index ---
+    const lockedOverlay = document.getElementById('lockedOverlay');
+    const openIndexBtn = document.getElementById('openIndexBtn');
+    const tryCheckBtn = document.getElementById('tryCheckBtn');
+
+    // Cek apakah opener (index) dalam keadaan "ter-unlock"
+    function checkOpenerLoggedIn() {
+      try {
+        if (!window.opener || window.opener.closed) return false;
+
+        // coba akses elemen overlay di index (jika masih sama implementasinya)
+        const overlay = window.opener.document.getElementById && window.opener.document.getElementById('loginOverlay');
+        if (overlay) {
+          // index menggunakan overlay.style.display = 'flex' saat locked, 'none' saat unlocked
+          const disp = String(overlay.style.display || '');
+          if (disp === 'none' || disp === '') {
+            // ada kemungkinan default '', coba cek tombol logout (yang muncul saat unlock)
+            const logoutBtn = window.opener.document.getElementById && window.opener.document.getElementById('logoutBtn');
+            if (logoutBtn && logoutBtn.style.display !== 'none') return true;
+            // atau cek class pada pageContent (index menambah .blurred saat terkunci)
+            const pageContent = window.opener.document.getElementById && window.opener.document.getElementById('pageContent');
+            if (pageContent && !pageContent.classList.contains('blurred')) return true;
+            // jika overlay.style.display kosong, tapi pageContent tidak blurred, anggap unlocked
+            if (!pageContent) {
+              // fallback: jika overlay.style.display === 'none'
+              if (disp === 'none') return true;
+            }
+          } else {
+            // jika disp === 'none' explicitly
+            if (disp === 'none') return true;
+          }
+        } else {
+          // Jika element overlay tidak ditemukan, coba cek keberadaan logoutBtn sebagai tanda unlocked
+          const logoutBtn = window.opener.document.getElementById && window.opener.document.getElementById('logoutBtn');
+          if (logoutBtn && logoutBtn.style.display !== 'none') return true;
+          const pageContent = window.opener.document.getElementById && window.opener.document.getElementById('pageContent');
+          if (pageContent && !pageContent.classList.contains('blurred')) return true;
+        }
+
+        return false;
+      } catch (e) {
+        // akses mungkin diblokir oleh same-origin policy -> anggap tidak sah
+        return false;
+      }
+    }
+
+    // Tampilkan overlay kunci
+    function showLockedOverlay() {
+      if (lockedOverlay) lockedOverlay.style.display = 'flex';
+      // sembunyikan area preview agar tidak ada akses visual
+      const previewEl = document.getElementById('preview');
+      if (previewEl) previewEl.style.filter = 'blur(4px)';
+    }
+    function hideLockedOverlay() {
+      if (lockedOverlay) lockedOverlay.style.display = 'none';
+      const previewEl = document.getElementById('preview');
+      if (previewEl) previewEl.style.filter = '';
+    }
+
+    openIndexBtn.addEventListener('click', () => {
+      try {
+        if (window.opener && !window.opener.closed) {
+          window.opener.focus();
+        } else {
+          // buka index baru di tab baru
+          window.open('index.html', '_blank');
+        }
+      } catch (e) {
+        window.open('index.html', '_blank');
+      }
+    });
+    tryCheckBtn.addEventListener('click', () => {
+      // periksa ulang akses sekarang
+      if (checkOpenerLoggedIn()) {
+        hideLockedOverlay();
+        // jalankan main jika belum
+        if (typeof ensureAndRunMain === 'function') ensureAndRunMain();
+      } else {
+        alert('Masih terkunci — pastikan Anda sudah login di halaman utama.');
+      }
+    });
+
+    // Cek berkala apakah opener sudah ter-unlock (berguna jika index login setelah membuka tab ini)
+    let accessInterval = null;
+    function startAccessPolling() {
+      if (accessInterval) return;
+      accessInterval = setInterval(() => {
+        if (checkOpenerLoggedIn()) {
+          hideLockedOverlay();
+          clearInterval(accessInterval);
+          accessInterval = null;
+          if (typeof ensureAndRunMain === 'function') ensureAndRunMain();
+        }
+      }, 700); // cek tiap 700ms
+    }
+
+    // Jika akses tidak valid ketika load, tampilkan overlay dan mulai polling
+    // Jika valid, jalankan fungsi utama (main) langsung.
+    // Kita definisikan ensureAndRunMain nanti agar dapat dipanggil setelah cek akses.
+    // --- AKHIR BAGIAN BARU ---
+
+    // === FUNGSI UTAMA (sama seperti sebelumnya) ===
+    (function() {
+      // Pindahkan isi IIFE utama ke fungsi yang bisa dipanggil setelah akses valid.
+      // Agar minimal perubahan terhadap kode asli, kita bungkus logika utama ke dalam ensureAndRunMain.
+    })();
+
+    // definisi ensureAndRunMain (isi diambil dari blok utama sebelumnya)
+    async function ensureAndRunMain() {
+      // mencegah dipanggil berkali-kali
+      if (ensureAndRunMain._started) return;
+      ensureAndRunMain._started = true;
+
       const url = q('url');
       const shift = q('shift') || '0';
       const person = q('person') || '';
@@ -197,16 +349,18 @@
 
       // apply saved settings if any
       function loadSavedSettings() {
-        const savedImg = localStorage.getItem(KEY_IMG);
-        const savedVid = localStorage.getItem(KEY_VID);
-        if (savedImg !== null) {
-          sizeRangeImage.value = savedImg;
-          sizeLabelImage.textContent = savedImg + '%';
-        }
-        if (savedVid !== null) {
-          sizeRangeVideo.value = savedVid;
-          sizeLabelVideo.textContent = savedVid + '%';
-        }
+        try {
+          const savedImg = localStorage.getItem(KEY_IMG);
+          const savedVid = localStorage.getItem(KEY_VID);
+          if (savedImg !== null) {
+            sizeRangeImage.value = savedImg;
+            sizeLabelImage.textContent = savedImg + '%';
+          }
+          if (savedVid !== null) {
+            sizeRangeVideo.value = savedVid;
+            sizeLabelVideo.textContent = savedVid + '%';
+          }
+        } catch (e) {}
       }
       loadSavedSettings();
 
@@ -467,8 +621,30 @@
       window.addEventListener('beforeunload', () => {
         if (objectUrl && objectUrl.startsWith('blob:')) URL.revokeObjectURL(objectUrl);
       });
+    } // end ensureAndRunMain
 
+    // Saat halaman dimuat: cek akses dari index terlebih dahulu.
+    (function initAccessCheck() {
+      // Jika opener tampak unlocked -> jalankan langsung
+      if (checkOpenerLoggedIn()) {
+        hideLockedOverlay();
+        ensureAndRunMain();
+      } else {
+        // tampilkan overlay kunci dan mulai polling untuk perubahan (mis. index login setelah tab ini dibuka)
+        showLockedOverlay();
+        startAccessPolling();
+      }
+
+      // Jika user menutup opener atau origin berbeda, maka tetap terkunci.
+      window.addEventListener('focus', () => {
+        // saat kembali fokus ke tab ini, periksa lagi
+        if (checkOpenerLoggedIn()) {
+          hideLockedOverlay();
+          ensureAndRunMain();
+        }
+      });
     })();
+
   </script>
 </body>
 </html>
