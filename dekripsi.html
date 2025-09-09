@@ -11,9 +11,6 @@
     .media-wrap { width: 100%; display:flex; flex-direction:column; gap:12px; align-items:center; }
     .controls-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
     .size-badge { background: #eef2ff; color:#3730a3; padding:6px 10px; border-radius:999px; font-weight:600; }
-    .toggle-btn { background:#f3f4f6; padding:6px 10px; border-radius:8px; cursor:pointer; }
-    .toggle-btn.active { background:#dbeafe; color:#1e40af; }
-
     /* overlay kunci (ditambahkan) */
     #lockedOverlay {
       position: fixed;
@@ -31,14 +28,16 @@
       border-radius: 12px;
       padding: 20px;
       width: 100%;
-      max-width: 560px;
+      max-width: 640px;
       text-align: center;
       box-shadow: 0 8px 30px rgba(2,6,23,0.6);
       backdrop-filter: blur(4px);
     }
     #lockedBox h2 { font-size: 1.25rem; margin-bottom: 6px; }
     #lockedBox p { margin-bottom: 12px; color: #e6eef8; }
-    #lockedBox button { margin: 6px; }
+    /* Hide any leftover button styles (no buttons expected) */
+    button { display: none !important; }
+    a.button-like { display: none !important; }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen py-8">
@@ -58,45 +57,29 @@
 
       <div id="preview" class="mb-6"></div>
 
-      <!-- Kontrol khusus video -->
+      <!-- Kontrol ukuran (range inputs tetap ada; bukan tombol) -->
       <div id="videoControls" class="mb-6 hidden">
         <label class="block text-sm font-medium text-gray-700 mb-2">Atur ukuran video</label>
         <div class="controls-row mb-2">
-          <button id="vSmallBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Small (480px)</button>
-          <button id="vMediumBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Medium (800px)</button>
-          <button id="vLargeBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Large (1200px)</button>
-          <button id="vFullBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Full width</button>
-          <div id="loopToggle" class="ml-2">
-            <button id="loopBtn" class="toggle-btn active text-sm" title="Toggle loop">Loop: On</button>
-          </div>
+          <div id="sizeLabelVideo" class="text-sm text-gray-700 ml-3">100%</div>
         </div>
         <div class="controls-row items-center">
           <label class="text-sm text-gray-600 mr-2">Resize (persentase):</label>
           <input id="sizeRangeVideo" type="range" min="20" max="150" value="100" class="w-48">
-          <div id="sizeLabelVideo" class="text-sm text-gray-700 ml-3">100%</div>
         </div>
       </div>
 
-      <!-- Kontrol khusus gambar -->
       <div id="imageControls" class="mb-6 hidden">
         <label class="block text-sm font-medium text-gray-700 mb-2">Atur ukuran gambar</label>
         <div class="controls-row mb-2">
-          <button id="iSmallBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Small (25%)</button>
-          <button id="iMediumBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Medium (50%)</button>
-          <button id="iLargeBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Large (100%)</button>
-          <button id="iFullBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Full width</button>
+          <div id="sizeLabelImage" class="text-sm text-gray-700 ml-3">100%</div>
         </div>
         <div class="controls-row items-center">
           <label class="text-sm text-gray-600 mr-2">Resize (persentase):</label>
           <input id="sizeRangeImage" type="range" min="10" max="200" value="100" class="w-48">
-          <div id="sizeLabelImage" class="text-sm text-gray-700 ml-3">100%</div>
         </div>
       </div>
 
-      <div class="flex gap-3">
-        <button id="downloadBtn" class="px-4 py-2 bg-blue-600 text-white rounded shadow hidden">Unduh</button>
-        <a id="openRawLink" target="_blank" class="px-4 py-2 bg-gray-100 text-gray-700 rounded hidden">Buka asli di tab baru</a>
-      </div>
     </div>
 
     <div class="text-sm text-gray-500 mt-4">
@@ -105,17 +88,15 @@
     </div>
   </div>
 
-  <!-- Locked overlay (ditampilkan bila akses tak valid) -->
+  <!-- Locked overlay (ditampilkan bila akses tak valid) - tanpa tombol -->
   <div id="lockedOverlay" role="dialog" aria-modal="true">
     <div id="lockedBox" role="document">
       <h2>Akses Terkunci</h2>
-      <p>Halaman dekripsi hanya bisa diakses setelah Anda masuk melalui halaman utama (index).<br>
-         Buka halaman utama dan lakukan proses login di sana, lalu kembali atau gunakan tombol di bawah.</p>
-      <div>
-        <button id="openIndexBtn" class="px-4 py-2 bg-indigo-600 text-white rounded">Buka Halaman Utama</button>
-        <button id="tryCheckBtn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded">Periksa lagi</button>
-      </div>
-      <p style="margin-top:10px;font-size:0.85rem;color:#dbeafe;">Jika halaman index membuka dekripsi menggunakan window.open, akses akan otomatis diberikan.</p>
+      <p>Halaman dekripsi hanya bisa diakses setelah Anda masuk melalui halaman utama (index).</p>
+      <p style="margin-top:10px;font-size:0.85rem;color:#dbeafe;">
+        Sistem akan mencoba membuka halaman utama dan memeriksa status login secara otomatis.
+        Jika browser memblokir pop-up, silakan buka "index.html" secara manual dan login, lalu kembali ke halaman ini.
+      </p>
     </div>
   </div>
 
@@ -193,43 +174,27 @@
       return (n / (1024 * 1024)).toFixed(2) + ' MB';
     }
 
-    // localStorage keys
-    const KEY_IMG = 'dekrip_image_size_pct';
-    const KEY_VID = 'dekrip_video_size_pct';
-
-    // --- BAGIAN BARU: mekanisme pengecekan akses dari index ---
     const lockedOverlay = document.getElementById('lockedOverlay');
-    const openIndexBtn = document.getElementById('openIndexBtn');
-    const tryCheckBtn = document.getElementById('tryCheckBtn');
 
     // Cek apakah opener (index) dalam keadaan "ter-unlock"
     function checkOpenerLoggedIn() {
       try {
         if (!window.opener || window.opener.closed) return false;
 
-        // coba akses elemen overlay di index (jika masih sama implementasinya)
+        // coba akses elemen overlay di index (jika ada)
         const overlay = window.opener.document.getElementById && window.opener.document.getElementById('loginOverlay');
         if (overlay) {
-          // index menggunakan overlay.style.display = 'flex' saat locked, 'none' saat unlocked
           const disp = String(overlay.style.display || '');
           if (disp === 'none' || disp === '') {
-            // ada kemungkinan default '', coba cek tombol logout (yang muncul saat unlock)
             const logoutBtn = window.opener.document.getElementById && window.opener.document.getElementById('logoutBtn');
             if (logoutBtn && logoutBtn.style.display !== 'none') return true;
-            // atau cek class pada pageContent (index menambah .blurred saat terkunci)
             const pageContent = window.opener.document.getElementById && window.opener.document.getElementById('pageContent');
             if (pageContent && !pageContent.classList.contains('blurred')) return true;
-            // jika overlay.style.display kosong, tapi pageContent tidak blurred, anggap unlocked
-            if (!pageContent) {
-              // fallback: jika overlay.style.display === 'none'
-              if (disp === 'none') return true;
-            }
+            if (disp === 'none') return true;
           } else {
-            // jika disp === 'none' explicitly
             if (disp === 'none') return true;
           }
         } else {
-          // Jika element overlay tidak ditemukan, coba cek keberadaan logoutBtn sebagai tanda unlocked
           const logoutBtn = window.opener.document.getElementById && window.opener.document.getElementById('logoutBtn');
           if (logoutBtn && logoutBtn.style.display !== 'none') return true;
           const pageContent = window.opener.document.getElementById && window.opener.document.getElementById('pageContent');
@@ -238,15 +203,13 @@
 
         return false;
       } catch (e) {
-        // akses mungkin diblokir oleh same-origin policy -> anggap tidak sah
+        // akses diblokir oleh same-origin policy atau opener dari origin lain
         return false;
       }
     }
 
-    // Tampilkan overlay kunci
     function showLockedOverlay() {
       if (lockedOverlay) lockedOverlay.style.display = 'flex';
-      // sembunyikan area preview agar tidak ada akses visual
       const previewEl = document.getElementById('preview');
       if (previewEl) previewEl.style.filter = 'blur(4px)';
     }
@@ -256,30 +219,7 @@
       if (previewEl) previewEl.style.filter = '';
     }
 
-    openIndexBtn.addEventListener('click', () => {
-      try {
-        if (window.opener && !window.opener.closed) {
-          window.opener.focus();
-        } else {
-          // buka index baru di tab baru
-          window.open('index.html', '_blank');
-        }
-      } catch (e) {
-        window.open('index.html', '_blank');
-      }
-    });
-    tryCheckBtn.addEventListener('click', () => {
-      // periksa ulang akses sekarang
-      if (checkOpenerLoggedIn()) {
-        hideLockedOverlay();
-        // jalankan main jika belum
-        if (typeof ensureAndRunMain === 'function') ensureAndRunMain();
-      } else {
-        alert('Masih terkunci — pastikan Anda sudah login di halaman utama.');
-      }
-    });
-
-    // Cek berkala apakah opener sudah ter-unlock (berguna jika index login setelah membuka tab ini)
+    // Polling untuk cek akses
     let accessInterval = null;
     function startAccessPolling() {
       if (accessInterval) return;
@@ -290,23 +230,27 @@
           accessInterval = null;
           if (typeof ensureAndRunMain === 'function') ensureAndRunMain();
         }
-      }, 700); // cek tiap 700ms
+      }, 700);
     }
 
-    // Jika akses tidak valid ketika load, tampilkan overlay dan mulai polling
-    // Jika valid, jalankan fungsi utama (main) langsung.
-    // Kita definisikan ensureAndRunMain nanti agar dapat dipanggil setelah cek akses.
-    // --- AKHIR BAGIAN BARU ---
+    // Coba buka index otomatis (popup mungkin diblokir oleh browser)
+    function tryOpenIndexAutomatically() {
+      try {
+        if (window.opener && !window.opener.closed) {
+          // fokus opener jika tersedia
+          try { window.opener.focus(); } catch(e){}
+        } else {
+          const w = window.open('index.html', '_blank');
+          // jika popup berhasil, fokus window baru
+          try { if (w) w.focus(); } catch(e){}
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
 
-    // === FUNGSI UTAMA (sama seperti sebelumnya) ===
-    (function() {
-      // Pindahkan isi IIFE utama ke fungsi yang bisa dipanggil setelah akses valid.
-      // Agar minimal perubahan terhadap kode asli, kita bungkus logika utama ke dalam ensureAndRunMain.
-    })();
-
-    // definisi ensureAndRunMain (isi diambil dari blok utama sebelumnya)
+    // === FUNGSI UTAMA ===
     async function ensureAndRunMain() {
-      // mencegah dipanggil berkali-kali
       if (ensureAndRunMain._started) return;
       ensureAndRunMain._started = true;
 
@@ -320,49 +264,36 @@
       const metaEl = document.getElementById('meta');
       const fileSizeEl = document.getElementById('fileSize');
       const mimeEl = document.getElementById('detectedMime');
-      const downloadBtn = document.getElementById('downloadBtn');
-      const openRawLink = document.getElementById('openRawLink');
 
       const videoControls = document.getElementById('videoControls');
       const sizeRangeVideo = document.getElementById('sizeRangeVideo');
       const sizeLabelVideo = document.getElementById('sizeLabelVideo');
-      const vSmallBtn = document.getElementById('vSmallBtn');
-      const vMediumBtn = document.getElementById('vMediumBtn');
-      const vLargeBtn = document.getElementById('vLargeBtn');
-      const vFullBtn = document.getElementById('vFullBtn');
-      const loopBtn = document.getElementById('loopBtn');
 
       const imageControls = document.getElementById('imageControls');
       const sizeRangeImage = document.getElementById('sizeRangeImage');
       const sizeLabelImage = document.getElementById('sizeLabelImage');
-      const iSmallBtn = document.getElementById('iSmallBtn');
-      const iMediumBtn = document.getElementById('iMediumBtn');
-      const iLargeBtn = document.getElementById('iLargeBtn');
-      const iFullBtn = document.getElementById('iFullBtn');
 
       let objectUrl = null;
       let currentBlob = null;
       let detectedMime = null;
       let videoEl = null;
       let imageEl = null;
-      let loopEnabled = true;
 
       // apply saved settings if any
-      function loadSavedSettings() {
-        try {
-          const savedImg = localStorage.getItem(KEY_IMG);
-          const savedVid = localStorage.getItem(KEY_VID);
-          if (savedImg !== null) {
-            sizeRangeImage.value = savedImg;
-            sizeLabelImage.textContent = savedImg + '%';
-          }
-          if (savedVid !== null) {
-            sizeRangeVideo.value = savedVid;
-            sizeLabelVideo.textContent = savedVid + '%';
-          }
-        } catch (e) {}
-      }
-      loadSavedSettings();
+      try {
+        const KEY_IMG = 'dekrip_image_size_pct';
+        const KEY_VID = 'dekrip_video_size_pct';
+        const savedImg = localStorage.getItem(KEY_IMG);
+        const savedVid = localStorage.getItem(KEY_VID);
+        if (savedImg !== null) {
+          sizeRangeImage.value = savedImg;
+          sizeLabelImage.textContent = savedImg + '%';
+        }
+        if (savedVid !== null) {
+          sizeRangeVideo.value = savedVid;
+          sizeLabelVideo.textContent = savedVid + '%';
+        }
+      } catch(e){}
 
       if (!url) {
         statusEl.textContent = 'Parameter url tidak ditemukan. Pastikan ?url= di query string.';
@@ -370,8 +301,6 @@
       }
 
       statusEl.textContent = 'Memuat file...';
-      openRawLink.href = decodeURIComponent(url);
-      openRawLink.classList.remove('hidden');
 
       try {
         const res = await fetch(url);
@@ -388,15 +317,13 @@
 
         if (looksLikeBase64) {
           detectedMime = detectMimeFromBase64(cleaned) || '';
-          const approxBytes = Math.ceil((cleaned.length * 3) / 4);
-
           try {
             currentBlob = base64ToBlob(cleaned, detectedMime || 'application/octet-stream');
           } catch (e) {
-            console.warn('Gagal buat blob dari base64, fallback ke data URI', e);
             currentBlob = null;
           }
 
+          const approxBytes = Math.ceil((cleaned.length * 3) / 4);
           const bytesToShow = currentBlob ? currentBlob.size : approxBytes;
           fileSizeEl.textContent = 'Ukuran: ' + bytesToMB(bytesToShow);
           mimeEl.textContent = 'Tipe: ' + (detectedMime || 'Tidak terdeteksi');
@@ -413,77 +340,26 @@
             videoEl.playsInline = true;
             videoEl.className = 'rounded-md shadow-sm';
             videoEl.style.maxWidth = '100%';
-            // set initial width percent from saved setting or default 100
-            const initPct = Number(sizeRangeVideo.value || localStorage.getItem(KEY_VID) || 100);
+            const initPct = Number(sizeRangeVideo.value || 100);
             videoEl.style.width = initPct + '%';
             videoEl.src = objectUrl;
-
-            // loop default
+            // default loop on
             videoEl.loop = true;
-            videoEl.addEventListener('ended', () => {
-              try { if (videoEl.loop) { videoEl.currentTime = 0; videoEl.play(); } } catch(e){}
-            });
-
             previewEl.appendChild(createLabel(`${person} - ${name}`));
             const wrap = document.createElement('div');
             wrap.className = 'media-wrap w-full';
             wrap.appendChild(videoEl);
             previewEl.appendChild(wrap);
 
-            // show video controls
             videoControls.classList.remove('hidden');
             imageControls.classList.add('hidden');
-
-            // initialize UI values
-            sizeLabelVideo.textContent = sizeRangeVideo.value + '%';
-
-            // preset buttons
-            vSmallBtn.addEventListener('click', () => setVideoWidthPx(480));
-            vMediumBtn.addEventListener('click', () => setVideoWidthPx(800));
-            vLargeBtn.addEventListener('click', () => setVideoWidthPx(1200));
-            vFullBtn.addEventListener('click', () => setVideoWidthPercent(100));
 
             sizeRangeVideo.addEventListener('input', () => {
               const val = Number(sizeRangeVideo.value);
               sizeLabelVideo.textContent = val + '%';
-              setVideoWidthPercent(val);
-              localStorage.setItem(KEY_VID, String(val));
+              videoEl.style.width = val + '%';
+              try { localStorage.setItem('dekrip_video_size_pct', String(val)); } catch(e){}
             });
-
-            // loop toggle initial
-            loopEnabled = true;
-            loopBtn.classList.add('active');
-            loopBtn.textContent = 'Loop: On';
-            loopBtn.addEventListener('click', () => {
-              loopEnabled = !loopEnabled;
-              if (loopEnabled) {
-                videoEl.loop = true;
-                loopBtn.classList.add('active');
-                loopBtn.textContent = 'Loop: On';
-              } else {
-                videoEl.loop = false;
-                loopBtn.classList.remove('active');
-                loopBtn.textContent = 'Loop: Off';
-              }
-            });
-
-            function setVideoWidthPx(px) {
-              if (!videoEl) return;
-              videoEl.style.width = px + 'px';
-              videoEl.style.maxWidth = '100%';
-              // convert px to percentage relative to container width (cap at 1200)
-              const base = Math.min(window.innerWidth, 1200);
-              const pct = Math.round((px / base) * 100);
-              sizeRangeVideo.value = pct;
-              sizeLabelVideo.textContent = pct + '%';
-              localStorage.setItem(KEY_VID, String(pct));
-            }
-            function setVideoWidthPercent(pct) {
-              if (!videoEl) return;
-              videoEl.style.width = pct + '%';
-              sizeLabelVideo.textContent = pct + '%';
-              localStorage.setItem(KEY_VID, String(pct));
-            }
 
           // MEDIA: Image
           } else if (detectedMime && detectedMime.startsWith('image/')) {
@@ -493,83 +369,34 @@
             imageEl.alt = `${person} - ${name}`;
             imageEl.className = 'rounded-md shadow-sm';
             imageEl.style.maxWidth = '100%';
-            // set initial width percent from saved setting or default 100
-            const initImgPct = Number(sizeRangeImage.value || localStorage.getItem(KEY_IMG) || 100);
+            const initImgPct = Number(sizeRangeImage.value || 100);
             imageEl.style.width = initImgPct + '%';
-
             previewEl.appendChild(createLabel(`${person} - ${name}`));
             const wrap = document.createElement('div');
             wrap.className = 'media-wrap w-full';
             wrap.appendChild(imageEl);
             previewEl.appendChild(wrap);
 
-            // show image controls
             imageControls.classList.remove('hidden');
             videoControls.classList.add('hidden');
-
-            sizeLabelImage.textContent = sizeRangeImage.value + '%';
-
-            // preset buttons for image
-            iSmallBtn.addEventListener('click', () => { setImageWidthPercent(25); });
-            iMediumBtn.addEventListener('click', () => { setImageWidthPercent(50); });
-            iLargeBtn.addEventListener('click', () => { setImageWidthPercent(100); });
-            iFullBtn.addEventListener('click', () => { setImageWidthPercent(100); });
 
             sizeRangeImage.addEventListener('input', () => {
               const val = Number(sizeRangeImage.value);
               sizeLabelImage.textContent = val + '%';
-              setImageWidthPercent(val);
-              localStorage.setItem(KEY_IMG, String(val));
+              imageEl.style.width = val + '%';
+              try { localStorage.setItem('dekrip_image_size_pct', String(val)); } catch(e){}
             });
 
-            function setImageWidthPercent(pct) {
-              if (!imageEl) return;
-              imageEl.style.width = pct + '%';
-              sizeLabelImage.textContent = pct + '%';
-              localStorage.setItem(KEY_IMG, String(pct));
-            }
-
           } else {
-            // non-media base64
+            // non-media base64 -> tampilkan preview teks terbatas
             previewEl.innerHTML = '';
             previewEl.appendChild(createLabel(`${person} - ${name}`));
-            const a = document.createElement('a');
-            a.href = objectUrl;
-            a.download = sanitizeFilename(`${person || 'anonim'} - ${name || 'konten'}.${(detectedMime && detectedMime.split('/')[1]) || 'bin'}`);
-            a.textContent = 'Unduh file (tipe tidak umum)';
-            a.className = 'underline text-blue-600';
-            previewEl.appendChild(a);
-
             const pre = document.createElement('pre');
             pre.className = 'mt-3 p-3 bg-gray-50 rounded text-sm max-h-64 overflow-auto';
             pre.textContent = '[Preview base64 (dipotong)]\n' + cleaned.slice(0, 1500) + (cleaned.length > 1500 ? '\n\n... (terpotong) ...' : '');
             previewEl.appendChild(pre);
-
             videoControls.classList.add('hidden');
             imageControls.classList.add('hidden');
-          }
-
-          // Unduh button
-          if (currentBlob) {
-            downloadBtn.onclick = () => {
-              const a = document.createElement('a');
-              a.href = objectUrl;
-              a.download = sanitizeFilename(`${person || 'anonim'} - ${name || 'konten'}.${(detectedMime && detectedMime.split('/')[1]) || 'bin'}`);
-              document.body.appendChild(a);
-              a.click();
-              a.remove();
-            };
-            downloadBtn.classList.remove('hidden');
-          } else {
-            downloadBtn.onclick = () => {
-              const a = document.createElement('a');
-              a.href = objectUrl;
-              a.download = sanitizeFilename(`${person || 'anonim'} - ${name || 'konten'}.${(detectedMime && detectedMime.split('/')[1]) || 'bin'}`);
-              document.body.appendChild(a);
-              a.click();
-              a.remove();
-            };
-            downloadBtn.classList.remove('hidden');
           }
 
         } else {
@@ -585,17 +412,6 @@
           pre.className = 'mt-3 p-4 bg-gray-50 rounded text-sm whitespace-pre-wrap';
           pre.textContent = decrypted;
           previewEl.appendChild(pre);
-
-          objectUrl = URL.createObjectURL(textBlob);
-          downloadBtn.onclick = () => {
-            const a = document.createElement('a');
-            a.href = objectUrl;
-            a.download = sanitizeFilename(`${person || 'anonim'} - ${name || 'konten'}.txt`);
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-          };
-          downloadBtn.classList.remove('hidden');
           videoControls.classList.add('hidden');
           imageControls.classList.add('hidden');
         }
@@ -606,17 +422,6 @@
         statusEl.textContent = 'Gagal memuat/mendekripsi: ' + err.message;
       }
 
-      // helpers
-      function createLabel(text) {
-        const h = document.createElement('div');
-        h.className = 'text-sm text-gray-700 font-semibold mb-2';
-        h.textContent = text || '';
-        return h;
-      }
-      function sanitizeFilename(name) {
-        return name.replace(/[<>:"/\\|?*\x00-\x1F]/g, '-').slice(0, 200);
-      }
-
       // revoke object URL on unload
       window.addEventListener('beforeunload', () => {
         if (objectUrl && objectUrl.startsWith('blob:')) URL.revokeObjectURL(objectUrl);
@@ -625,19 +430,18 @@
 
     // Saat halaman dimuat: cek akses dari index terlebih dahulu.
     (function initAccessCheck() {
-      // Jika opener tampak unlocked -> jalankan langsung
       if (checkOpenerLoggedIn()) {
         hideLockedOverlay();
         ensureAndRunMain();
       } else {
-        // tampilkan overlay kunci dan mulai polling untuk perubahan (mis. index login setelah tab ini dibuka)
+        // tampilkan overlay kunci, coba buka index otomatis, dan mulai polling
         showLockedOverlay();
+        tryOpenIndexAutomatically();
         startAccessPolling();
       }
 
-      // Jika user menutup opener atau origin berbeda, maka tetap terkunci.
+      // jika user kembali ke tab ini, periksa lagi
       window.addEventListener('focus', () => {
-        // saat kembali fokus ke tab ini, periksa lagi
         if (checkOpenerLoggedIn()) {
           hideLockedOverlay();
           ensureAndRunMain();
@@ -645,6 +449,13 @@
       });
     })();
 
+    // helpers
+    function createLabel(text) {
+      const h = document.createElement('div');
+      h.className = 'text-sm text-gray-700 font-semibold mb-2';
+      h.textContent = text || '';
+      return h;
+    }
   </script>
 </body>
 </html>
