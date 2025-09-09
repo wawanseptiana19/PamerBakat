@@ -63,16 +63,32 @@
       user-select: none;
     }
 
-    #downloadBtn {
-      display: none;
-      text-decoration: none;
-      /* Tombol unduh baru dengan gaya abu-abu */
-      background-color: #e5e7eb; /* gray-200 */
-      color: #1f2937; /* gray-900 */
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-center;
+      padding: 0.75rem 1.5rem;
       border-radius: 9999px;
-      padding: 0.75rem;
-      border: none;
+      font-weight: 500;
+      transition: all 0.2s ease-in-out;
+      text-decoration: none;
     }
+
+    .download-btn.gray {
+        background-color: #e5e7eb; /* gray-200 */
+        color: #1f2937; /* gray-900 */
+    }
+
+    .download-btn.green {
+        background-color: #10B981; /* emerald-500 */
+        color: #ffffff; /* white */
+        box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);
+    }
+    
+    .download-btn.green:hover {
+        background-color: #059669; /* emerald-600 */
+    }
+
     .media-wrap {
       display: flex;
       flex-direction: column;
@@ -112,16 +128,23 @@
             <span id="detectedMime">Tipe: -</span>
         </div>
       </div>
-
-      <div class="flex justify-end mb-4">
-        <a id="downloadBtn" class="inline-flex items-center justify-center p-3 rounded-full hover:bg-gray-300 transition-all shadow-md">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+      <div id="preview" class="mb-8"></div>
+      
+      <!-- Kontainer baru untuk tombol di bawah hasil -->
+      <div class="flex justify-end gap-2 mt-4">
+        <a id="downloadOriginalBtn" class="download-btn gray hidden">
+          Unduh .pb
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 ml-2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+        </a>
+        <a id="downloadDecryptedBtn" class="download-btn green hidden">
+          Unduh Dekripsi
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 ml-2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
           </svg>
         </a>
       </div>
-
-      <div id="preview" class="mb-8"></div>
 
       <!-- Controls for media -->
       <div id="videoControls" class="mb-6 hidden">
@@ -324,6 +347,9 @@
       const metaEl = document.getElementById('meta');
       const fileSizeEl = document.getElementById('fileSize');
       const mimeEl = document.getElementById('detectedMime');
+      
+      const downloadOriginalBtn = document.getElementById('downloadOriginalBtn');
+      const downloadDecryptedBtn = document.getElementById('downloadDecryptedBtn');
 
       const videoControls = document.getElementById('videoControls');
       const sizeRangeVideo = document.getElementById('sizeRangeVideo');
@@ -338,6 +364,7 @@
       let detectedMime = null;
       let videoEl = null;
       let imageEl = null;
+      let decryptedContent = '';
 
       // apply saved settings if any
       try {
@@ -373,8 +400,8 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
         </svg> Mendekripsi...`;
 
-        const decrypted = decryptCaesar(encryptedText, shift);
-        const probableBase64 = decrypted.trim();
+        decryptedContent = decryptCaesar(encryptedText, shift);
+        const probableBase64 = decryptedContent.trim();
 
         const cleaned = normalizeBase64(probableBase64);
         const looksLikeBase64 = cleaned && /^[A-Za-z0-9+/=]+$/.test(cleaned);
@@ -465,7 +492,7 @@
 
         } else {
           // bukan base64 -> tampil sebagai teks biasa
-          const textBlob = new Blob([decrypted], { type: 'text/plain' });
+          const textBlob = new Blob([decryptedContent], { type: 'text/plain' });
           const sizeBytes = textBlob.size;
           fileSizeEl.textContent = 'Ukuran: ' + bytesToMB(sizeBytes);
           mimeEl.textContent = 'Tipe: text/plain';
@@ -474,7 +501,7 @@
           previewEl.appendChild(createLabel(`${person} - ${name}`));
           const pre = document.createElement('pre');
           pre.className = 'mt-3 p-4 bg-gray-50 rounded-lg text-sm whitespace-pre-wrap';
-          pre.textContent = decrypted;
+          pre.textContent = decryptedContent;
           previewEl.appendChild(pre);
           videoControls.classList.add('hidden');
           imageControls.classList.add('hidden');
@@ -487,18 +514,33 @@
         // set up download link
         (function setupDownloadLink(){
           try {
-            const dl = document.getElementById('downloadBtn');
-            if (!dl) return;
+            const dlOriginal = document.getElementById('downloadOriginalBtn');
+            const dlDecrypted = document.getElementById('downloadDecryptedBtn');
+            if (!dlOriginal || !dlDecrypted) return;
 
             // Buat blob dengan MIME type 'application/octet-stream' dan nama file .pb
-            const blobPB = new Blob([decrypted], { type: 'application/octet-stream' });
-            const tmpUrl = URL.createObjectURL(blobPB);
+            const blobPB = new Blob([encryptedText], { type: 'application/octet-stream' });
+            const tmpUrlPB = URL.createObjectURL(blobPB);
 
-            dl.href = tmpUrl;
-            dl.setAttribute('download', 'file.pb');
-            dl.style.display = 'inline-block';
+            // Buat blob untuk file terdekripsi
+            const blobDecrypted = new Blob([decryptedContent], { type: detectedMime || 'application/octet-stream' });
+            const tmpUrlDecrypted = URL.createObjectURL(blobDecrypted);
 
-            window.addEventListener('beforeunload', () => { try { URL.revokeObjectURL(tmpUrl); } catch(e){} });
+            dlOriginal.href = tmpUrlPB;
+            dlOriginal.setAttribute('download', 'file.pb');
+            dlOriginal.classList.remove('hidden');
+            
+            dlDecrypted.href = tmpUrlDecrypted;
+            dlDecrypted.setAttribute('download', name || 'decrypted_file');
+            dlDecrypted.classList.remove('hidden');
+            
+            // Cleanup on unload
+            window.addEventListener('beforeunload', () => { 
+                try { 
+                    URL.revokeObjectURL(tmpUrlPB); 
+                    URL.revokeObjectURL(tmpUrlDecrypted); 
+                } catch(e){} 
+            });
 
           } catch(e){
             console.warn('setupDownloadLink error', e);
