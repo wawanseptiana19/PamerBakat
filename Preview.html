@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Preview & Dekripsi — Preview</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{background:#f8fafc;font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial}
+    .container{max-width:980px;margin:36px auto}
+    .media-preview{max-width:100%;height:auto;border-radius:8px}
+    .video-preview{max-width:100%;height:auto;border-radius:8px}
+    .error{color:#b91c1c}
+  </style>
+</head>
+<body>
+  <div class="container px-4">
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h1 class="text-xl font-semibold mb-3">Preview & Dekripsi (Tab Terpisah)</h1>
+      <p class="text-sm text-gray-600 mb-4">Halaman ini menerima parameter query: <code>url</code>, <code>shift</code>, <code>person</code>, <code>name</code>. Contoh: <em>preview.html?url=...&shift=3</em></p>
+
+      <div id="status" class="mb-4 text-sm"></div>
+      <div id="loading" class="mb-4 text-gray-500">Menunggu instruksi...</div>
+
+      <div id="previewArea" class="mb-4"></div>
+
+      <div class="flex gap-2">
+        <button id="downloadBtn" class="px-4 py-2 rounded bg-blue-600 text-white hidden">Unduh</button>
+        <a id="openRaw" class="px-4 py-2 rounded border border-gray-300 text-gray-700 hidden" target="_blank" rel="noopener">Buka sumber (raw)</a>
+        <button id="closeBtn" class="px-4 py-2 rounded border border-gray-300 text-gray-700" onclick="window.close();">Tutup</button>
+      </div>
+
+      <div id="debug" class="mt-4 text-xs text-gray-500"></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  // Utilities (diadopsi dari index.html Anda supaya kompatibel)
+  function decryptCaesar(text, shift){
+    if (typeof text !== 'string') return text;
+    const s = Number(shift);
+    if (isNaN(s)) return text;
+    let result = '';
+    for (let i=0;i<text.length;i++){
+      let code = text.charCodeAt(i);
+      if (code>=65 && code<=90){ code = ((code - 65 - s + 260) % 26) + 65; }
+      else if (code>=97 && code<=122){ code = ((code - 97 - s + 260) % 26) + 97; }
+      result += String.fromCharCode(code);
+    }
+    return result;
+  }
+
+  function normalizeBase64(b64){
+    if (!b64 || typeof b64 !== 'string') return '';
+    let s = b64.replace(/\s+/g, '');
+    const dataMatch = s.match(/^data:.*;base64,(.*)$/i);
+    if (dataMatch) s = dataMatch[1];
+    s = s.replace(/-/g, '+').replace(/_/g, '/');
+    const pad = s.length % 4;
+    if (pad === 2) s += '=='; else if (pad === 3) s += '=';
+    return s;
+  }
+
+  function isBase64String(s){
+    if (!s || typeof s !== 'string') return false;
+    const cleaned = normalizeBase64(s);
+    return cleaned.length % 4 === 0 && /^[A-Za-z0-9+/=]+$/.test(cleaned);
+  }
+
+  function base64ToBlob(base64, mime){
+    const binary = atob(base64);
+    const len = binary.length;
+    const arr = new Uint8Array(len);
+    for (let i=0;i<len;i++) arr[i] = binary.charCodeAt(i);
+    return new Blob([arr], {type: mime || 'application/octet-stream'});
+  }
+
+  function getMimeFromBase64Sample(b64){
+    try{
+      const cleaned = normalizeBase64(b64).slice(0,2000);
+      if (!cleaned) return null;
+      const bin = atob(cleaned);
+      if (bin.startsWith('\x89PNG') || cleaned.startsWith('iVBOR')) return 'image/png';
+      if (cleaned.startsWith('/9j/')) return 'image/jpeg';
+      if (bin.startsWith('GIF87a') || bin.startsWith('GIF89a') || cleaned.startsWith('R0lG')) return 'image/gif';
+      if (bin.indexOf('ftyp') !== -1) return 'video/mp4';
+      if (bin.toLowerCase().indexOf('webm') !== -1) return 'video/webm';
+      if (bin.trim().startsWith('<svg')) return 'image/svg+xml';
+      return null;
+    }catch(e){return null;}
+  }
+
+  function setPreviewFromBase64(rawBase64, mimeHint, useBlobIfLarge=true){
+    const cleaned = normalizeBase64(rawBase64);
+    if (!cleaned) throw new Error('Data base64 kosong setelah normalisasi.');
+    let mime = mimeHint || getMimeFromBase64Sample(cleaned);
+    if (!mime){
+      if (cleaned.startsWith('iVBOR') || cleaned.startsWith('iVBORw0K')) mime='image/png';
+      else if (cleaned.startsWith('/9j/')) mime='image/jpeg';
+      else if (cleaned.startsWith('R0lG')) mime='image/gif';
+    }
+
+    const previewArea = document.getElementById('previewArea');
+    previewArea.innerHTML = '';
+
+    const threshold = 1024 * 300; // 300 KB
+    const approximateSize = Math.ceil((cleaned.length * 3) / 4);
+    let blob = null;
+
+    if (useBlobIfLarge && approximateSize > threshold){
+      try{
+        blob = base64ToBlob(cleaned, mime);
+        const objectUrl = URL.createObjectURL(blob);
+        if (mime && mime.startsWith('image/')){
+          const img = document.createElement('img'); img.src = objectUrl; img.className='media-preview'; previewArea.appendChild(img);
+        } else if (mime && mime.startsWith('video/')){
+          const video = document.createElement('video'); video.src = objectUrl; video.controls = true; video.className='video-preview'; previewArea.appendChild(video);
+        } else {
+          const a = document.createElement('a'); a.href = objectUrl; a.download='file.bin'; a.textContent='Unduh file (tipe tidak terdeteksi)'; previewArea.appendChild(a);
+        }
+        return {blob, mime};
+      }catch(err){ console.warn('Blob creation failed, fallback to data URL', err); blob = null; }
+    }
+
+    const dataMime = mime || 'application/octet-stream';
+    const dataUrl = `data:${dataMime};base64,${cleaned}`;
+    if (dataMime.startsWith('image/')){
+      const img = document.createElement('img'); img.src = dataUrl; img.className='media-preview'; previewArea.appendChild(img);
+    } else if (dataMime.startsWith('video/')){
+      const video = document.createElement('video'); video.src = dataUrl; video.controls = true; video.className='video-preview'; previewArea.appendChild(video);
+    } else {
+      const pre = document.createElement('pre'); pre.textContent = cleaned.slice(0,2000) + (cleaned.length>2000? '\n\n... (terpotong) ...':'' ); pre.style.maxHeight='480px'; pre.style.overflow='auto'; previewArea.appendChild(pre);
+    }
+    return {blob:null, mime: dataMime};
+  }
+
+  // --- main flow ---
+  const status = document.getElementById('status');
+  const loading = document.getElementById('loading');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const openRaw = document.getElementById('openRaw');
+  const debug = document.getElementById('debug');
+
+  function setStatus(text, isError){ status.textContent = text; status.className = isError ? 'error' : ''; }
+
+  function getParams(){
+    const p = new URLSearchParams(location.search);
+    return {
+      url: p.get('url') || '',
+      shift: p.get('shift') || p.get('shift_code') || '',
+      person: p.get('person') || '',
+      name: p.get('name') || ''
+    };
+  }
+
+  async function run(){
+    const params = getParams();
+    debug.textContent = `Params: ${JSON.stringify(params)}`;
+    if (!params.url){ loading.textContent = 'Tidak ada parameter url. Silakan panggil dengan ?url=...'; setStatus('URL tidak ditemukan', true); return; }
+
+    loading.textContent = 'Memuat file...'; setStatus('', false);
+    openRaw.href = params.url; openRaw.classList.remove('hidden');
+
+    try{
+      const resp = await fetch(params.url);
+      if (!resp.ok) throw new Error('HTTP '+resp.status);
+      const encryptedText = await resp.text();
+      loading.textContent = 'Mendekripsi...';
+      const decrypted = decryptCaesar(encryptedText, params.shift || 0);
+      const probableBase64 = decrypted.trim();
+
+      if (isBase64String(probableBase64)){
+        const mimeHint = getMimeFromBase64Sample(probableBase64);
+        const result = setPreviewFromBase64(probableBase64, mimeHint, true);
+        const blob = result.blob;
+        const mime = result.mime || 'application/octet-stream';
+
+        if (blob){
+          downloadBtn.onclick = () => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            const ext = mime.split('/')[1] || 'bin';
+            const filename = `${(params.person||'anon')}-${(params.name||'content')}.${ext}`.replace(/[^a-zA-Z0-9._-]/g,'-');
+            a.download = filename;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          };
+          downloadBtn.classList.remove('hidden');
+        } else {
+          // when preview used data url
+          downloadBtn.onclick = () => {
+            const dataUrl = document.querySelector('#previewArea img')?.src || document.querySelector('#previewArea video')?.src;
+            if (!dataUrl) return setStatus('Tidak ada data untuk diunduh', true);
+            const a = document.createElement('a'); a.href = dataUrl; a.download = `${(params.person||'anon')}-${(params.name||'content')}.${mime.split('/')[1]||'bin'}`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          };
+          downloadBtn.classList.remove('hidden');
+        }
+        setStatus('Selesai — pratinjau ditampilkan di bawah.', false);
+      } else {
+        // not base64 -> show raw decrypted text
+        const pre = document.createElement('pre'); pre.textContent = decrypted; pre.style.whiteSpace='pre-wrap'; pre.style.maxHeight='600px'; pre.style.overflow='auto'; document.getElementById('previewArea').innerHTML=''; document.getElementById('previewArea').appendChild(pre);
+        currentBlobForDownload = new Blob([decrypted], {type:'text/plain'});
+        downloadBtn.onclick = () => {
+          const a = document.createElement('a'); a.href = URL.createObjectURL(currentBlobForDownload); a.download = `${(params.person||'anon')}-${(params.name||'content')}.txt`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        };
+        downloadBtn.classList.remove('hidden');
+        setStatus('Isi bukan base64 — menampilkan teks terdekripsi.', false);
+      }
+
+      loading.textContent = '';
+    }catch(err){
+      console.error(err);
+      setStatus('Gagal memuat/mendekripsi: '+err.message, true);
+      loading.textContent = '';
+      // CORS atau 404 adalah penyebab umum
+      if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))){
+        setStatus('Gagal fetch: kemungkinan masalah CORS atau URL tidak dapat diakses langsung dari browser. Coba gunakan raw URL yang mengizinkan akses (mis. raw.githubusercontent.com) atau gunakan proxy server.', true);
+      }
+    }
+  }
+
+  run();
+})();
+</script>
+</body>
+</html>
