@@ -8,7 +8,7 @@
   <style>
     body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
     .container { max-width: 1000px; }
-    .video-wrap { width: 100%; display:flex; flex-direction:column; gap:12px; align-items:center; }
+    .media-wrap { width: 100%; display:flex; flex-direction:column; gap:12px; align-items:center; }
     .controls-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
     .size-badge { background: #eef2ff; color:#3730a3; padding:6px 10px; border-radius:999px; font-weight:600; }
     .toggle-btn { background:#f3f4f6; padding:6px 10px; border-radius:8px; cursor:pointer; }
@@ -19,7 +19,7 @@
   <div class="container mx-auto px-4">
     <div class="bg-white shadow p-6 rounded-lg">
       <h1 class="text-2xl font-bold mb-2">Hasil Dekripsi & Preview</h1>
-      <p class="text-sm text-gray-600 mb-4">Halaman ini memuat file hasil dekripsi. Jika file adalah video, atur ukuran lewat kontrol di bawah. Video akan diputar berulang (loop) secara default.</p>
+      <p class="text-sm text-gray-600 mb-4">Halaman ini memuat file hasil dekripsi. Untuk video: loop aktif. Resize (persentase) tersedia untuk video & gambar dan disimpan di browser.</p>
 
       <div id="status" class="mb-4 text-sm text-gray-700">Memuat...</div>
 
@@ -36,18 +36,34 @@
       <div id="videoControls" class="mb-6 hidden">
         <label class="block text-sm font-medium text-gray-700 mb-2">Atur ukuran video</label>
         <div class="controls-row mb-2">
-          <button id="smallBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Small (480px)</button>
-          <button id="mediumBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Medium (800px)</button>
-          <button id="largeBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Large (1200px)</button>
-          <button id="fullBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Full width</button>
+          <button id="vSmallBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Small (480px)</button>
+          <button id="vMediumBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Medium (800px)</button>
+          <button id="vLargeBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Large (1200px)</button>
+          <button id="vFullBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Full width</button>
           <div id="loopToggle" class="ml-2">
             <button id="loopBtn" class="toggle-btn active text-sm" title="Toggle loop">Loop: On</button>
           </div>
         </div>
         <div class="controls-row items-center">
           <label class="text-sm text-gray-600 mr-2">Resize (persentase):</label>
-          <input id="sizeRange" type="range" min="20" max="150" value="100" class="w-48">
-          <div id="sizeLabel" class="text-sm text-gray-700 ml-3">100%</div>
+          <input id="sizeRangeVideo" type="range" min="20" max="150" value="100" class="w-48">
+          <div id="sizeLabelVideo" class="text-sm text-gray-700 ml-3">100%</div>
+        </div>
+      </div>
+
+      <!-- Kontrol khusus gambar -->
+      <div id="imageControls" class="mb-6 hidden">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Atur ukuran gambar</label>
+        <div class="controls-row mb-2">
+          <button id="iSmallBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Small (25%)</button>
+          <button id="iMediumBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Medium (50%)</button>
+          <button id="iLargeBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Large (100%)</button>
+          <button id="iFullBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Full width</button>
+        </div>
+        <div class="controls-row items-center">
+          <label class="text-sm text-gray-600 mr-2">Resize (persentase):</label>
+          <input id="sizeRangeImage" type="range" min="10" max="200" value="100" class="w-48">
+          <div id="sizeLabelImage" class="text-sm text-gray-700 ml-3">100%</div>
         </div>
       </div>
 
@@ -100,7 +116,7 @@
       return s;
     }
 
-    // Convert base64 to Blob (safe-ish)
+    // Convert base64 to Blob
     function base64ToBlob(base64, mime) {
       const cleaned = normalizeBase64(base64);
       const binary = atob(cleaned);
@@ -115,7 +131,7 @@
       try {
         const cleaned = normalizeBase64(b64).slice(0, 2000);
         if (!cleaned) return null;
-        const bin = atob(cleaned.slice(0, 1000)); // cukup sample kecil
+        const bin = atob(cleaned.slice(0, 1000));
         if (bin.startsWith('\x89PNG')) return 'image/png';
         if (bin.charCodeAt(0) === 0xFF && bin.charCodeAt(1) === 0xD8) return 'image/jpeg';
         if (bin.startsWith('GIF87a') || bin.startsWith('GIF89a')) return 'image/gif';
@@ -137,6 +153,10 @@
       return (n / (1024 * 1024)).toFixed(2) + ' MB';
     }
 
+    // localStorage keys
+    const KEY_IMG = 'dekrip_image_size_pct';
+    const KEY_VID = 'dekrip_video_size_pct';
+
     (async function main(){
       const url = q('url');
       const shift = q('shift') || '0';
@@ -150,21 +170,45 @@
       const mimeEl = document.getElementById('detectedMime');
       const downloadBtn = document.getElementById('downloadBtn');
       const openRawLink = document.getElementById('openRawLink');
+
       const videoControls = document.getElementById('videoControls');
-      const sizeRange = document.getElementById('sizeRange');
-      const sizeLabel = document.getElementById('sizeLabel');
-      const smallBtn = document.getElementById('smallBtn');
-      const mediumBtn = document.getElementById('mediumBtn');
-      const largeBtn = document.getElementById('largeBtn');
-      const fullBtn = document.getElementById('fullBtn');
+      const sizeRangeVideo = document.getElementById('sizeRangeVideo');
+      const sizeLabelVideo = document.getElementById('sizeLabelVideo');
+      const vSmallBtn = document.getElementById('vSmallBtn');
+      const vMediumBtn = document.getElementById('vMediumBtn');
+      const vLargeBtn = document.getElementById('vLargeBtn');
+      const vFullBtn = document.getElementById('vFullBtn');
       const loopBtn = document.getElementById('loopBtn');
+
+      const imageControls = document.getElementById('imageControls');
+      const sizeRangeImage = document.getElementById('sizeRangeImage');
+      const sizeLabelImage = document.getElementById('sizeLabelImage');
+      const iSmallBtn = document.getElementById('iSmallBtn');
+      const iMediumBtn = document.getElementById('iMediumBtn');
+      const iLargeBtn = document.getElementById('iLargeBtn');
+      const iFullBtn = document.getElementById('iFullBtn');
 
       let objectUrl = null;
       let currentBlob = null;
       let detectedMime = null;
-      let approxBytes = null;
       let videoEl = null;
-      let loopEnabled = true; // default: looping aktif
+      let imageEl = null;
+      let loopEnabled = true;
+
+      // apply saved settings if any
+      function loadSavedSettings() {
+        const savedImg = localStorage.getItem(KEY_IMG);
+        const savedVid = localStorage.getItem(KEY_VID);
+        if (savedImg !== null) {
+          sizeRangeImage.value = savedImg;
+          sizeLabelImage.textContent = savedImg + '%';
+        }
+        if (savedVid !== null) {
+          sizeRangeVideo.value = savedVid;
+          sizeLabelVideo.textContent = savedVid + '%';
+        }
+      }
+      loadSavedSettings();
 
       if (!url) {
         statusEl.textContent = 'Parameter url tidak ditemukan. Pastikan ?url= di query string.';
@@ -185,15 +229,12 @@
         const decrypted = decryptCaesar(encryptedText, shift);
         const probableBase64 = decrypted.trim();
 
-        // Coba deteksi; jika bukan base64 -> tampil sebagai teks
         const cleaned = normalizeBase64(probableBase64);
         const looksLikeBase64 = cleaned && /^[A-Za-z0-9+/=]+$/.test(cleaned);
 
-        // Jika kelihatan base64, coba deteksi mime dan blob
         if (looksLikeBase64) {
           detectedMime = detectMimeFromBase64(cleaned) || '';
-          // hitung ukuran dari panjang base64 (perkiraan bytes)
-          approxBytes = Math.ceil((cleaned.length * 3) / 4);
+          const approxBytes = Math.ceil((cleaned.length * 3) / 4);
 
           try {
             currentBlob = base64ToBlob(cleaned, detectedMime || 'application/octet-stream');
@@ -202,21 +243,15 @@
             currentBlob = null;
           }
 
-          // Jika blob berhasil dibuat, gunakan ukurannya yang akurat
           const bytesToShow = currentBlob ? currentBlob.size : approxBytes;
           fileSizeEl.textContent = 'Ukuran: ' + bytesToMB(bytesToShow);
           mimeEl.textContent = 'Tipe: ' + (detectedMime || 'Tidak terdeteksi');
           metaEl.classList.remove('hidden');
 
-          // Buat object URL / data URL untuk preview
-          if (currentBlob) {
-            objectUrl = URL.createObjectURL(currentBlob);
-          } else {
-            // fallback ke data URL (untuk file kecil)
-            objectUrl = `data:${detectedMime || 'application/octet-stream'};base64,${cleaned}`;
-          }
+          if (currentBlob) objectUrl = URL.createObjectURL(currentBlob);
+          else objectUrl = `data:${detectedMime || 'application/octet-stream'};base64,${cleaned}`;
 
-          // Jika terdeteksi video -> tampilkan video dan kontrol
+          // MEDIA: Video
           if (detectedMime && detectedMime.startsWith('video/')) {
             previewEl.innerHTML = '';
             videoEl = document.createElement('video');
@@ -224,43 +259,47 @@
             videoEl.playsInline = true;
             videoEl.className = 'rounded-md shadow-sm';
             videoEl.style.maxWidth = '100%';
-            videoEl.style.width = '100%';
+            // set initial width percent from saved setting or default 100
+            const initPct = Number(sizeRangeVideo.value || localStorage.getItem(KEY_VID) || 100);
+            videoEl.style.width = initPct + '%';
             videoEl.src = objectUrl;
 
-            // === Loop behavior: aktifkan loop default & safety ended handler ===
+            // loop default
             videoEl.loop = true;
             videoEl.addEventListener('ended', () => {
-              // tambahan safety jika browser tidak menghormati .loop selalu
-              try { videoEl.currentTime = 0; videoEl.play(); } catch (e) { /* ignore */ }
+              try { if (videoEl.loop) { videoEl.currentTime = 0; videoEl.play(); } } catch(e){}
             });
 
             previewEl.appendChild(createLabel(`${person} - ${name}`));
             const wrap = document.createElement('div');
-            wrap.className = 'video-wrap w-full';
+            wrap.className = 'media-wrap w-full';
             wrap.appendChild(videoEl);
             previewEl.appendChild(wrap);
 
-            // tampilkan kontrol size
+            // show video controls
             videoControls.classList.remove('hidden');
+            imageControls.classList.add('hidden');
 
-            // loop toggle UI initial state (aktif)
+            // initialize UI values
+            sizeLabelVideo.textContent = sizeRangeVideo.value + '%';
+
+            // preset buttons
+            vSmallBtn.addEventListener('click', () => setVideoWidthPx(480));
+            vMediumBtn.addEventListener('click', () => setVideoWidthPx(800));
+            vLargeBtn.addEventListener('click', () => setVideoWidthPx(1200));
+            vFullBtn.addEventListener('click', () => setVideoWidthPercent(100));
+
+            sizeRangeVideo.addEventListener('input', () => {
+              const val = Number(sizeRangeVideo.value);
+              sizeLabelVideo.textContent = val + '%';
+              setVideoWidthPercent(val);
+              localStorage.setItem(KEY_VID, String(val));
+            });
+
+            // loop toggle initial
             loopEnabled = true;
             loopBtn.classList.add('active');
             loopBtn.textContent = 'Loop: On';
-
-            // preset buttons
-            smallBtn.addEventListener('click', () => { setVideoWidthPx(480); });
-            mediumBtn.addEventListener('click', () => { setVideoWidthPx(800); });
-            largeBtn.addEventListener('click', () => { setVideoWidthPx(1200); });
-            fullBtn.addEventListener('click', () => { setVideoWidthPercent(100); });
-
-            sizeRange.addEventListener('input', () => {
-              const val = Number(sizeRange.value);
-              sizeLabel.textContent = val + '%';
-              setVideoWidthPercent(val);
-            });
-
-            // loop toggle handler
             loopBtn.addEventListener('click', () => {
               loopEnabled = !loopEnabled;
               if (loopEnabled) {
@@ -274,31 +313,70 @@
               }
             });
 
-            // helper set
             function setVideoWidthPx(px) {
               if (!videoEl) return;
               videoEl.style.width = px + 'px';
               videoEl.style.maxWidth = '100%';
-              sizeRange.value = Math.round((px / Math.min(window.innerWidth, 1200)) * 100);
-              sizeLabel.textContent = sizeRange.value + '%';
+              // convert px to percentage relative to container width (cap at 1200)
+              const base = Math.min(window.innerWidth, 1200);
+              const pct = Math.round((px / base) * 100);
+              sizeRangeVideo.value = pct;
+              sizeLabelVideo.textContent = pct + '%';
+              localStorage.setItem(KEY_VID, String(pct));
             }
             function setVideoWidthPercent(pct) {
               if (!videoEl) return;
               videoEl.style.width = pct + '%';
-              sizeLabel.textContent = pct + '%';
+              sizeLabelVideo.textContent = pct + '%';
+              localStorage.setItem(KEY_VID, String(pct));
             }
 
+          // MEDIA: Image
           } else if (detectedMime && detectedMime.startsWith('image/')) {
             previewEl.innerHTML = '';
-            const img = document.createElement('img');
-            img.src = objectUrl;
-            img.alt = `${person} - ${name}`;
-            img.className = 'rounded-md shadow-sm max-w-full';
+            imageEl = document.createElement('img');
+            imageEl.src = objectUrl;
+            imageEl.alt = `${person} - ${name}`;
+            imageEl.className = 'rounded-md shadow-sm';
+            imageEl.style.maxWidth = '100%';
+            // set initial width percent from saved setting or default 100
+            const initImgPct = Number(sizeRangeImage.value || localStorage.getItem(KEY_IMG) || 100);
+            imageEl.style.width = initImgPct + '%';
+
             previewEl.appendChild(createLabel(`${person} - ${name}`));
-            previewEl.appendChild(img);
+            const wrap = document.createElement('div');
+            wrap.className = 'media-wrap w-full';
+            wrap.appendChild(imageEl);
+            previewEl.appendChild(wrap);
+
+            // show image controls
+            imageControls.classList.remove('hidden');
             videoControls.classList.add('hidden');
+
+            sizeLabelImage.textContent = sizeRangeImage.value + '%';
+
+            // preset buttons for image
+            iSmallBtn.addEventListener('click', () => { setImageWidthPercent(25); });
+            iMediumBtn.addEventListener('click', () => { setImageWidthPercent(50); });
+            iLargeBtn.addEventListener('click', () => { setImageWidthPercent(100); });
+            iFullBtn.addEventListener('click', () => { setImageWidthPercent(100); });
+
+            sizeRangeImage.addEventListener('input', () => {
+              const val = Number(sizeRangeImage.value);
+              sizeLabelImage.textContent = val + '%';
+              setImageWidthPercent(val);
+              localStorage.setItem(KEY_IMG, String(val));
+            });
+
+            function setImageWidthPercent(pct) {
+              if (!imageEl) return;
+              imageEl.style.width = pct + '%';
+              sizeLabelImage.textContent = pct + '%';
+              localStorage.setItem(KEY_IMG, String(pct));
+            }
+
           } else {
-            // non-media but base64 -> buat link unduh dan tampil hex/text preview
+            // non-media base64
             previewEl.innerHTML = '';
             previewEl.appendChild(createLabel(`${person} - ${name}`));
             const a = document.createElement('a');
@@ -312,10 +390,12 @@
             pre.className = 'mt-3 p-3 bg-gray-50 rounded text-sm max-h-64 overflow-auto';
             pre.textContent = '[Preview base64 (dipotong)]\n' + cleaned.slice(0, 1500) + (cleaned.length > 1500 ? '\n\n... (terpotong) ...' : '');
             previewEl.appendChild(pre);
+
             videoControls.classList.add('hidden');
+            imageControls.classList.add('hidden');
           }
 
-          // siapkan tombol unduh (pakai blob bila ada)
+          // Unduh button
           if (currentBlob) {
             downloadBtn.onclick = () => {
               const a = document.createElement('a');
@@ -327,7 +407,6 @@
             };
             downloadBtn.classList.remove('hidden');
           } else {
-            // fallback: data URL unduh
             downloadBtn.onclick = () => {
               const a = document.createElement('a');
               a.href = objectUrl;
@@ -343,7 +422,6 @@
           // bukan base64 -> tampil sebagai teks biasa
           const textBlob = new Blob([decrypted], { type: 'text/plain' });
           const sizeBytes = textBlob.size;
-          approxBytes = sizeBytes;
           fileSizeEl.textContent = 'Ukuran: ' + bytesToMB(sizeBytes);
           mimeEl.textContent = 'Tipe: text/plain';
           metaEl.classList.remove('hidden');
@@ -365,6 +443,7 @@
           };
           downloadBtn.classList.remove('hidden');
           videoControls.classList.add('hidden');
+          imageControls.classList.add('hidden');
         }
 
         statusEl.textContent = 'Selesai.';
