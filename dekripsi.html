@@ -525,10 +525,16 @@
             const blobPB = new Blob([encryptedText], { type: 'application/octet-stream' });
             const tmpUrlPB = URL.createObjectURL(blobPB);
 
-            // Buat blob untuk file terdekripsi
-            const blobDecrypted = new Blob([decryptedContent], { type: detectedMime || 'application/octet-stream' });
+            // Perbaikan: Gunakan currentBlob jika tersedia (untuk data biner)
+            // Jika tidak, buat blob dari decryptedContent (untuk teks biasa)
+            let blobDecrypted;
+            if (currentBlob) {
+              blobDecrypted = currentBlob;
+            } else {
+              blobDecrypted = new Blob([decryptedContent], { type: 'application/octet-stream' });
+            }
             const tmpUrlDecrypted = URL.createObjectURL(blobDecrypted);
-
+            
             dlOriginal.href = tmpUrlPB;
             dlOriginal.setAttribute('download', 'file.pb');
             dlOriginal.classList.remove('hidden');
