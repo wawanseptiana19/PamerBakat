@@ -670,13 +670,8 @@
             <td class="px-6 py-4 text-sm text-gray-500" data-column="category">${category}</td>
             <td class="px-6 py-4 text-sm text-gray-500" data-column="shift_code">${link.shift_code || '-'}</td>
             <td class="px-6 py-4 text-sm text-gray-500">${formattedDate}</td>
-        <td class="px-6 py-4 text-sm text-gray-500">
-  <a href="dekripsi.html?url=${encodeURIComponent(link.url || '')}&shift=${encodeURIComponent(link.shift_code || '')}&person=${encodeURIComponent(link.person_name || '')}&name=${encodeURIComponent(link.name || '')}" 
-     target="_blank" 
-     class="bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition-colors inline-block">
-     Lihat
-  </a>
-</td>
+            <td class="px-6 py-4 text-sm text-gray-500"><button class="view-description-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition-colors">Lihat</button></td>
+            <td class="px-6 py-4 text-sm text-gray-500">
                 <button class="delete-btn text-red-500 hover:text-red-700 transition-colors">
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
@@ -689,7 +684,18 @@
           qrImage.addEventListener('click', () => { enlargedQrImage.src = qrImageUrlLarge; qrModal.classList.remove('hidden'); });
 
           const viewBtn = row.querySelector('.view-description-btn');
-          viewBtn.addEventListener('click', () => showDescriptionModal(link.url, link.shift_code, link.person_name, link.name));
+          // **Perubahan di sini**: buka dekripsi.html di tab baru (kiriman query string). 
+          // Tidak memanggil showDescriptionModal lagi agar proses dekripsi terjadi di tab baru.
+          if (viewBtn) {
+            viewBtn.addEventListener('click', () => {
+              const urlParam = encodeURIComponent(link.url || '');
+              const shiftParam = encodeURIComponent(link.shift_code || '');
+              const personParam = encodeURIComponent(link.person_name || '');
+              const nameParam = encodeURIComponent(link.name || '');
+              const targetUrl = `dekripsi.html?url=${urlParam}&shift=${shiftParam}&person=${personParam}&name=${nameParam}`;
+              window.open(targetUrl, '_blank');
+            });
+          }
           
           const deleteBtn = row.querySelector('.delete-btn');
           deleteBtn.addEventListener('click', handleDelete);
