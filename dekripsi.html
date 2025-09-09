@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Dekripsi & Preview</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-6">
+
+  <h1 class="text-2xl font-bold mb-4">Hasil Dekripsi</h1>
+  <div id="loading" class="text-gray-500">Memuat & mendekripsi...</div>
+  <div id="content" class="hidden flex flex-col items-center gap-4"></div>
+  <button id="downloadBtn" class="hidden mt-4 px-6 py-2 rounded-lg bg-blue-600 text-white">Unduh</button>
+
+  <script>
+    function getQueryParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name) || '';
+    }
+
+    function decryptCaesar(text, shift) {
+      const s = Number(shift);
+      if (isNaN(s)) return text;
+      let result = '';
+      for (let i = 0; i < text.length; i++) {
+        let code = text.charCodeAt(i);
+        if (code >= 65 && code <= 90) {
+          code = ((code - 65 - s + 260) % 26) + 65;
+        } else if (code >= 97 && code <= 122) {
+          code = ((code - 97 - s + 260) % 26) + 97;
+        }
+        result += String.fromCharCode(code);
+      }
+      return result;
+    }
+
+    function normalizeBase64(b64) {
+      if (!b64) return '';
+      let s = b64.replace(/\s+/g, '');
+      const match = s.match(/^data:.*;base64,(.*)$/i);
+      if (match) s = match[1];
+      s = s.replace(/-/g, '+').replace(/_/g, '/');
+      const pad = s.length % 4;
+      if (pad === 2) s += '=='; else if (pad === 3) s += '=';
+      return s;
+    }
+
+    function base64ToBlob(base64, mime) {
+      const binary = atob(base64);
+      const len = binary.length;
+      const arr = new Uint8Array(len);
+      for (let i = 0; i < len; i++) arr[i] = binary.charCodeAt(i);
+      return new Blob([arr], { type: mime || 'application/octet-stream' });
+    }
+
+    async function run() {
+      const url = getQueryParam('url');
+      const shift = getQueryParam('shift');
+      const person = getQueryParam('person');
+      const name = getQueryParam('name');
+
+      if (!url) {
+        document.getElementById('loading').textContent = 'URL tidak ditemukan.';
+        return;
+      }
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Gagal memuat file.');
+        const encryptedText = await res.text();
+
+        const decrypted = decryptCaesar(encryptedText, shift).trim();
+        const cleaned = normalizeBase64(decrypted);
+
+        const contentDiv = document.getElementById('content');
+        document.getElementById('loading').classList.add('hidden');
+        contentDiv.classList.remove('hidden');
+
+        // coba deteksi tipe
+        let mime = '';
+        if (cleaned.startsWith('/9j/')) mime = 'image/jpeg';
+        else if (cleaned.startsWith('iVBOR')) mime = 'image/png';
+        else if (cleaned.includes('ftyp')) mime = 'video/mp4';
+
+        if (mime.startsWith('image/')) {
+          const img = document.createElement('img');
+          img.src = `data:${mime};base64,${cleaned}`;
+          img.className = "max-w-full rounded-lg";
+          contentDiv.appendChild(img);
+        } else if (mime.startsWith('video/')) {
+          const video = document.createElement('video');
+          video.src = URL.createObjectURL(base64ToBlob(cleaned, mime));
+          video.controls = true;
+          video.className = "max-w-full rounded-lg";
+          contentDiv.appendChild(video);
+        } else {
+          const pre = document.createElement('pre');
+          pre.textContent = decrypted.slice(0,2000);
+          pre.className = "p-4 bg-gray-50 rounded-lg text-sm";
+          contentDiv.appendChild(pre);
+        }
+
+        // unduh
+        const blob = base64ToBlob(cleaned, mime || 'text/plain');
+        const filename = `${person || 'anonim'}-${name || 'konten'}.${mime.split('/')[1] || 'txt'}`;
+        const dlBtn = document.getElementById('downloadBtn');
+        dlBtn.classList.remove('hidden');
+        dlBtn.onclick = () => {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = filename;
+          a.click();
+        };
+
+      } catch (err) {
+        document.getElementById('loading').textContent = "Gagal: " + err.message;
+      }
+    }
+
+    run();
+  </script>
+</body>
+</html>
