@@ -9,8 +9,27 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', sans-serif; }
-    .container { max-width: 1000px; }
+    body {
+      font-family: 'Inter', sans-serif;
+      /* Menghapus latar belakang, padding, dan card shadow untuk UI full screen */
+      background-color: #f7fafc;
+      padding: 0;
+      margin: 0;
+    }
+    .container {
+      max-width: none;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding: 1.5rem;
+    }
+    /* Menghapus gaya card untuk konten utama */
+    .bg-white, .shadow-xl {
+      background: none;
+      box-shadow: none;
+    }
     #lockedOverlay {
       position: fixed;
       inset: 0;
@@ -47,6 +66,12 @@
     #downloadBtn {
       display: none;
       text-decoration: none;
+      /* Tombol unduh baru dengan gaya abu-abu */
+      background-color: #e5e7eb; /* gray-200 */
+      color: #1f2937; /* gray-900 */
+      border-radius: 9999px;
+      padding: 0.75rem;
+      border: none;
     }
     .media-wrap {
       display: flex;
@@ -61,8 +86,8 @@
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen py-8">
-  <div class="container mx-auto px-4">
-    <div class="bg-white shadow-xl p-6 md:p-10 rounded-xl">
+  <div class="container">
+    <div class="p-6 md:p-10 rounded-xl">
       <h1 class="text-3xl font-bold text-gray-800 mb-2">Hasil Dekripsi & Preview</h1>
       <p class="text-sm text-gray-500 mb-6">Pratinjau konten Anda yang terdekripsi.</p>
 
@@ -88,17 +113,15 @@
         </div>
       </div>
 
-      <div id="preview" class="mb-8"></div>
-
-      <!-- NEW: download button -->
-      <div class="mb-4">
-        <a id="downloadBtn" class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+      <div class="flex justify-end mb-4">
+        <a id="downloadBtn" class="inline-flex items-center justify-center p-3 rounded-full hover:bg-gray-300 transition-all shadow-md">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
           </svg>
-          Unduh Hasil Dekripsi
         </a>
       </div>
+
+      <div id="preview" class="mb-8"></div>
 
       <!-- Controls for media -->
       <div id="videoControls" class="mb-6 hidden">
@@ -337,7 +360,6 @@
         return;
       }
 
-      statusEl.textContent = 'Memuat file...';
       statusEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-gray-500 animate-spin">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
       </svg> Memuat file...`;
@@ -462,48 +484,27 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
         </svg> Selesai.`;
 
-        /* ------------------ NEW: set up download link ------------------ */
+        // set up download link
         (function setupDownloadLink(){
           try {
             const dl = document.getElementById('downloadBtn');
             if (!dl) return;
-            // buat nama file aman
-            let base = `${person || 'anonim'} - ${name || 'file'}`;
-            base = base.replace(/[^a-zA-Z0-9\s-._]/g,'').trim().replace(/\s+/g,'-');
-            let ext = '';
-            if (detectedMime) {
-              const parts = detectedMime.split('/');
-              if (parts[1]) ext = parts[1].split('+')[0];
-            }
-            const filename = base + (ext ? ('.' + ext) : (looksLikeBase64 ? '.bin' : '.txt'));
 
-            // gunakan objectUrl jika ada (blob atau data:)
-            if (objectUrl) {
-              // jika objectUrl adalah data:, gunakan langsung; jika blob:, gunakan langsung
-              dl.href = objectUrl;
-              dl.setAttribute('download', filename);
-            } else {
-              // fallback: buat blob dari teks decrypted
-              const blobFallback = new Blob([looksLikeBase64 ? '' : (decrypted || '')], { type: detectedMime || 'text/plain' });
-              const tmpUrl = URL.createObjectURL(blobFallback);
-              dl.href = tmpUrl;
-              dl.setAttribute('download', filename);
-              // revoke tmpUrl saat unload
-              window.addEventListener('beforeunload', () => { try { URL.revokeObjectURL(tmpUrl); } catch(e){} });
-            }
+            // Buat blob dengan MIME type 'application/octet-stream' dan nama file .pb
+            const blobPB = new Blob([decrypted], { type: 'application/octet-stream' });
+            const tmpUrl = URL.createObjectURL(blobPB);
 
-            // tampilkan link unduh (anchor)
+            dl.href = tmpUrl;
+            dl.setAttribute('download', 'file.pb');
             dl.style.display = 'inline-block';
-            // ketika klik, jika link adalah data: URI browser akan handle; jika blob, browser akan download
-            dl.addEventListener('click', () => {
-              // nada; tidak perlu mencegah default
-            }, { once: true });
+
+            window.addEventListener('beforeunload', () => { try { URL.revokeObjectURL(tmpUrl); } catch(e){} });
 
           } catch(e){
             console.warn('setupDownloadLink error', e);
           }
         })();
-        /* ------------------ end setup download ------------------ */
+        // end setup download
 
       } catch (err) {
         console.error(err);
@@ -516,7 +517,6 @@
       window.addEventListener('beforeunload', () => {
         try {
           // revoke any blob: url created earlier (if exists)
-          // (some objectUrl variables were created and assigned to media src)
         } catch (e){}
       });
     } // end ensureAndRunMain
@@ -527,13 +527,11 @@
         hideLockedOverlay();
         ensureAndRunMain();
       } else {
-        // tampilkan overlay kunci, coba buka index otomatis, dan mulai polling
         showLockedOverlay();
         tryOpenIndexAutomatically();
         startAccessPolling();
       }
 
-      // jika user kembali ke tab ini, periksa lagi
       window.addEventListener('focus', () => {
         if (checkOpenerLoggedIn()) {
           hideLockedOverlay();
