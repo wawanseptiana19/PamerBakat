@@ -11,13 +11,15 @@
     .video-wrap { width: 100%; display:flex; flex-direction:column; gap:12px; align-items:center; }
     .controls-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
     .size-badge { background: #eef2ff; color:#3730a3; padding:6px 10px; border-radius:999px; font-weight:600; }
+    .toggle-btn { background:#f3f4f6; padding:6px 10px; border-radius:8px; cursor:pointer; }
+    .toggle-btn.active { background:#dbeafe; color:#1e40af; }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen py-8">
   <div class="container mx-auto px-4">
     <div class="bg-white shadow p-6 rounded-lg">
       <h1 class="text-2xl font-bold mb-2">Hasil Dekripsi & Preview</h1>
-      <p class="text-sm text-gray-600 mb-4">Halaman ini memuat file hasil dekripsi. Jika file adalah video, atur ukuran lewat kontrol di bawah.</p>
+      <p class="text-sm text-gray-600 mb-4">Halaman ini memuat file hasil dekripsi. Jika file adalah video, atur ukuran lewat kontrol di bawah. Video akan diputar berulang (loop) secara default.</p>
 
       <div id="status" class="mb-4 text-sm text-gray-700">Memuat...</div>
 
@@ -38,6 +40,9 @@
           <button id="mediumBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Medium (800px)</button>
           <button id="largeBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Large (1200px)</button>
           <button id="fullBtn" class="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm">Full width</button>
+          <div id="loopToggle" class="ml-2">
+            <button id="loopBtn" class="toggle-btn active text-sm" title="Toggle loop">Loop: On</button>
+          </div>
         </div>
         <div class="controls-row items-center">
           <label class="text-sm text-gray-600 mr-2">Resize (persentase):</label>
@@ -152,12 +157,14 @@
       const mediumBtn = document.getElementById('mediumBtn');
       const largeBtn = document.getElementById('largeBtn');
       const fullBtn = document.getElementById('fullBtn');
+      const loopBtn = document.getElementById('loopBtn');
 
       let objectUrl = null;
       let currentBlob = null;
       let detectedMime = null;
       let approxBytes = null;
       let videoEl = null;
+      let loopEnabled = true; // default: looping aktif
 
       if (!url) {
         statusEl.textContent = 'Parameter url tidak ditemukan. Pastikan ?url= di query string.';
@@ -219,6 +226,14 @@
             videoEl.style.maxWidth = '100%';
             videoEl.style.width = '100%';
             videoEl.src = objectUrl;
+
+            // === Loop behavior: aktifkan loop default & safety ended handler ===
+            videoEl.loop = true;
+            videoEl.addEventListener('ended', () => {
+              // tambahan safety jika browser tidak menghormati .loop selalu
+              try { videoEl.currentTime = 0; videoEl.play(); } catch (e) { /* ignore */ }
+            });
+
             previewEl.appendChild(createLabel(`${person} - ${name}`));
             const wrap = document.createElement('div');
             wrap.className = 'video-wrap w-full';
@@ -227,6 +242,11 @@
 
             // tampilkan kontrol size
             videoControls.classList.remove('hidden');
+
+            // loop toggle UI initial state (aktif)
+            loopEnabled = true;
+            loopBtn.classList.add('active');
+            loopBtn.textContent = 'Loop: On';
 
             // preset buttons
             smallBtn.addEventListener('click', () => { setVideoWidthPx(480); });
@@ -238,6 +258,20 @@
               const val = Number(sizeRange.value);
               sizeLabel.textContent = val + '%';
               setVideoWidthPercent(val);
+            });
+
+            // loop toggle handler
+            loopBtn.addEventListener('click', () => {
+              loopEnabled = !loopEnabled;
+              if (loopEnabled) {
+                videoEl.loop = true;
+                loopBtn.classList.add('active');
+                loopBtn.textContent = 'Loop: On';
+              } else {
+                videoEl.loop = false;
+                loopBtn.classList.remove('active');
+                loopBtn.textContent = 'Loop: Off';
+              }
             });
 
             // helper set
