@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Daftar Tautan Supabase — Dekripsi & Preview Media</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tambahkan library QR code generator -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <!-- Tambahkan library JSZip untuk membuat file ZIP -->
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <style>
         body { background-color: #f3f4f6; font-family: 'Inter', sans-serif; }
         th, td { padding: 12px 24px; }
@@ -110,6 +114,14 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white shadow-md rounded-lg p-6 mb-6">
       <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-0">Daftar Tautan</h1>
       <div class="flex items-center gap-4 w-full sm:w-auto">
+        <!-- TOMBOL BARU: Unduh Semua QR Code -->
+        <button id="downloadAllQrBtn" 
+                class="p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors icon-wrapper flex items-center gap-2 text-sm font-semibold text-gray-700" 
+                title="Unduh Semua QR Code">
+            <i class="fa-solid fa-file-zipper w-5 h-5"></i>
+            <span class="hidden sm:inline">Unduh Semua QR</span>
+        </button>
+
         <a href="https://pamer-bakat.vercel.app/tambah_konten.html" target="_blank" title="Pengaturan" class="p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors icon-wrapper">
             <i class="fa-solid fa-plus text-gray-700 w-5 h-5"></i>
         </a>
@@ -162,7 +174,13 @@
   <div id="qrModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
     <div class="bg-white p-4 rounded-lg shadow-lg relative">
       <button id="closeModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 focus:outline-none">✕</button>
-      <img id="enlargedQrImage" src="" alt="QR Code Diperbesar" class="rounded-md" style="width:256px;height:256px;">
+      <!-- Kontainer untuk canvas QR code yang diperbesar -->
+      <div id="enlargedQrContainer" style="width:256px;height:256px;"></div>
+      <button id="downloadSingleQrBtn" 
+              class="mt-3 w-full bg-indigo-500 text-white p-2 rounded-md hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2">
+          <i class="fa-solid fa-download"></i> Unduh
+      </button>
+      <!-- Hapus img#enlargedQrImage yang lama karena sekarang menggunakan canvas -->
     </div>
   </div>
 
@@ -278,10 +296,12 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
 
+    // Konfigurasi Supabase
     const supabaseUrl = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Elemen DOM
     const linksTableBody = document.getElementById('links-table-body');
     const loadingIndicator = document.getElementById('loadingIndicator');
     const statusMessage = document.getElementById('statusMessage');
@@ -289,7 +309,6 @@
     const searchInput = document.getElementById('searchInput');
     const clearSearchBtn = document.getElementById('clearSearchBtn');
     const qrModal = document.getElementById('qrModal');
-    const enlargedQrImage = document.getElementById('enlargedQrImage');
     const closeModalButton = document.getElementById('closeModal');
     const descriptionModal = document.getElementById('descriptionModal');
     const closeDescriptionModalButton = document.getElementById('closeDescriptionModal');
@@ -297,11 +316,20 @@
     const descriptionMessage = document.getElementById('descriptionMessage');
     const descriptionLoading = document.getElementById('descriptionLoading');
     const downloadBtn = document.getElementById('downloadBtn');
+    const downloadSingleQrBtn = document.getElementById('downloadSingleQrBtn'); // Tombol Unduh QR dari modal
+    const enlargedQrContainer = document.getElementById('enlargedQrContainer'); // Kontainer Canvas QR
+    const downloadAllQrBtn = document.getElementById('downloadAllQrBtn'); // Tombol Unduh Semua
     
     let lastClickTime = 0;
     let clickCount = 0;
     let currentDownloadBlob = null;
     let currentDownloadFilename = null;
+    let allLinksData = []; // Menyimpan semua data untuk fungsi Unduh Semua
+
+    // Variabel global untuk download QR tunggal
+    let currentQrDataUrl = null;
+    let currentQrFilename = null;
+
 
     function showStatus(message, type = 'error') {
       statusPopup.textContent = message;
@@ -318,6 +346,116 @@
       }, 3000);
     }
 
+    // Fungsi untuk membuat QR Code dengan padding latar belakang putih
+    async function generateQrCodeWithPadding(data, size = 256, padding = 4) {
+        const canvas = document.createElement('canvas');
+        
+        // Buat canvas QR code sementara tanpa padding (untuk mendapatkan ukuran modul/blok QR)
+        await QRCode.toCanvas(canvas, data, { 
+            errorCorrectionLevel: 'H',
+            margin: 0, 
+            width: size 
+        });
+
+        const ctx = canvas.getContext('2d');
+        const qrSize = canvas.width;
+        const totalSize = qrSize + 2 * padding;
+
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = totalSize;
+        finalCanvas.height = totalSize;
+        const finalCtx = finalCanvas.getContext('2d');
+
+        // Menggambar latar belakang putih
+        finalCtx.fillStyle = '#FFFFFF';
+        finalCtx.fillRect(0, 0, totalSize, totalSize);
+
+        // Menggambar QR code di tengah
+        finalCtx.drawImage(canvas, padding, padding, qrSize, qrSize);
+
+        return finalCanvas; // Mengembalikan elemen canvas
+    }
+
+    // Fungsi untuk mengunduh satu QR code (dari modal)
+    function downloadQrCode(canvas, filename) {
+        if (!canvas) {
+            showStatus('Gagal membuat QR Code untuk diunduh.', 'error');
+            return;
+        }
+
+        const a = document.createElement('a');
+        // Konversi canvas menjadi Data URL (PNG)
+        a.href = canvas.toDataURL('image/png');
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showStatus(`QR Code '${filename}' berhasil diunduh.`, 'success');
+    }
+
+    // Fungsi untuk mengunduh semua QR code
+    async function downloadAllQRCodes() {
+        if (allLinksData.length === 0) {
+            showStatus('Tidak ada data tautan untuk diunduh.', 'error');
+            return;
+        }
+
+        const zip = new JSZip();
+        const promises = [];
+        downloadAllQrBtn.disabled = true;
+        downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+        showStatus('Mempersiapkan file ZIP QR Code...', 'success');
+
+        for (const link of allLinksData) {
+            const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
+            let filename = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}.png`;
+            // Normalisasi nama file
+            filename = filename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+
+            const promise = generateQrCodeWithPadding(qrData, 512, 20) // Gunakan ukuran lebih besar untuk hasil cetak
+                .then(canvas => {
+                    // Konversi canvas ke blob
+                    return new Promise(resolve => {
+                        canvas.toBlob(blob => {
+                            zip.file(filename, blob);
+                            resolve();
+                        }, 'image/png');
+                    });
+                })
+                .catch(error => {
+                    console.error(`Gagal membuat QR untuk ${filename}:`, error);
+                });
+            
+            promises.push(promise);
+        }
+
+        await Promise.all(promises);
+        
+        // Generate dan Unduh ZIP
+        zip.generateAsync({ type: 'blob' })
+            .then(content => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(content);
+                a.download = 'Semua_QR_Codes.zip';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                showStatus('Semua QR Code berhasil dikemas dan diunduh!', 'success');
+            })
+            .catch(error => {
+                showStatus('Gagal membuat file ZIP.', 'error');
+                console.error('Error generating zip:', error);
+            })
+            .finally(() => {
+                downloadAllQrBtn.disabled = false;
+                downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-file-zipper w-5 h-5"></i> <span class="hidden sm:inline">Unduh Semua QR</span>';
+            });
+    }
+
+    // Event listener untuk tombol Unduh Semua
+    downloadAllQrBtn.addEventListener('click', downloadAllQRCodes);
+
+    // Logika dekripsi dan data URL lainnya (tetap sama)
     function decryptCaesar(text, shift) {
       if (typeof text !== 'string') return text;
       const s = Number(shift);
@@ -533,10 +671,25 @@
       }
     }
 
+    // EVENT LISTENERS UNTUK MODAL
     closeModalButton.addEventListener('click', () => qrModal.classList.add('hidden'));
-    qrModal.addEventListener('click', (e) => { if (e.target === qrModal) qrModal.classList.add('hidden'); });
+    qrModal.addEventListener('click', (e) => { 
+        if (e.target === qrModal) qrModal.classList.add('hidden'); 
+    });
     closeDescriptionModalButton.addEventListener('click', hideDescriptionModal);
-    descriptionModal.addEventListener('click', (e) => { if (e.target === descriptionModal) hideDescriptionModal(); });
+    descriptionModal.addEventListener('click', (e) => { 
+        if (e.target === descriptionModal) hideDescriptionModal(); 
+    });
+
+    // Event listener untuk download QR tunggal dari modal
+    downloadSingleQrBtn.addEventListener('click', () => {
+        const canvas = enlargedQrContainer.querySelector('canvas');
+        if (canvas && currentQrFilename) {
+            downloadQrCode(canvas, currentQrFilename);
+        } else {
+            showStatus('QR Code tidak ditemukan atau nama file hilang.', 'error');
+        }
+    });
 
     downloadBtn.addEventListener('click', () => {
       if (currentDownloadBlob) {
@@ -629,6 +782,7 @@
                 if (error) throw error;
                 showStatus('Tautan berhasil dihapus!', 'success');
                 row.remove();
+                fetchLinks(); // Muat ulang data untuk update allLinksData
             } catch (error) {
                 showStatus(`Gagal menghapus tautan: ${error.message}`, 'error');
                 console.error('Error deleting data:', error);
@@ -640,12 +794,16 @@
       loadingIndicator && loadingIndicator.classList.remove('hidden');
       statusMessage && statusMessage.classList.add('hidden');
       linksTableBody.querySelectorAll('tr').forEach(row => row.remove());
+      allLinksData = []; // Reset data global
 
       try {
         const { data, error } = await supabase.from('links').select('*, category').order('created_at', { ascending: false });
         loadingIndicator && loadingIndicator.classList.add('hidden');
         if (error) { showStatus(`Error fetching data: ${error.message}`); console.error(error); return; }
         if (!data || data.length === 0) { return; }
+
+        allLinksData = data; // Simpan data di variabel global
+        downloadAllQrBtn.classList.remove('hidden'); // Tampilkan tombol download semua
 
         data.forEach(link => {
           const row = document.createElement('tr');
@@ -654,15 +812,17 @@
 
           const formattedDate = link.created_at ? new Date(link.created_at).toLocaleString() : '-';
           const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
-          const encodedQrData = encodeURIComponent(qrData);
-          const qrImageUrlSmall = `https://api.qrserver.com/v1/create-qr-code/?size=64x64&data=${encodedQrData}`;
-          const qrImageUrlLarge = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodedQrData}`;
           
           const category = link.category || 'Belum Dikategorikan';
+          
+          // Nama file untuk QR code ini
+          let qrFilenameBase = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}`;
+          qrFilenameBase = qrFilenameBase.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+          const smallQrId = `qr-${link.id}`;
 
           row.innerHTML = `
             <td class="px-6 py-4 text-sm text-gray-500 flex justify-center cursor-pointer qr-cell">
-              <img src="${qrImageUrlSmall}" alt="${link.person_name || ''} - ${link.name || ''}" style="width:64px;height:64px;" class="rounded-md">
+              <canvas id="${smallQrId}" style="width:64px;height:64px;"></canvas>
             </td>
             <td class="px-6 py-4 text-sm text-gray-500" data-column="person_name">${link.person_name || '-'}</td>
             <td class="px-6 py-4 text-sm text-gray-500" data-column="name">${link.name || '-'}</td>
@@ -680,12 +840,38 @@
 
           linksTableBody.appendChild(row);
 
-          const qrImage = row.querySelector('img');
-          qrImage.addEventListener('click', () => { enlargedQrImage.src = qrImageUrlLarge; qrModal.classList.remove('hidden'); });
+          // Gambar QR kecil menggunakan library qrcode
+          QRCode.toCanvas(document.getElementById(smallQrId), qrData, { 
+              errorCorrectionLevel: 'L', 
+              margin: 1, 
+              width: 64,
+              color: { dark: '#000000', light: '#ffffff' }
+          }).catch(err => console.error('QR Small Generation Error:', err));
+
+
+          const qrCanvasSmall = row.querySelector(`#${smallQrId}`);
+          // Tampilkan QR besar di modal saat diklik
+          qrCanvasSmall.addEventListener('click', () => {
+            // Bersihkan kontainer
+            enlargedQrContainer.innerHTML = '';
+            
+            // Buat dan tampilkan QR besar
+            generateQrCodeWithPadding(qrData, 256, 12).then(canvas => {
+                enlargedQrContainer.appendChild(canvas);
+                canvas.style.borderRadius = '0.375rem'; // rounded-md
+                canvas.style.display = 'block';
+                
+                currentQrFilename = `${qrFilenameBase}.png`;
+                currentQrDataUrl = canvas.toDataURL('image/png'); // Simpan Data URL (walaupun downloadSingleQrBtn menggunakan canvas)
+                qrModal.classList.remove('hidden');
+            }).catch(err => {
+                showStatus('Gagal menampilkan QR Code.', 'error');
+                console.error('QR Large Generation Error:', err);
+            });
+          });
 
           const viewBtn = row.querySelector('.view-description-btn');
-          // **Perubahan di sini**: buka dekripsi.html di tab baru (kiriman query string). 
-          // Tidak memanggil showDescriptionModal lagi agar proses dekripsi terjadi di tab baru.
+          // Memastikan logika dekripsi di tab baru tetap sama
           if (viewBtn) {
             viewBtn.addEventListener('click', () => {
               const urlParam = encodeURIComponent(link.url || '');
