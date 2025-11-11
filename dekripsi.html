@@ -11,24 +11,17 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      /* Menghapus latar belakang, padding, dan card shadow untuk UI full screen */
       background-color: #f7fafc;
       padding: 0;
       margin: 0;
     }
     .container {
-      max-width: none;
       width: 100%;
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
       padding: 1.5rem;
-    }
-    /* Menghapus gaya card untuk konten utama */
-    .bg-white, .shadow-xl {
-      background: none;
-      box-shadow: none;
     }
     #lockedOverlay {
       position: fixed;
@@ -51,45 +44,34 @@
       box-shadow: 0 8px 30px rgba(2,6,23,0.6);
       backdrop-filter: blur(4px);
     }
-    #lockedBox h2 { font-size: 1.25rem; margin-bottom: 6px; }
-    #lockedBox p { margin-bottom: 12px; color: #e6eef8; }
-    button { display: none !important; }
-    a.button-like { display: none !important; }
-
     body.blurred .container {
       filter: blur(6px) saturate(0.95);
       transition: filter 0.25s ease;
       pointer-events: none;
       user-select: none;
     }
-
     .download-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       padding: 0.75rem 1.5rem;
-      /* Mengubah sudut tombol menjadi kotak */
-      border-radius: 0.375rem; /* rounded-md */
+      border-radius: 0.375rem;
       font-weight: 500;
       transition: all 0.2s ease-in-out;
       text-decoration: none;
     }
-
     .download-btn.gray {
-        background-color: #e5e7eb; /* gray-200 */
-        color: #1f2937; /* gray-900 */
+      background-color: #e5e7eb;
+      color: #1f2937;
     }
-
     .download-btn.green {
-        background-color: #10B981; /* emerald-500 */
-        color: #ffffff; /* white */
-        box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);
+      background-color: #10B981;
+      color: #ffffff;
+      box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);
     }
-    
     .download-btn.green:hover {
-        background-color: #059669; /* emerald-600 */
+      background-color: #059669;
     }
-
     .media-wrap {
       display: flex;
       flex-direction: column;
@@ -97,9 +79,35 @@
       gap: 16px;
       width: 100%;
     }
-    /* Hide any leftover button styles (no buttons expected) */
-    button { display: none !important; }
-    a.button-like { display: none !important; }
+    .frame-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.375rem;
+      font-weight: 500;
+      transition: all 0.2s ease-in-out;
+      text-decoration: none;
+      background-color: #3b82f6;
+      color: #ffffff;
+      box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
+    }
+    .frame-btn:hover {
+      background-color: #2563eb;
+    }
+    .frames-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+      width: 100%;
+    }
+    .frame-img {
+      width: 100%;
+      height: auto;
+      border-radius: 0.375rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen py-8">
@@ -117,7 +125,6 @@
 
       <div id="preview" class="mb-8"></div>
       
-      <!-- Kontainer tombol yang dipusatkan -->
       <div class="flex justify-center gap-2 mt-4">
         <a id="downloadOriginalBtn" class="download-btn gray hidden">
           Unduh .pb
@@ -133,28 +140,31 @@
         </a>
       </div>
 
-      <!-- Info meta yang dipindahkan ke bawah tombol -->
       <div id="meta" class="mt-6 flex items-center justify-center flex-wrap gap-4 text-sm text-gray-600 hidden">
         <div class="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-blue-500">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
-            </svg>
-            <span id="fileSize" class="font-semibold">Ukuran: -</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-blue-500">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+          </svg>
+          <span id="fileSize" class="font-semibold">Ukuran: -</span>
         </div>
         <div class="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-green-500">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25m-9-9h1.5a3.375 3.375 0 0 1 3.375 3.375v1.5a1.125 1.125 0 0 0-1.125 1.125h-1.5a3.375 3.375 0 0 1-3.375-3.375V2.25Z" />
-            </svg>
-            <span id="detectedMime">Tipe: -</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-green-500">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25m-9-9h1.5a3.375 3.375 0 0 1 3.375 3.375v1.5a1.125 1.125 0 0 0-1.125 1.125h-1.5a3.375 3.375 0 0 1-3.375-3.375V2.25Z" />
+          </svg>
+          <span id="detectedMime">Tipe: -</span>
         </div>
       </div>
 
-      <!-- Controls for media -->
       <div id="videoControls" class="mb-6 hidden">
         <label class="block text-base font-medium text-gray-700 mb-2">Atur Ukuran Video</label>
         <div class="flex items-center gap-4 bg-gray-50 p-3 rounded-lg">
           <input id="sizeRangeVideo" type="range" min="20" max="150" value="100" class="w-48 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
           <div id="sizeLabelVideo" class="text-sm text-gray-600 font-medium">100%</div>
+        </div>
+        <div class="flex justify-center mt-4">
+          <button id="showFramesBtn" class="frame-btn hidden">
+            Tampilkan Semua Frame
+          </button>
         </div>
       </div>
 
@@ -166,6 +176,11 @@
         </div>
       </div>
 
+      <div id="framesPreview" class="mb-8 hidden">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Semua Frame Video</h2>
+        <div class="frames-container"></div>
+      </div>
+
     </div>
 
     <div class="text-sm text-gray-500 mt-6 md:mt-10 text-center">
@@ -174,7 +189,6 @@
     </div>
   </div>
 
-  <!-- Locked overlay (ditampilkan bila akses tak valid) - tanpa tombol -->
   <div id="lockedOverlay" role="dialog" aria-modal="true">
     <div id="lockedBox" role="document">
       <h2>Akses Terkunci</h2>
@@ -183,13 +197,12 @@
   </div>
 
   <script>
-    // Utility: ambil query param
+    // Utility functions (grouped and cleaned)
     function q(name) {
       const params = new URLSearchParams(window.location.search);
       return params.get(name) || '';
     }
 
-    // Caesar decrypt (hanya huruf latin)
     function decryptCaesar(text, shift) {
       if (typeof text !== 'string') return text;
       const s = Number(shift);
@@ -207,7 +220,6 @@
       return result;
     }
 
-    // Normalisasi base64 (hapus header data:...;base64, jika ada)
     function normalizeBase64(b64) {
       if (!b64 || typeof b64 !== 'string') return '';
       let s = b64.replace(/\s+/g, '');
@@ -219,7 +231,6 @@
       return s;
     }
 
-    // Convert base64 to Blob
     function base64ToBlob(base64, mime) {
       const cleaned = normalizeBase64(base64);
       const binary = atob(cleaned);
@@ -229,7 +240,6 @@
       return new Blob([arr], { type: mime || 'application/octet-stream' });
     }
 
-    // Deteksi mime dari sample awal base64 (heuristik)
     function detectMimeFromBase64(b64) {
       try {
         const cleaned = normalizeBase64(b64).slice(0, 2000);
@@ -240,72 +250,54 @@
         if (bin.startsWith('GIF87a') || bin.startsWith('GIF89a')) return 'image/gif';
         if (bin.indexOf('ftyp') !== -1) return 'video/mp4';
         if (bin.toLowerCase().indexOf('webm') !== -1) return 'video/webm';
-        if (cleaned.startsWith('iVBOR') || cleaned.startsWith('/9j/')) {
-          if (cleaned.startsWith('iVBOR')) return 'image/png';
-          if (cleaned.startsWith('/9j/')) return 'image/jpeg';
-        }
+        if (cleaned.startsWith('iVBOR')) return 'image/png';
+        if (cleaned.startsWith('/9j/')) return 'image/jpeg';
         return null;
       } catch (e) {
         return null;
       }
     }
 
-    // Format bytes ke MB dengan 2 desimal
     function bytesToMB(n) {
       if (typeof n !== 'number' || isNaN(n)) return '-';
       return (n / (1024 * 1024)).toFixed(2) + ' MB';
     }
 
+    function createLabel(text) {
+      const h = document.createElement('div');
+      h.className = 'text-sm text-gray-700 font-semibold mb-2';
+      h.textContent = text || '';
+      return h;
+    }
+
+    // Access control functions
     const lockedOverlay = document.getElementById('lockedOverlay');
 
-    // Cek apakah opener (index) dalam keadaan "ter-unlock"
     function checkOpenerLoggedIn() {
       try {
         if (!window.opener || window.opener.closed) return false;
-
-        // coba akses elemen overlay di index (jika ada)
-        const overlay = window.opener.document.getElementById && window.opener.document.getElementById('loginOverlay');
-        if (overlay) {
-          const disp = String(overlay.style.display || '');
-          if (disp === 'none' || disp === '') {
-            const logoutBtn = window.opener.document.getElementById && window.opener.document.getElementById('logoutBtn');
-            if (logoutBtn && logoutBtn.style.display !== 'none') return true;
-            const pageContent = window.opener.document.getElementById && window.opener.document.getElementById('pageContent');
-            if (pageContent && !pageContent.classList.contains('blurred')) return true;
-            if (disp === 'none') return true;
-          } else {
-            if (disp === 'none') return true;
-          }
-        } else {
-          const logoutBtn = window.opener.document.getElementById && window.opener.document.getElementById('logoutBtn');
-          if (logoutBtn && logoutBtn.style.display !== 'none') return true;
-          const pageContent = window.opener.document.getElementById && window.opener.document.getElementById('pageContent');
-          if (pageContent && !pageContent.classList.contains('blurred')) return true;
-        }
-
+        const overlay = window.opener.document.getElementById('loginOverlay');
+        if (overlay && overlay.style.display === 'none') return true;
+        const logoutBtn = window.opener.document.getElementById('logoutBtn');
+        if (logoutBtn && logoutBtn.style.display !== 'none') return true;
+        const pageContent = window.opener.document.getElementById('pageContent');
+        if (pageContent && !pageContent.classList.contains('blurred')) return true;
         return false;
       } catch (e) {
-        // akses diblokir oleh same-origin policy atau opener dari origin lain
         return false;
       }
     }
 
     function showLockedOverlay() {
-      if (lockedOverlay) lockedOverlay.style.display = 'flex';
-      const previewEl = document.getElementById('preview');
-      if (previewEl) previewEl.style.filter = 'blur(4px)';
-      // ADDED: tambahkan class blur pada seluruh page (container)
+      lockedOverlay.style.display = 'flex';
       document.body.classList.add('blurred');
     }
+
     function hideLockedOverlay() {
-      if (lockedOverlay) lockedOverlay.style.display = 'none';
-      const previewEl = document.getElementById('preview');
-      if (previewEl) previewEl.style.filter = '';
-      // ADDED: hapus class blur dari body
+      lockedOverlay.style.display = 'none';
       document.body.classList.remove('blurred');
     }
 
-    // Polling untuk cek akses
     let accessInterval = null;
     function startAccessPolling() {
       if (accessInterval) return;
@@ -314,28 +306,23 @@
           hideLockedOverlay();
           clearInterval(accessInterval);
           accessInterval = null;
-          if (typeof ensureAndRunMain === 'function') ensureAndRunMain();
+          ensureAndRunMain();
         }
       }, 700);
     }
 
-    // Coba buka index otomatis (popup mungkin diblokir oleh browser)
     function tryOpenIndexAutomatically() {
       try {
         if (window.opener && !window.opener.closed) {
-          // fokus opener jika tersedia
-          try { window.opener.focus(); } catch(e){}
+          window.opener.focus();
         } else {
           const w = window.open('index.html', '_blank');
-          // jika popup berhasil, fokus window baru
-          try { if (w) w.focus(); } catch(e){}
+          if (w) w.focus();
         }
-      } catch (e) {
-        // ignore
-      }
+      } catch (e) {}
     }
 
-    // === FUNGSI UTAMA ===
+    // Main function
     async function ensureAndRunMain() {
       if (ensureAndRunMain._started) return;
       ensureAndRunMain._started = true;
@@ -350,17 +337,17 @@
       const metaEl = document.getElementById('meta');
       const fileSizeEl = document.getElementById('fileSize');
       const mimeEl = document.getElementById('detectedMime');
-      
       const downloadOriginalBtn = document.getElementById('downloadOriginalBtn');
       const downloadDecryptedBtn = document.getElementById('downloadDecryptedBtn');
-
       const videoControls = document.getElementById('videoControls');
       const sizeRangeVideo = document.getElementById('sizeRangeVideo');
       const sizeLabelVideo = document.getElementById('sizeLabelVideo');
-
       const imageControls = document.getElementById('imageControls');
       const sizeRangeImage = document.getElementById('sizeRangeImage');
       const sizeLabelImage = document.getElementById('sizeLabelImage');
+      const showFramesBtn = document.getElementById('showFramesBtn');
+      const framesPreview = document.getElementById('framesPreview');
+      const framesContainer = framesPreview.querySelector('.frames-container');
 
       let objectUrl = null;
       let currentBlob = null;
@@ -369,21 +356,19 @@
       let imageEl = null;
       let decryptedContent = '';
 
-      // apply saved settings if any
-      try {
-        const KEY_IMG = 'dekrip_image_size_pct';
-        const KEY_VID = 'dekrip_video_size_pct';
-        const savedImg = localStorage.getItem(KEY_IMG);
-        const savedVid = localStorage.getItem(KEY_VID);
-        if (savedImg !== null) {
-          sizeRangeImage.value = savedImg;
-          sizeLabelImage.textContent = savedImg + '%';
-        }
-        if (savedVid !== null) {
-          sizeRangeVideo.value = savedVid;
-          sizeLabelVideo.textContent = savedVid + '%';
-        }
-      } catch(e){}
+      // Load saved settings
+      const KEY_IMG = 'dekrip_image_size_pct';
+      const KEY_VID = 'dekrip_video_size_pct';
+      const savedImg = localStorage.getItem(KEY_IMG);
+      const savedVid = localStorage.getItem(KEY_VID);
+      if (savedImg) {
+        sizeRangeImage.value = savedImg;
+        sizeLabelImage.textContent = `${savedImg}%`;
+      }
+      if (savedVid) {
+        sizeRangeVideo.value = savedVid;
+        sizeLabelVideo.textContent = `${savedVid}%`;
+      }
 
       if (!url) {
         statusEl.textContent = 'Parameter url tidak ditemukan. Pastikan ?url= di query string.';
@@ -396,7 +381,7 @@
 
       try {
         const res = await fetch(url);
-        if (!res.ok) throw new Error('Gagal memuat file: ' + res.status);
+        if (!res.ok) throw new Error(`Gagal memuat file: ${res.status}`);
         const encryptedText = await res.text();
 
         statusEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-gray-500 animate-spin">
@@ -405,29 +390,20 @@
 
         decryptedContent = decryptCaesar(encryptedText, shift);
         const probableBase64 = decryptedContent.trim();
-
         const cleaned = normalizeBase64(probableBase64);
         const looksLikeBase64 = cleaned && /^[A-Za-z0-9+/=]+$/.test(cleaned);
 
         if (looksLikeBase64) {
           detectedMime = detectMimeFromBase64(cleaned) || '';
-          try {
-            currentBlob = base64ToBlob(cleaned, detectedMime || 'application/octet-stream');
-          } catch (e) {
-            currentBlob = null;
-          }
+          currentBlob = base64ToBlob(cleaned, detectedMime);
+          objectUrl = URL.createObjectURL(currentBlob);
 
-          const approxBytes = Math.ceil((cleaned.length * 3) / 4);
-          const bytesToShow = currentBlob ? currentBlob.size : approxBytes;
-          fileSizeEl.textContent = 'Ukuran: ' + bytesToMB(bytesToShow);
-          mimeEl.textContent = 'Tipe: ' + (detectedMime || 'Tidak terdeteksi');
+          const bytesToShow = currentBlob.size;
+          fileSizeEl.textContent = `Ukuran: ${bytesToMB(bytesToShow)}`;
+          mimeEl.textContent = `Tipe: ${detectedMime || 'Tidak terdeteksi'}`;
           metaEl.classList.remove('hidden');
 
-          if (currentBlob) objectUrl = URL.createObjectURL(currentBlob);
-          else objectUrl = `data:${detectedMime || 'application/octet-stream'};base64,${cleaned}`;
-
-          // MEDIA: Video
-          if (detectedMime && detectedMime.startsWith('video/')) {
+          if (detectedMime.startsWith('video/')) {
             previewEl.innerHTML = '';
             videoEl = document.createElement('video');
             videoEl.controls = true;
@@ -435,9 +411,8 @@
             videoEl.className = 'rounded-lg shadow-md';
             videoEl.style.maxWidth = '100%';
             const initPct = Number(sizeRangeVideo.value || 100);
-            videoEl.style.width = initPct + '%';
+            videoEl.style.width = `${initPct}%`;
             videoEl.src = objectUrl;
-            // default loop on
             videoEl.loop = true;
             previewEl.appendChild(createLabel(`${person} - ${name}`));
             const wrap = document.createElement('div');
@@ -446,17 +421,48 @@
             previewEl.appendChild(wrap);
 
             videoControls.classList.remove('hidden');
+            showFramesBtn.classList.remove('hidden');
             imageControls.classList.add('hidden');
 
             sizeRangeVideo.addEventListener('input', () => {
               const val = Number(sizeRangeVideo.value);
-              sizeLabelVideo.textContent = val + '%';
-              videoEl.style.width = val + '%';
-              try { localStorage.setItem('dekrip_video_size_pct', String(val)); } catch(e){}
+              sizeLabelVideo.textContent = `${val}%`;
+              videoEl.style.width = `${val}%`;
+              localStorage.setItem(KEY_VID, val);
             });
 
-          // MEDIA: Image
-          } else if (detectedMime && detectedMime.startsWith('image/')) {
+            // Frame extraction logic
+            showFramesBtn.addEventListener('click', async () => {
+              if (framesContainer.innerHTML) return; // Already extracted
+              framesPreview.classList.remove('hidden');
+              statusEl.textContent = 'Mengekstrak frame... Ini mungkin memakan waktu.';
+              videoEl.pause();
+
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              canvas.width = videoEl.videoWidth;
+              canvas.height = videoEl.videoHeight;
+
+              const duration = videoEl.duration;
+              const fps = 30; // Assume 30 FPS; adjust if needed or detect dynamically
+              const frameCount = Math.floor(duration * fps);
+              const frameInterval = 1 / fps;
+
+              for (let i = 0; i < frameCount; i++) {
+                videoEl.currentTime = i * frameInterval;
+                await new Promise(resolve => videoEl.addEventListener('seeked', resolve, { once: true }));
+                ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+                const img = document.createElement('img');
+                img.src = canvas.toDataURL('image/jpeg');
+                img.className = 'frame-img';
+                img.alt = `Frame ${i + 1}`;
+                framesContainer.appendChild(img);
+              }
+
+              statusEl.textContent = 'Ekstraksi frame selesai.';
+            });
+
+          } else if (detectedMime.startsWith('image/')) {
             previewEl.innerHTML = '';
             imageEl = document.createElement('img');
             imageEl.src = objectUrl;
@@ -464,7 +470,7 @@
             imageEl.className = 'rounded-lg shadow-md';
             imageEl.style.maxWidth = '100%';
             const initImgPct = Number(sizeRangeImage.value || 100);
-            imageEl.style.width = initImgPct + '%';
+            imageEl.style.width = `${initImgPct}%`;
             previewEl.appendChild(createLabel(`${person} - ${name}`));
             const wrap = document.createElement('div');
             wrap.className = 'media-wrap w-full';
@@ -476,28 +482,24 @@
 
             sizeRangeImage.addEventListener('input', () => {
               const val = Number(sizeRangeImage.value);
-              sizeLabelImage.textContent = val + '%';
-              imageEl.style.width = val + '%';
-              try { localStorage.setItem('dekrip_image_size_pct', String(val)); } catch(e){}
+              sizeLabelImage.textContent = `${val}%`;
+              imageEl.style.width = `${val}%`;
+              localStorage.setItem(KEY_IMG, val);
             });
 
           } else {
-            // non-media base64 -> tampilkan preview teks terbatas
             previewEl.innerHTML = '';
             previewEl.appendChild(createLabel(`${person} - ${name}`));
             const pre = document.createElement('pre');
             pre.className = 'mt-3 p-4 bg-gray-50 rounded-lg text-sm max-h-64 overflow-auto';
-            pre.textContent = '[Preview base64 (dipotong)]\n' + cleaned.slice(0, 1500) + (cleaned.length > 1500 ? '\n\n... (terpotong) ...' : '');
+            pre.textContent = `[Preview base64 (dipotong)]\n${cleaned.slice(0, 1500)}${cleaned.length > 1500 ? '\n\n... (terpotong) ...' : ''}`;
             previewEl.appendChild(pre);
             videoControls.classList.add('hidden');
             imageControls.classList.add('hidden');
           }
-
         } else {
-          // bukan base64 -> tampil sebagai teks biasa
           const textBlob = new Blob([decryptedContent], { type: 'text/plain' });
-          const sizeBytes = textBlob.size;
-          fileSizeEl.textContent = 'Ukuran: ' + bytesToMB(sizeBytes);
+          fileSizeEl.textContent = `Ukuran: ${bytesToMB(textBlob.size)}`;
           mimeEl.textContent = 'Tipe: text/plain';
           metaEl.classList.remove('hidden');
           previewEl.innerHTML = '';
@@ -514,48 +516,24 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
         </svg> Selesai.`;
 
-        // set up download link
-        (function setupDownloadLink(){
-          try {
-            const dlOriginal = document.getElementById('downloadOriginalBtn');
-            const dlDecrypted = document.getElementById('downloadDecryptedBtn');
-            if (!dlOriginal || !dlDecrypted) return;
+        // Setup download links
+        const blobPB = new Blob([encryptedText], { type: 'application/octet-stream' });
+        const tmpUrlPB = URL.createObjectURL(blobPB);
+        let blobDecrypted = currentBlob || new Blob([decryptedContent], { type: 'application/octet-stream' });
+        const tmpUrlDecrypted = URL.createObjectURL(blobDecrypted);
 
-            // Buat blob dengan MIME type 'application/octet-stream' dan nama file .pb
-            const blobPB = new Blob([encryptedText], { type: 'application/octet-stream' });
-            const tmpUrlPB = URL.createObjectURL(blobPB);
+        downloadOriginalBtn.href = tmpUrlPB;
+        downloadOriginalBtn.download = 'file.pb';
+        downloadOriginalBtn.classList.remove('hidden');
 
-            // Perbaikan: Gunakan currentBlob jika tersedia (untuk data biner)
-            // Jika tidak, buat blob dari decryptedContent (untuk teks biasa)
-            let blobDecrypted;
-            if (currentBlob) {
-              blobDecrypted = currentBlob;
-            } else {
-              blobDecrypted = new Blob([decryptedContent], { type: 'application/octet-stream' });
-            }
-            const tmpUrlDecrypted = URL.createObjectURL(blobDecrypted);
-            
-            dlOriginal.href = tmpUrlPB;
-            dlOriginal.setAttribute('download', 'file.pb');
-            dlOriginal.classList.remove('hidden');
-            
-            dlDecrypted.href = tmpUrlDecrypted;
-            dlDecrypted.setAttribute('download', name || 'decrypted_file');
-            dlDecrypted.classList.remove('hidden');
-            
-            // Cleanup on unload
-            window.addEventListener('beforeunload', () => { 
-                try { 
-                    URL.revokeObjectURL(tmpUrlPB); 
-                    URL.revokeObjectURL(tmpUrlDecrypted); 
-                } catch(e){} 
-            });
+        downloadDecryptedBtn.href = tmpUrlDecrypted;
+        downloadDecryptedBtn.download = name || 'decrypted_file';
+        downloadDecryptedBtn.classList.remove('hidden');
 
-          } catch(e){
-            console.warn('setupDownloadLink error', e);
-          }
-        })();
-        // end setup download
+        window.addEventListener('beforeunload', () => {
+          URL.revokeObjectURL(tmpUrlPB);
+          URL.revokeObjectURL(tmpUrlDecrypted);
+        });
 
       } catch (err) {
         console.error(err);
@@ -564,15 +542,12 @@
         </svg> Gagal memuat/mendekripsi: ${err.message}`;
       }
 
-      // revoke object URL on unload
       window.addEventListener('beforeunload', () => {
-        try {
-          // revoke any blob: url created earlier (if exists)
-        } catch (e){}
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
       });
-    } // end ensureAndRunMain
+    }
 
-    // Saat halaman dimuat: cek akses dari index terlebih dahulu.
+    // Initialization
     (function initAccessCheck() {
       if (checkOpenerLoggedIn()) {
         hideLockedOverlay();
@@ -590,14 +565,6 @@
         }
       });
     })();
-
-    // helpers
-    function createLabel(text) {
-      const h = document.createElement('div');
-      h.className = 'text-sm text-gray-700 font-semibold mb-2';
-      h.textContent = text || '';
-      return h;
-    }
   </script>
 </body>
 </html>
