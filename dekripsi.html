@@ -389,16 +389,19 @@
       }
     }
 
-    function showLockedOverlay() {
-      lockedOverlay.style.display = 'flex';
-      document.body.classList.add('blurred');
-    }
+function showLockedOverlay() {
+  lockedOverlay.style.display = 'flex';
+  document.body.classList.add('blurred');
+}
 
-    function hideLockedOverlay() {
-      lockedOverlay.style.display = 'none';
-      document.body.classList.remove('blurred');
-    }
+function hideLockedOverlay() {
+  lockedOverlay.style.display = 'none';
+  document.body.classList.remove('blurred');
+}
 
+function isLoggedIn() {
+  return localStorage.getItem('dekrip_logged_in') === 'true';
+}
     let accessInterval = null;
     function startAccessPolling() {
       if (accessInterval) return;
@@ -764,23 +767,21 @@
     });
 
     // Initialization
-    (function initAccessCheck() {
-      if (checkOpenerLoggedIn()) {
-        hideLockedOverlay();
-        ensureAndRunMain();
-      } else {
-        showLockedOverlay();
-        tryOpenIndexAutomatically();
-        startAccessPolling();
-      }
+(function initAccessCheck() {
+  if (isLoggedIn()) {
+    hideLockedOverlay();
+    ensureAndRunMain();
+  } else {
+    showLockedOverlay();
+  }
 
-      window.addEventListener('focus', () => {
-        if (checkOpenerLoggedIn()) {
-          hideLockedOverlay();
-          ensureAndRunMain();
-        }
-      });
-    })();
+window.addEventListener('focus', () => {
+    if (isLoggedIn()) {
+      hideLockedOverlay();
+      ensureAndRunMain();
+    }
+  });
+})();
   </script>
 </body>
 </html>
