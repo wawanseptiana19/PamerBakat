@@ -374,21 +374,6 @@
     // Access control functions
     const lockedOverlay = document.getElementById('lockedOverlay');
 
-    function checkOpenerLoggedIn() {
-      try {
-        if (!window.opener || window.opener.closed) return false;
-        const overlay = window.opener.document.getElementById('loginOverlay');
-        if (overlay && overlay.style.display === 'none') return true;
-        const logoutBtn = window.opener.document.getElementById('logoutBtn');
-        if (logoutBtn && logoutBtn.style.display !== 'none') return true;
-        const pageContent = window.opener.document.getElementById('pageContent');
-        if (pageContent && !pageContent.classList.contains('blurred')) return true;
-        return false;
-      } catch (e) {
-        return false;
-      }
-    }
-
     function showLockedOverlay() {
       lockedOverlay.style.display = 'flex';
       document.body.classList.add('blurred');
@@ -399,29 +384,11 @@
       document.body.classList.remove('blurred');
     }
 
-    let accessInterval = null;
-    function startAccessPolling() {
-      if (accessInterval) return;
-      accessInterval = setInterval(() => {
-        if (checkOpenerLoggedIn()) {
-          hideLockedOverlay();
-          clearInterval(accessInterval);
-          accessInterval = null;
-          ensureAndRunMain();
-        }
-      }, 700);
+    function isLoggedIn() {
+      return localStorage.getItem('dekrip_logged_in') === 'true';
     }
 
-    function tryOpenIndexAutomatically() {
-      try {
-        if (window.opener && !window.opener.closed) {
-          window.opener.focus();
-        } else {
-          const w = window.open('index.html', '_blank');
-          if (w) w.focus();
-        }
-      } catch (e) {}
-    }
+    // Hapus checkOpenerLoggedIn(), startAccessPolling(), dan tryOpenIndexAutomatically() karena tidak diperlukan lagi
 
     // Fungsi baru untuk fetch dan tampilkan list terkait dari Supabase
     async function fetchRelatedLinks(person) {
@@ -765,17 +732,15 @@
 
     // Initialization
     (function initAccessCheck() {
-      if (checkOpenerLoggedIn()) {
+      if (isLoggedIn()) {
         hideLockedOverlay();
         ensureAndRunMain();
       } else {
         showLockedOverlay();
-        tryOpenIndexAutomatically();
-        startAccessPolling();
       }
 
       window.addEventListener('focus', () => {
-        if (checkOpenerLoggedIn()) {
+        if (isLoggedIn()) {
           hideLockedOverlay();
           ensureAndRunMain();
         }
