@@ -231,13 +231,11 @@
         document.body.classList.remove('lock-scroll');
         if (pageContent) pageContent.classList.remove('blurred');
         logoutBtn.style.display = 'inline-block';
-        localStorage.setItem('loggedIn', 'true'); // Set status login di localStorage
       }
       function resetAccess() {
         fileInput.value = '';
         msg.textContent = '';
         logoutBtn.style.display = 'none';
-        localStorage.removeItem('loggedIn'); // Hapus status login
         lockPage();
       }
 
@@ -283,13 +281,6 @@
 
       logoutBtn.addEventListener('click', () => {
         if (confirm('Apakah Anda yakin ingin menghapus akses dan keluar?')) resetAccess();
-      });
-
-      // Listener untuk sync logout dari tab lain
-      window.addEventListener('storage', (e) => {
-        if (e.key === 'loggedIn' && !e.newValue) {
-          resetAccess();
-        }
       });
 
       // Jangan tutup overlay jika klik di luar
@@ -644,7 +635,7 @@
         const blob = previewResult.blob;
         const mime = previewResult.mime;
 
-        if (isBase64String(probableBase64) ) {
+        if (isBase64String(probableBase64)) {
           const fileExt = mime ? mime.split('/')[1] : 'bin';
           let baseFilename = `${personName || 'anonim'} - ${linkName || 'tanpa-nama'}`;
           baseFilename = baseFilename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
