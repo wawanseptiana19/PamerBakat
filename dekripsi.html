@@ -8,6 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tambahkan Supabase client untuk fetch data terkait -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
+    window.createClient = createClient; // Buat global untuk akses di script utama
+  </script>
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -159,6 +164,30 @@
     .modal-download-btn:hover {
       background-color: #059669;
     }
+    /* Style untuk list terkait baru */
+    #relatedSection {
+      margin-top: 2rem;
+      padding: 1rem;
+      background-color: #ffffff;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    #relatedList {
+      list-style-type: none;
+      padding: 0;
+    }
+    #relatedList li {
+      padding: 0.75rem;
+      border-bottom: 1px solid #e5e7eb;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    #relatedList li:hover {
+      background-color: #f3f4f6;
+    }
+    #relatedList li:last-child {
+      border-bottom: none;
+    }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen py-8">
@@ -230,6 +259,12 @@
       <div id="framesPreview" class="mb-8 hidden">
         <h2 class="text-2xl font-bold text-gray-800 mb-4">Semua Frame Video</h2>
         <div class="frames-container"></div>
+      </div>
+
+      <!-- Section baru untuk list nama dan judul terkait -->
+      <div id="relatedSection" class="hidden">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Konten Terkait</h2>
+        <ul id="relatedList" class="text-sm text-gray-700"></ul>
       </div>
 
     </div>
@@ -380,16 +415,58 @@
       } catch (e) {}
     }
 
-    // Main function
-    async function ensureAndRunMain() {
-      if (ensureAndRunMain._started) return;
-      ensureAndRunMain._started = true;
+    // Fungsi baru untuk fetch dan tampilkan list terkait dari Supabase
+    async function fetchRelatedLinks(person) {
+      const relatedSection = document.getElementById('relatedSection');
+      const relatedList = document.getElementById('relatedList');
+      relatedList.innerHTML = ''; // Kosongkan list
 
-      const url = q('url');
-      const shift = q('shift') || '0';
-      const person = q('person') || '';
-      const name = q('name') || '';
+      if (!person) {
+        relatedSection.classList.add('hidden');
+        return;
+      }
 
+      // Konfigurasi Supabase (sama seperti di index.html)
+      const supabaseUrl = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
+      const supabase = window.createClient(supabaseUrl, supabaseKey);
+
+      try {
+        const { data, error } = await supabase
+          .from('links')
+          .select('id, name, url, shift_code')
+          .ilike('person_name', `%${person}%`); // Case-insensitive match
+
+        if (error) throw error;
+        if (!data || data.length <= 1) { // Jika hanya satu (item saat ini), sembunyikan
+          relatedSection.classList.add('hidden');
+          return;
+        }
+
+        data.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = `${item.name || 'Tanpa Judul'}`;
+          li.dataset.url = item.url;
+          li.dataset.shift = item.shift_code;
+          li.dataset.name = item.name;
+          li.addEventListener('click', () => {
+            // Trigger dekripsi untuk item terkait
+            loadAndDecrypt(item.url, item.shift, person, item.name);
+          });
+          relatedList.appendChild(li);
+        });
+
+        relatedSection.classList.remove('hidden');
+      } catch (err) {
+        console.error('Gagal fetch data terkait:', err);
+        // Opsional: Tampilkan pesan error di UI
+        relatedList.innerHTML = '<li class="text-red-500">Gagal memuat konten terkait.</li>';
+        relatedSection.classList.remove('hidden');
+      }
+    }
+
+    // Fungsi untuk load dan dekripsi konten (dipanggil ulang untuk item terkait)
+    async function loadAndDecrypt(url, shift, person, name) {
       const statusEl = document.getElementById('status');
       const previewEl = document.getElementById('preview');
       const metaEl = document.getElementById('meta');
@@ -414,7 +491,7 @@
       let imageEl = null;
       let decryptedContent = '';
 
-      // Load saved settings
+      // Load saved settings (sama seperti sebelumnya)
       const KEY_IMG = 'dekrip_image_size_pct';
       const KEY_VID = 'dekrip_video_size_pct';
       const savedImg = localStorage.getItem(KEY_IMG);
@@ -429,7 +506,7 @@
       }
 
       if (!url) {
-        statusEl.textContent = 'Parameter url tidak ditemukan. Pastikan ?url= di query string.';
+        statusEl.textContent = 'Parameter url tidak ditemukan.';
         return;
       }
 
@@ -489,11 +566,11 @@
               localStorage.setItem(KEY_VID, val);
             });
 
-            // Frame extraction logic
+            // Frame extraction logic (sama seperti sebelumnya)
             showFramesBtn.addEventListener('click', async () => {
-              if (framesContainer.innerHTML) return; // Already extracted
+              if (framesContainer.innerHTML) return;
               framesPreview.classList.remove('hidden');
-              statusEl.textContent = 'Mengekstrak frame... Ini mungkin memakan waktu.';
+              statusEl.textContent = 'Mengekstrak frame...';
               videoEl.pause();
 
               const canvas = document.createElement('canvas');
@@ -502,7 +579,7 @@
               canvas.height = videoEl.videoHeight;
 
               const duration = videoEl.duration;
-              const fps = 30; // Assume 30 FPS; adjust if needed or detect dynamically
+              const fps = 30;
               const frameCount = Math.floor(duration * fps);
               const frameInterval = 1 / fps;
 
@@ -519,7 +596,6 @@
 
               statusEl.textContent = 'Ekstraksi frame selesai.';
 
-              // Add click event to each frame image for modal
               const frameImages = document.querySelectorAll('.frame-img');
               frameImages.forEach((img, index) => {
                 img.addEventListener('click', () => {
@@ -585,7 +661,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
         </svg> Selesai.`;
 
-        // Setup download links
+        // Setup download links (sama seperti sebelumnya)
         const blobPB = new Blob([encryptedText], { type: 'application/octet-stream' });
         const tmpUrlPB = URL.createObjectURL(blobPB);
         let blobDecrypted = currentBlob || new Blob([decryptedContent], { type: 'application/octet-stream' });
@@ -616,7 +692,24 @@
       });
     }
 
-    // Modal functionality
+    // Main function
+    async function ensureAndRunMain() {
+      if (ensureAndRunMain._started) return;
+      ensureAndRunMain._started = true;
+
+      const url = q('url');
+      const shift = q('shift') || '0';
+      const person = q('person') || '';
+      const name = q('name') || '';
+
+      // Jalankan dekripsi utama
+      await loadAndDecrypt(url, shift, person, name);
+
+      // Fetch list terkait setelah dekripsi utama selesai
+      await fetchRelatedLinks(person);
+    }
+
+    // Modal functionality (sama seperti sebelumnya)
     const modal = document.getElementById('imageModal');
     const modalImage = document.getElementById('modalImage');
     const closeBtn = document.querySelector('.close-btn');
