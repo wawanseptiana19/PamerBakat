@@ -406,14 +406,18 @@
       const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
       const supabase = window.createClient(supabaseUrl, supabaseKey);
 
+      // Ambil parameter current untuk exclusion
+      const currentUrl = q('url');
+      const currentShift = q('shift');
+
       try {
         const { data, error } = await supabase
           .from('links')
           .select('id, person_name, name, category, url, shift_code')
-          .ilike('person_name', `%${person}%`); // Case-insensitive match
+          .ilike('person_name', person); // Exact case-insensitive match (tanpa wildcard %)
 
         if (error) throw error;
-        if (!data || data.length <= 1) { // Jika hanya satu (item saat ini), sembunyikan
+        if (!data || data.length < 1) { // Hidden jika kosong (bukan <=1)
           relatedSection.classList.add('hidden');
           return;
         }
@@ -421,12 +425,21 @@
         // Group data by category
         const groupedByCategory = {};
         data.forEach(item => {
+          // Exclude item saat ini berdasarkan url dan shift_code
+          if (item.url === currentUrl && item.shift_code === currentShift) return;
+
           const cat = item.category || 'Belum Dikategorikan';
           if (!groupedByCategory[cat]) {
             groupedByCategory[cat] = [];
           }
           groupedByCategory[cat].push(item);
         });
+
+        // Jika setelah exclusion kosong, hidden
+        if (Object.keys(groupedByCategory).length === 0) {
+          relatedSection.classList.add('hidden');
+          return;
+        }
 
         // Render grouped list
         Object.keys(groupedByCategory).sort().forEach(category => {
