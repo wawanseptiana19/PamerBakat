@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dekripsi & Preview</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body {font-family: 'Inter', sans-serif;background-color: #f9fafb;}
@@ -39,6 +40,7 @@
           <div class="flex items-center gap-2">
             <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2a2 2 0 00-2 2v3a2 2 0 002 2h2m-8-11h4"/></svg>
             <span id="fileSize">Ukuran: –</span>
+
           </div>
           <div class="flex items-center gap-2">
             <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -213,7 +215,7 @@
       }
     }
 
-    async function generateQrCodeWithPadding(data, size = 300, padding = 20) {
+    async function generateQrCodeWithPadding(data, size = 320, padding = 30) {
       const tempCanvas = document.createElement('canvas');
       await QRCode.toCanvas(tempCanvas, data, { errorCorrectionLevel: 'H', margin: 0, width: size });
       const qrSize = tempCanvas.width;
@@ -228,6 +230,79 @@
       return finalCanvas;
     }
 
+    async function extractFramesAndOpenTab(videoEl, person, name) {
+      videoEl.pause();
+      const duration = videoEl.duration;
+      if (isNaN(duration)) { alert('Video belum siap. Tunggu sebentar.'); return; }
+
+      const frames = [];
+      const interval = 1;
+      let currentTime = 0;
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = videoEl.videoWidth;
+      canvas.height = videoEl.videoHeight;
+
+      while (currentTime <= duration) {
+        videoEl.currentTime = currentTime;
+        await new Promise(r => videoEl.onseeked = r);
+        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+        frames.push({time: currentTime.toFixed(2), dataUrl: canvas.toDataURL('image/jpeg', 0.9)});
+        currentTime += interval;
+      }
+
+      const newWin = window.open('', '_blank');
+      let html = `<!DOCTYPE html><html><head><title>All Frames — ${person} - ${name}</title>
+      <meta charset="utf-8"><script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+      <style>body{font-family:system-ui,sans-serif;background:#f9fafb;padding:2rem;}h1{margin-bottom:1rem;}#zipBtn{margin:1rem 0;padding:1rem 2rem;font-size:1.2rem;background:#10b981;color:white;border:none;border-radius:0.5rem;cursor:pointer;}#zipBtn:disabled{background:#6b7280;cursor:not-allowed;}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.5rem;}.frame{background:white;padding:1rem;border-radius:0.75rem;box-shadow:0 4px 12px rgba(0,0,0,.1);}.frame img{max-width:100%;border-radius:0.5rem;}.frame button{margin-top:0.5rem;padding:0.5rem 1rem;background:#3b82f6;color:white;border:none;border-radius:0.5rem;cursor:pointer;}</style>
+      </head><body>
+      <h1>All Frames — ${person || 'Anonim'} - ${name || 'Video'}</h1>
+      <button id="zipBtn">Download Semua Frame sebagai ZIP</button>
+      <div class="grid">`;
+
+      frames.forEach((f, i) => {
+        html += `<div class="frame">
+          <strong>Frame ${i+1} (t=${f.time}s)</strong>
+          <img src="${f.dataUrl}" alt="frame ${i+1}">
+          <button onclick="downloadSingle('${f.dataUrl}', 'frame_${(i+1).toString().padStart(4,'0')}.jpg')">Download Frame Ini</button>
+        </div>`;
+      });
+
+      html += `</div>
+      <script>
+      function downloadSingle(dataUrl, filename){
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = filename;
+        a.click();
+      }
+      document.getElementById('zipBtn').onclick = async () => {
+        const zip = new JSZip();
+        const btn = document.getElementById('zipBtn');
+        btn.disabled = true;
+        btn.textContent = 'Sedang membuat ZIP...';
+        const imgs = document.querySelectorAll('img');
+        for(let i=0;i<imgs.length;i++){
+          const resp = await fetch(imgs[i].src);
+          const blob = await resp.blob();
+          zip.file('frame_' + (i+1).toString().padStart(4,'0') + '.jpg', blob);
+        }
+        zip.generateAsync({type:'blob'}).then(content => {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(content);
+          a.download = 'all_frames.zip';
+          a.click();
+          btn.disabled = false;
+          btn.textContent = 'Download Semua Frame sebagai ZIP';
+        });
+      };
+      </script></body></html>`;
+
+      newWin.document.write(html);
+      newWin.document.close();
+    }
+
     async function loadAndDecrypt(url, shift, person, name) {
       const statusEl = document.getElementById('status');
       const previewEl = document.getElementById('preview');
@@ -240,13 +315,14 @@
       let objectUrl = null;
       let currentBlob = null;
       let detectedMime = null;
+      let videoElement = null;
 
       if (!url) {
         statusEl.innerHTML = '<span class="text-red-600">Parameter url tidak ditemukan.</span>';
         return;
       }
 
-      statusEl.innerHTML = `<svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memuat file...`;
+      statusEl.innerHTML = `<svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memuat file...`;
 
       try {
         const res = await fetch(url);
@@ -278,13 +354,19 @@
             img.className = 'media-wrap';
             previewEl.appendChild(img);
           } else if (detectedMime.startsWith('video/')) {
-            const video = document.createElement('video');
-            video.src = objectUrl;
-            video.controls = true;
-            video.playsInline = true;
-            video.loop = true;
-            video.className = 'media-wrap';
-            previewEl.appendChild(video);
+            videoElement = document.createElement('video');
+            videoElement.src = objectUrl;
+            videoElement.controls = true;
+            videoElement.playsInline = true;
+            videoElement.loop = true;
+            videoElement.className = 'media-wrap';
+            previewEl.appendChild(videoElement);
+
+            const frameBtn = document.createElement('button');
+            frameBtn.textContent = 'Ekstrak Semua Frame (buka tab baru)';
+            frameBtn.className = 'mt-6 px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg transition';
+            frameBtn.onclick = () => extractFramesAndOpenTab(videoElement, person, name);
+            previewEl.appendChild(frameBtn);
           } else {
             const pre = document.createElement('pre');
             pre.className = 'p-6 bg-gray-100 rounded-lg text-sm overflow-x-auto';
@@ -323,7 +405,7 @@
           const safeName = (name || 'Konten').replace(/[^a-zA-Z0-9 -]/g, '');
           const qrFilename = `${safePerson} - ${safeName} - QR.png`.replace(/  +/g, ' ').trim();
 
-          const paddedCanvas = await generateQrCodeWithPadding(qrData, 320, 30);
+          const paddedCanvas = await generateQrCodeWithPadding(qrData);
           const qrCanvas = document.getElementById('qrCanvas');
           qrCanvas.width = paddedCanvas.width;
           qrCanvas.height = paddedCanvas.height;
