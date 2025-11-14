@@ -3,105 +3,157 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Dekripsi & Preview</title>
+  <title>Dekripsi & Preview — Dekripsi</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body {font-family: 'Inter', sans-serif;background-color: #f9fafb;}
-    .card {background: white;border-radius: 1rem;box-shadow: 0 10px 25px rgba(0,0,0,0.08);overflow: hidden;}
-    .media-wrap img, .media-wrap video {max-width: 100%;height: auto;border-radius: .75rem;box-shadow: 0 4px 12px rgba(0,0,0,.1);}
-    #lockedOverlay {position: fixed;inset: 0;background: rgba(15,23,42,.85);z-index: 99999;display: flex;align-items: center;justify-content: center;padding: 1rem;color: white;}
-    #lockedBox {background: white;color: #1f2937;padding: 2.5rem;border-radius: 1rem;max-width: 460px;width: 100%;text-align: center;}
-    body.blurred .container {filter: blur(8px);transition: filter .3s;}
-  </style>
-</head>
-<body class="min-h-screen py-8 px-4">
-  <div class="container max-w-5xl mx-auto">
-
-    <div class="card mb-8">
-      <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-8 rounded-t-xl">
-        <h1 class="text-3xl font-bold">Hasil Dekripsi & Preview</h1>
-        <p class="opacity-90 mt-2">Konten telah berhasil didekripsi dan siap digunakan</p>
-      </div>
-
-      <div class="p-8">
-        <div id="status" class="flex items-center gap-3 text-sm font-medium text-indigo-700 mb-8">
-          <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          Memuat...
-        </div>
-
-        <div id="preview" class="flex flex-col items-center"></div>
-
-        <div id="meta" class="mt-8 flex flex-wrap justify-center gap-8 text-sm text-gray-600">
-          <div class="flex items-center gap-2">
-            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2a2 2 0 00-2 2v3a2 2 0 002 2h2m-8-11h4"/></svg>
-            <span id="fileSize">Ukuran: –</span>
-
-          </div>
-          <div class="flex items-center gap-2">
-            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            <span id="detectedMime">Tipe: –</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card mb-8">
-      <div class="p-6 flex flex-col sm:flex-row gap-4 justify-center">
-        <a id="downloadOriginalBtn" class="hidden inline-flex items-center justify-center gap-3 bg-gray-700 hover:bg-gray-800 text-white font-medium py-3 px-8 rounded-lg transition">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m-4-6h8m5 8v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2m16 0H3"/></svg>
-          Unduh File Asli (.pb)
-        </a>
-        <a id="downloadDecryptedBtn" class="hidden inline-flex items-center justify-center gap-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium py-3 px-8 rounded-lg transition shadow-lg">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-          Unduh Hasil Dekripsi
-        </a>
-      </div>
-    </div>
-
-    <div id="qrSection" class="card mb-8 text-center hidden">
-      <div class="p-10">
-        <h2 class="text-2xl font-bold mb-4">QR Code Akses Cepat</h2>
-        <p class="text-gray-600 mb-8">Scan untuk langsung membuka konten ini</p>
-        <div class="inline-block bg-white p-12 rounded-2xl shadow-2xl">
-          <canvas id="qrCanvas"></canvas>
-        </div>
-        <div class="mt-8">
-          <button id="downloadQrBtn" class="inline-flex items-center gap-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-10 rounded-lg transition">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            Unduh QR Code
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div id="relatedSection" class="card hidden">
-      <div class="p-6">
-        <button id="toggleRelated" class="w-full text-left text-2xl font-bold flex justify-between items-center font-bold text-gray-800 hover:text-gray-900">
-          Konten Terkait
-          <svg id="chevron" class="w-6 h-6 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-        </button>
-        <div id="relatedList" class="mt-6 space-y-3 hidden"></div>
-      </div>
-    </div>
-
-  </div>
-
-  <div id="lockedOverlay" role="dialog" aria-modal="true">
-    <div id="lockedBox">
-      <h2 class="text-3xl font-bold mb-4 text-gray-800">Akses Terkunci</h2>
-      <p class="text-lg">Login terlebih dahulu di halaman utama untuk melihat konten ini.</p>
-    </div>
-  </div>
-
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
     window.createClient = createClient;
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <style>
+    body {font-family: 'Inter', sans-serif;background-color: #f7fafc;padding: 0;margin: 0;}
+    .container {width: 100%;min-height: 100vh;display: flex;flex-direction: column;justify-content: flex-start;padding: 1.5rem;}
+    #lockedOverlay {position: fixed;inset: 0;background: rgba(15, 23, 42, 0.75);z-index: 99999;display: none;align-items: center;justify-content: center;padding: 1rem;color: white;}
+    #lockedBox {background: rgba(255,255,255,0.06);border-radius: 12px;padding: 20px;width: 100%;max-width: 640px;text-align: center;box-shadow: 0 8px 30px rgba(2,6,23,0.6);backdrop-filter: blur(4px);}
+    body.blurred .container {filter: blur(6px) saturate(0.95);transition: filter 0.25s ease;pointer-events: none;user-select: none;}
+    .download-btn {display: inline-flex;align-items: center;justify-content: center;padding: 0.75rem 1.5rem;border-radius: 0.375rem;font-weight: 500;transition: all 0.2s ease-in-out;text-decoration: none;}
+    .download-btn.gray {background-color: #e5e7eb;color: #1f2937;}
+    .download-btn.green {background-color: #10B981;color: #ffffff;box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);}
+    .download-btn.green:hover {background-color: #059669;}
+    .media-wrap {display: flex;flex-direction: column;align-items: center;gap: 16px;width: 100%;}
+    .frame-btn {display: inline-flex;align-items: center;justify-content: center;padding: 0.75rem 1.5rem;border-radius: 0.375rem;font-weight: 500;transition: all 0.2s ease-in-out;text-decoration: none;background-color: #3b82f6;color: #ffffff;box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);}
+    .frame-btn:hover {background-color: #2563eb;}
+    .frames-container {display: grid;grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));gap: 1rem;margin-top: 1rem;width: 100%;}
+    .frame-img {width: 100%;height: auto;border-radius: 0.375rem;box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);cursor: pointer;}
+    #imageModal {display: none;position: fixed;z-index: 1000;left: 0;top: 0;width: 100%;height: 100%;overflow: auto;background-color: rgba(0,0,0,0.9);align-items: center;justify-content: center;padding: 20px;}
+    .modal-content {max-width: 90%;max-height: 90vh;border-radius: 8px;}
+    .close-btn {position: absolute;top: 20px;right: 35px;color: #f1f1f1;font-size: 40px;font-weight: bold;cursor: pointer;}
+    .close-btn:hover,.close-btn:focus {color: #bbb;text-decoration: none;}
+    .modal-download-btn {position: absolute;bottom: 20px;left: 50%;transform: translateX(-50%);background-color: #10B981;color: white;padding: 10px 20px;border: none;border-radius: 5px;cursor: pointer;font-size: 16px;}
+    .modal-download-btn:hover {background-color: #059669;}
+    #relatedSection {margin-top: 2rem;padding: 1rem;background-color: #ffffff;border-radius: 0.5rem;box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);}
+    .category-group {margin-bottom: 1rem;}
+    .category-heading {font-weight: 600;margin-bottom: 0.5rem;color: #374151;}
+    .related-sublist {list-style-type: none;padding: 0;}
+    .related-sublist li {padding: 0.75rem;border-bottom: 1px solid #e5e7eb;cursor: pointer;transition: background-color 0.2s;}
+    .related-sublist li:hover {background-color: #f3f4f6;}
+    .related-sublist li:last-child {border-bottom: none;}
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen py-8">
+  <div class="container">
+    <div class="p-6 md:p-10 rounded-xl">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">Hasil Dekripsi & Preview</h1>
+      <p class="text-sm text-gray-500 mb-6">Pratinjau konten Anda yang terdekripsi.</p>
 
+      <div id="status" class="mb-6 text-sm text-gray-700 bg-gray-100 p-3 rounded-lg flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-gray-500">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        Memuat...
+      </div>
+
+      <div id="preview" class="mb-8"></div>
+
+      <div id="qrSection" class="mt-12 text-center hidden">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">QR Code Akses Cepat</h2>
+        <p class="text-sm text-gray-600 mb-6">QR ini berisi URL file enkripsi dan kode shift.</p>
+        <div id="qrWrapper" class="inline-block bg-white p-8 rounded-xl shadow-lg cursor-pointer">
+          <canvas id="qrCanvas"></canvas>
+        </div>
+        <div class="mt-6">
+          <button id="downloadQrBtn" class="download-btn green">
+            Unduh QR Code
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 ml-2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex justify-center gap-2 mt-4">
+        <a id="downloadOriginalBtn" class="download-btn gray hidden">
+          Unduh .pb
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 ml-2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+        </a>
+        <a id="downloadDecryptedBtn" class="download-btn green hidden">
+          Unduh Dekripsi
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 ml-2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+        </a>
+      </div>
+
+      <div id="meta" class="mt-6 flex items-center justify-center flex-wrap gap-4 text-sm text-gray-600 hidden">
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-blue-500">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+          </svg>
+          <span id="fileSize" class="font-semibold">Ukuran: -</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-green-500">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c0 .621 0 1.125-.504 1.125-1.125V11.25m-9-9h1.5a3.375 3.375 0 0 1 3.375 3.375v1.5a1.125 1.125 0 0 0-1.125 1.125h-1.5a3.375 3.375 0 0 1-3.375-3.375V2.25Z" />
+          </svg>
+          <span id="detectedMime">Tipe: -</span>
+        </div>
+      </div>
+
+      <div id="videoControls" class="mb-6 hidden">
+        <label class="block text-base font-medium text-gray-700 mb-2">Atur Ukuran Video</label>
+        <div class="flex items-center gap-4 bg-gray-50 p-3 rounded-lg">
+          <input id="sizeRangeVideo" type="range" min="20" max="150" value="100" class="w-48 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+          <div id="sizeLabelVideo" class="text-sm text-gray-600 font-medium">100%</div>
+        </div>
+        <div class="flex justify-center mt-4">
+          <button id="showFramesBtn" class="frame-btn hidden">Tampilkan Semua Frame</button>
+        </div>
+      </div>
+
+      <div id="imageControls" class="mb-6 hidden">
+        <label class="block text-base font-medium text-gray-700 mb-2">Atur Ukuran Gambar</label>
+        <div class="flex items-center gap-4 bg-gray-50 p-3 rounded-lg">
+          <input id="sizeRangeImage" type="range" min="10" max="200" value="100" class="w-48 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+          <div id="sizeLabelImage" class="text-sm text-gray-600 font-medium">100%</div>
+        </div>
+      </div>
+
+      <div id="framesPreview" class="mb-8 hidden">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Semua Frame Video</h2>
+        <div class="frames-container"></div>
+      </div>
+
+      <div id="relatedSection" class="hidden">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Konten Terkait</h2>
+        <div id="relatedList" class="text-sm text-gray-700"></div>
+      </div>
+    </div>
+
+    <div class="text-sm text-gray-500 mt-6 md:mt-10 text-center">
+      <p>Parameter yang diterima: <code>?url=&lt;URL&gt;&amp;shift=&lt;angka&gt;&amp;person=&lt;nama&gt;&amp;name=&lt;judul&gt;</code></p>
+      <p class="mt-2">Contoh: <code>dekripsi.html?url=https://example.com/file.txt&amp;shift=3</code></p>
+    </div>
+  </div>
+
+  <div id="lockedOverlay" role="dialog" aria-modal="true">
+    <div id="lockedBox" role="document">
+      <h2>Akses Terkunci</h2>
+      <p>Login terlebih dahulu untuk melihat konten ini.</p>
+    </div>
+  </div>
+
+  <div id="imageModal">
+    <span class="close-btn">&times;</span>
+    <img class="modal-content" id="modalImage">
+    <a id="modalDownloadBtn" class="modal-download-btn" download>Download</a>
+  </div>
+
+  <script>
     function q(name) {
       const params = new URLSearchParams(window.location.search);
       return params.get(name) || '';
@@ -114,8 +166,11 @@
       let result = '';
       for (let i = 0; i < text.length; i++) {
         let code = text.charCodeAt(i);
-        if (code >= 65 && code <= 90) code = ((code - 65 - s + 260) % 26) + 65;
-        else if (code >= 97 && code <= 122) code = ((code - 97 - s + 260) % 26) + 97;
+        if (code >= 65 && code <= 90) {
+          code = ((code - 65 - s + 260) % 26) + 65;
+        } else if (code >= 97 && code <= 122) {
+          code = ((code - 97 - s + 260) % 26) + 97;
+        }
         result += String.fromCharCode(code);
       }
       return result;
@@ -154,24 +209,47 @@
         if (cleaned.startsWith('iVBOR')) return 'image/png';
         if (cleaned.startsWith('/9j/')) return 'image/jpeg';
         return null;
-      } catch (e) { return null; }
+      } catch (e) {
+        return null;
+      }
     }
 
     function bytesToMB(n) {
-      if (typeof n !== 'number' || isNaN(n)) return '–';
+      if (typeof n !== 'number' || isNaN(n)) return '-';
       return (n / (1024 * 1024)).toFixed(2) + ' MB';
     }
 
+    function createLabel(text) {
+      const h = document.createElement('div');
+      h.className = 'text-sm text-gray-700 font-semibold mb-2';
+      h.textContent = text || '';
+      return h;
+    }
+
     const lockedOverlay = document.getElementById('lockedOverlay');
-    function showLockedOverlay() { lockedOverlay.style.display = 'flex'; document.body.classList.add('blurred'); }
-    function hideLockedOverlay() { lockedOverlay.style.display = 'none'; document.body.classList.remove('blurred'); }
-    function isLoggedIn() { return localStorage.getItem('dekrip_logged_in') === 'true'; }
+
+    function showLockedOverlay() {
+      lockedOverlay.style.display = 'flex';
+      document.body.classList.add('blurred');
+    }
+
+    function hideLockedOverlay() {
+      lockedOverlay.style.display = 'none';
+      document.body.classList.remove('blurred');
+    }
+
+    function isLoggedIn() {
+      return localStorage.getItem('dekrip_logged_in') === 'true';
+    }
 
     async function fetchRelatedLinks(person) {
       const relatedSection = document.getElementById('relatedSection');
       const relatedList = document.getElementById('relatedList');
       relatedList.innerHTML = '';
-      if (!person) { relatedSection.classList.add('hidden'); return; }
+      if (!person) {
+        relatedSection.classList.add('hidden');
+        return;
+      }
       const supabaseUrl = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
       const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
       const supabase = window.createClient(supabaseUrl, supabaseKey);
@@ -180,42 +258,54 @@
       try {
         const { data, error } = await supabase.from('links').select('id, person_name, name, category, url, shift_code').ilike('person_name', person);
         if (error) throw error;
-        if (!data || data.length < 1) { relatedSection.classList.add('hidden'); return; }
-        const grouped = {};
+        if (!data || data.length < 1) {
+          relatedSection.classList.add('hidden');
+          return;
+        }
+        const groupedByCategory = {};
         data.forEach(item => {
           if (item.url === currentUrl && item.shift_code === currentShift) return;
           const cat = item.category || 'Belum Dikategorikan';
-          if (!grouped[cat]) grouped[cat] = [];
-          grouped[cat].push(item);
+          if (!groupedByCategory[cat]) groupedByCategory[cat] = [];
+          groupedByCategory[cat].push(item);
         });
-        if (Object.keys(grouped).length === 0) { relatedSection.classList.add('hidden'); return; }
-        Object.keys(grouped).sort().forEach(cat => {
+        if (Object.keys(groupedByCategory).length === 0) {
+          relatedSection.classList.add('hidden');
+          return;
+        }
+        Object.keys(groupedByCategory).sort().forEach(category => {
           const groupDiv = document.createElement('div');
-          groupDiv.className = 'mb-6';
-          const h3 = document.createElement('h3');
-          h3.className = 'font-semibold text-lg mb-3 text-gray-700';
-          h3.textContent = cat;
-          groupDiv.appendChild(h3);
-          const ul = document.createElement('ul');
-          ul.className = 'space-y-2';
-          grouped[cat].forEach(item => {
+          groupDiv.className = 'category-group';
+          const heading = document.createElement('h3');
+          heading.className = 'category-heading';
+          heading.textContent = category;
+          groupDiv.appendChild(heading);
+          const sublist = document.createElement('ul');
+          sublist.className = 'related-sublist';
+          groupedByCategory[category].forEach(item => {
             const li = document.createElement('li');
-            li.className = 'p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition';
-            li.textContent = `${item.person_name || 'Anonim'} - ${item.name || 'Tanpa Judul'}`;
-            li.onclick = () => window.open(`dekripsi.html?url=${encodeURIComponent(item.url)}&shift=${encodeURIComponent(item.shift_code)}&person=${encodeURIComponent(item.person_name)}&name=${encodeURIComponent(item.name)}`, '_blank');
-            ul.appendChild(li);
+            li.textContent = `${item.person_name || 'Anonim'} - ${item.name || 'Tanpa Judul'} (${item.category || 'Tidak Ada Kategori'})`;
+            li.dataset.url = item.url;
+            li.dataset.shift = item.shift_code;
+            li.dataset.person = item.person_name;
+            li.dataset.name = item.name;
+            li.addEventListener('click', () => {
+              const targetUrl = `dekripsi.html?url=${encodeURIComponent(item.url)}&shift=${encodeURIComponent(item.shift_code)}&person=${encodeURIComponent(item.person_name)}&name=${encodeURIComponent(item.name)}`;
+              window.open(targetUrl, '_blank');
+            });
+            sublist.appendChild(li);
           });
-          groupDiv.appendChild(ul);
+          groupDiv.appendChild(sublist);
           relatedList.appendChild(groupDiv);
         });
         relatedSection.classList.remove('hidden');
       } catch (err) {
-        relatedList.innerHTML = '<p class="text-red-600">Gagal memuat konten terkait.</p>';
+        relatedList.innerHTML = '<p class="text-red-500">Gagal memuat konten terkait.</p>';
         relatedSection.classList.remove('hidden');
       }
     }
 
-    async function generateQrCodeWithPadding(data, size = 320, padding = 30) {
+    async function generateQrCodeWithPadding(data, size = 300, padding = 20) {
       const tempCanvas = document.createElement('canvas');
       await QRCode.toCanvas(tempCanvas, data, { errorCorrectionLevel: 'H', margin: 0, width: size });
       const qrSize = tempCanvas.width;
@@ -230,79 +320,6 @@
       return finalCanvas;
     }
 
-    async function extractFramesAndOpenTab(videoEl, person, name) {
-      videoEl.pause();
-      const duration = videoEl.duration;
-      if (isNaN(duration)) { alert('Video belum siap. Tunggu sebentar.'); return; }
-
-      const frames = [];
-      const interval = 1;
-      let currentTime = 0;
-
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = videoEl.videoWidth;
-      canvas.height = videoEl.videoHeight;
-
-      while (currentTime <= duration) {
-        videoEl.currentTime = currentTime;
-        await new Promise(r => videoEl.onseeked = r);
-        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-        frames.push({time: currentTime.toFixed(2), dataUrl: canvas.toDataURL('image/jpeg', 0.9)});
-        currentTime += interval;
-      }
-
-      const newWin = window.open('', '_blank');
-      let html = `<!DOCTYPE html><html><head><title>All Frames — ${person} - ${name}</title>
-      <meta charset="utf-8"><script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-      <style>body{font-family:system-ui,sans-serif;background:#f9fafb;padding:2rem;}h1{margin-bottom:1rem;}#zipBtn{margin:1rem 0;padding:1rem 2rem;font-size:1.2rem;background:#10b981;color:white;border:none;border-radius:0.5rem;cursor:pointer;}#zipBtn:disabled{background:#6b7280;cursor:not-allowed;}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.5rem;}.frame{background:white;padding:1rem;border-radius:0.75rem;box-shadow:0 4px 12px rgba(0,0,0,.1);}.frame img{max-width:100%;border-radius:0.5rem;}.frame button{margin-top:0.5rem;padding:0.5rem 1rem;background:#3b82f6;color:white;border:none;border-radius:0.5rem;cursor:pointer;}</style>
-      </head><body>
-      <h1>All Frames — ${person || 'Anonim'} - ${name || 'Video'}</h1>
-      <button id="zipBtn">Download Semua Frame sebagai ZIP</button>
-      <div class="grid">`;
-
-      frames.forEach((f, i) => {
-        html += `<div class="frame">
-          <strong>Frame ${i+1} (t=${f.time}s)</strong>
-          <img src="${f.dataUrl}" alt="frame ${i+1}">
-          <button onclick="downloadSingle('${f.dataUrl}', 'frame_${(i+1).toString().padStart(4,'0')}.jpg')">Download Frame Ini</button>
-        </div>`;
-      });
-
-      html += `</div>
-      <script>
-      function downloadSingle(dataUrl, filename){
-        const a = document.createElement('a');
-        a.href = dataUrl;
-        a.download = filename;
-        a.click();
-      }
-      document.getElementById('zipBtn').onclick = async () => {
-        const zip = new JSZip();
-        const btn = document.getElementById('zipBtn');
-        btn.disabled = true;
-        btn.textContent = 'Sedang membuat ZIP...';
-        const imgs = document.querySelectorAll('img');
-        for(let i=0;i<imgs.length;i++){
-          const resp = await fetch(imgs[i].src);
-          const blob = await resp.blob();
-          zip.file('frame_' + (i+1).toString().padStart(4,'0') + '.jpg', blob);
-        }
-        zip.generateAsync({type:'blob'}).then(content => {
-          const a = document.createElement('a');
-          a.href = URL.createObjectURL(content);
-          a.download = 'all_frames.zip';
-          a.click();
-          btn.disabled = false;
-          btn.textContent = 'Download Semua Frame sebagai ZIP';
-        });
-      };
-      </script></body></html>`;
-
-      newWin.document.write(html);
-      newWin.document.close();
-    }
-
     async function loadAndDecrypt(url, shift, person, name) {
       const statusEl = document.getElementById('status');
       const previewEl = document.getElementById('preview');
@@ -311,27 +328,55 @@
       const mimeEl = document.getElementById('detectedMime');
       const downloadOriginalBtn = document.getElementById('downloadOriginalBtn');
       const downloadDecryptedBtn = document.getElementById('downloadDecryptedBtn');
+      const videoControls = document.getElementById('videoControls');
+      const sizeRangeVideo = document.getElementById('sizeRangeVideo');
+      const sizeLabelVideo = document.getElementById('sizeLabelVideo');
+      const imageControls = document.getElementById('imageControls');
+      const sizeRangeImage = document.getElementById('sizeRangeImage');
+      const sizeLabelImage = document.getElementById('sizeLabelImage');
+      const showFramesBtn = document.getElementById('showFramesBtn');
+      const framesPreview = document.getElementById('framesPreview');
+      const framesContainer = framesPreview.querySelector('.frames-container');
 
       let objectUrl = null;
       let currentBlob = null;
       let detectedMime = null;
-      let videoElement = null;
+      let videoEl = null;
+      let imageEl = null;
+      let decryptedContent = '';
+
+      const KEY_IMG = 'dekrip_image_size_pct';
+      const KEY_VID = 'dekrip_video_size_pct';
+      const savedImg = localStorage.getItem(KEY_IMG);
+      const savedVid = localStorage.getItem(KEY_VID);
+      if (savedImg) {
+        sizeRangeImage.value = savedImg;
+        sizeLabelImage.textContent = `${savedImg}%`;
+      }
+      if (savedVid) {
+        sizeRangeVideo.value = savedVid;
+        sizeLabelVideo.textContent = `${savedVid}%`;
+      }
 
       if (!url) {
-        statusEl.innerHTML = '<span class="text-red-600">Parameter url tidak ditemukan.</span>';
+        statusEl.textContent = 'Parameter url tidak ditemukan. Pastikan ?url= di query string.';
         return;
       }
 
-      statusEl.innerHTML = `<svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memuat file...`;
+      statusEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-gray-500 animate-spin">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg> Memuat file...`;
 
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`Gagal memuat file: ${res.status}`);
         const encryptedText = await res.text();
 
-        statusEl.innerHTML = `<svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Mendekripsi...`;
+        statusEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-gray-500 animate-spin">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg> Mendekripsi...`;
 
-        const decryptedContent = decryptCaesar(encryptedText, shift);
+        decryptedContent = decryptCaesar(encryptedText, shift);
         const probableBase64 = decryptedContent.trim();
         const cleaned = normalizeBase64(probableBase64);
         const looksLikeBase64 = cleaned && /^[A-Za-z0-9+/=]+$/.test(cleaned);
@@ -341,75 +386,163 @@
           currentBlob = base64ToBlob(cleaned, detectedMime);
           objectUrl = URL.createObjectURL(currentBlob);
 
-          fileSizeEl.textContent = `Ukuran: ${bytesToMB(currentBlob.size)}`;
+          const bytesToShow = currentBlob.size;
+          fileSizeEl.textContent = `Ukuran: ${bytesToMB(bytesToShow)}`;
           mimeEl.textContent = `Tipe: ${detectedMime || 'Tidak terdeteksi'}`;
           metaEl.classList.remove('hidden');
 
-          previewEl.innerHTML = `<div class="text-2xl font-bold mb-6 text-gray-800">${person || 'Anonim'} – ${name || 'Tanpa Judul'}</div>`;
+          if (detectedMime.startsWith('video/')) {
+            previewEl.innerHTML = '';
+            videoEl = document.createElement('video');
+            videoEl.controls = true;
+            videoEl.playsInline = true;
+            videoEl.className = 'rounded-lg shadow-md';
+            videoEl.style.maxWidth = '100%';
+            const initPct = Number(sizeRangeVideo.value || 100);
+            videoEl.style.width = `${initPct}%`;
+            videoEl.src = objectUrl;
+            videoEl.loop = true;
+            previewEl.appendChild(createLabel(`${person} - ${name}`));
+            const wrap = document.createElement('div');
+            wrap.className = 'media-wrap w-full';
+            wrap.appendChild(videoEl);
+            previewEl.appendChild(wrap);
 
-          if (detectedMime.startsWith('image/')) {
-            const img = document.createElement('img');
-            img.src = objectUrl;
-            img.alt = name;
-            img.className = 'media-wrap';
-            previewEl.appendChild(img);
-          } else if (detectedMime.startsWith('video/')) {
-            videoElement = document.createElement('video');
-            videoElement.src = objectUrl;
-            videoElement.controls = true;
-            videoElement.playsInline = true;
-            videoElement.loop = true;
-            videoElement.className = 'media-wrap';
-            previewEl.appendChild(videoElement);
+            videoControls.classList.remove('hidden');
+            showFramesBtn.classList.remove('hidden');
+            imageControls.classList.add('hidden');
 
-            const frameBtn = document.createElement('button');
-            frameBtn.textContent = 'Ekstrak Semua Frame (buka tab baru)';
-            frameBtn.className = 'mt-6 px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg transition';
-            frameBtn.onclick = () => extractFramesAndOpenTab(videoElement, person, name);
-            previewEl.appendChild(frameBtn);
+            sizeRangeVideo.addEventListener('input', () => {
+              const val = Number(sizeRangeVideo.value);
+              sizeLabelVideo.textContent = `${val}%`;
+              videoEl.style.width = `${val}%`;
+              localStorage.setItem(KEY_VID, val);
+            });
+
+            showFramesBtn.addEventListener('click', async () => {
+              if (framesContainer.innerHTML) return;
+              framesPreview.classList.remove('hidden');
+              statusEl.textContent = 'Mengekstrak frame... Ini mungkin memakan waktu.';
+              videoEl.pause();
+
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              canvas.width = videoEl.videoWidth;
+              canvas.height = videoEl.videoHeight;
+
+              const duration = videoEl.duration;
+              const fps = 30;
+              const frameCount = Math.floor(duration * fps);
+              const frameInterval = 1 / fps;
+
+              for (let i = 0; i < frameCount; i++) {
+                videoEl.currentTime = i * frameInterval;
+                await new Promise(resolve => videoEl.addEventListener('seeked', resolve, { once: true }));
+                ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+                const img = document.createElement('img');
+                img.src = canvas.toDataURL('image/jpeg');
+                img.className = 'frame-img';
+                img.alt = `Frame ${i + 1}`;
+                framesContainer.appendChild(img);
+              }
+
+              statusEl.textContent = 'Ekstraksi frame selesai.';
+              const frameImages = document.querySelectorAll('.frame-img');
+              frameImages.forEach((img, index) => {
+                img.addEventListener('click', () => {
+                  modal.style.display = 'flex';
+                  modalImage.src = img.src;
+                  modalDownloadBtn.href = img.src;
+                  modalDownloadBtn.download = `frame_${index + 1}.jpg`;
+                });
+              });
+            });
+
+          } else if (detectedMime.startsWith('image/')) {
+            previewEl.innerHTML = '';
+            imageEl = document.createElement('img');
+            imageEl.src = objectUrl;
+            imageEl.alt = `${person} - ${name}`;
+            imageEl.className = 'rounded-lg shadow-md';
+            imageEl.style.maxWidth = '100%';
+            const initImgPct = Number(sizeRangeImage.value || 100);
+            imageEl.style.width = `${initImgPct}%`;
+            previewEl.appendChild(createLabel(`${person} - ${name}`));
+            const wrap = document.createElement('div');
+            wrap.className = 'media-wrap w-full';
+            wrap.appendChild(imageEl);
+            previewEl.appendChild(wrap);
+
+            imageControls.classList.remove('hidden');
+            videoControls.classList.add('hidden');
+
+            sizeRangeImage.addEventListener('input', () => {
+              const val = Number(sizeRangeImage.value);
+              sizeLabelImage.textContent = `${val}%`;
+              imageEl.style.width = `${val}%`;
+              localStorage.setItem(KEY_IMG, val);
+            });
+
           } else {
+            previewEl.innerHTML = '';
+            previewEl.appendChild(createLabel(`${person} - ${name}`));
             const pre = document.createElement('pre');
-            pre.className = 'p-6 bg-gray-100 rounded-lg text-sm overflow-x-auto';
-            pre.textContent = cleaned.slice(0,2000) + (cleaned.length > 2000 ? '\n\n... (terpotong)' : '');
+            pre.className = 'mt-3 p-4 bg-gray-50 rounded-lg text-sm max-h-64 overflow-auto';
+            pre.textContent = `[Preview base64 (dipotong)]\n${cleaned.slice(0, 1500)}${cleaned.length > 1500 ? '\n\n... (terpotong) ...' : ''}`;
             previewEl.appendChild(pre);
+            videoControls.classList.add('hidden');
+            imageControls.classList.add('hidden');
           }
         } else {
           const textBlob = new Blob([decryptedContent], { type: 'text/plain' });
           fileSizeEl.textContent = `Ukuran: ${bytesToMB(textBlob.size)}`;
           mimeEl.textContent = 'Tipe: text/plain';
           metaEl.classList.remove('hidden');
-          previewEl.innerHTML = `<div class="text-2xl font-bold mb-6 text-gray-800">${person || 'Anonim'} – ${name || 'Tanpa Judul'}</div>`;
+          previewEl.innerHTML = '';
+          previewEl.appendChild(createLabel(`${person} - ${name}`));
           const pre = document.createElement('pre');
-          pre.className = 'p-6 bg-gray-100 rounded-lg whitespace-pre-wrap';
+          pre.className = 'mt-3 p-4 bg-gray-50 rounded-lg text-sm whitespace-pre-wrap';
           pre.textContent = decryptedContent;
           previewEl.appendChild(pre);
+          videoControls.classList.add('hidden');
+          imageControls.classList.add('hidden');
         }
 
-        statusEl.innerHTML = '<span class="text-green-600 font-semibold">✔ Selesai</span>';
+        statusEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-green-500">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg> Selesai.`;
 
         const blobPB = new Blob([encryptedText], { type: 'application/octet-stream' });
-        const urlPB = URL.createObjectURL(blobPB);
-        downloadOriginalBtn.href = urlPB;
+        const tmpUrlPB = URL.createObjectURL(blobPB);
+        let blobDecrypted = currentBlob || new Blob([decryptedContent], { type: 'application/octet-stream' });
+        const tmpUrlDecrypted = URL.createObjectURL(blobDecrypted);
+
+        downloadOriginalBtn.href = tmpUrlPB;
         downloadOriginalBtn.download = 'file.pb';
         downloadOriginalBtn.classList.remove('hidden');
 
-        const blobDecrypted = currentBlob || new Blob([decryptedContent], { type: 'application/octet-stream' });
-        const urlDecrypted = URL.createObjectURL(blobDecrypted);
-        downloadDecryptedBtn.href = urlDecrypted;
+        downloadDecryptedBtn.href = tmpUrlDecrypted;
         downloadDecryptedBtn.download = name || 'decrypted_file';
         downloadDecryptedBtn.classList.remove('hidden');
 
-        if (url && shift !== '') {
+        if (url && shift !== null) {
           const qrData = `${url} || ${shift}`;
           const safePerson = (person || 'Anonim').replace(/[^a-zA-Z0-9 -]/g, '');
           const safeName = (name || 'Konten').replace(/[^a-zA-Z0-9 -]/g, '');
           const qrFilename = `${safePerson} - ${safeName} - QR.png`.replace(/  +/g, ' ').trim();
 
-          const paddedCanvas = await generateQrCodeWithPadding(qrData);
+          const paddedCanvas = await generateQrCodeWithPadding(qrData, 300, 20);
           const qrCanvas = document.getElementById('qrCanvas');
           qrCanvas.width = paddedCanvas.width;
           qrCanvas.height = paddedCanvas.height;
           qrCanvas.getContext('2d').drawImage(paddedCanvas, 0, 0);
+
+          document.getElementById('qrWrapper').addEventListener('click', () => {
+            modal.style.display = 'flex';
+            modalImage.src = paddedCanvas.toDataURL('image/png');
+            modalDownloadBtn.href = paddedCanvas.toDataURL('image/png');
+            modalDownloadBtn.download = qrFilename;
+          });
 
           document.getElementById('downloadQrBtn').onclick = () => {
             const a = document.createElement('a');
@@ -422,17 +555,21 @@
         }
 
         window.addEventListener('beforeunload', () => {
+          URL.revokeObjectURL(tmpUrlPB);
+          URL.revokeObjectURL(tmpUrlDecrypted);
           if (objectUrl) URL.revokeObjectURL(objectUrl);
-          URL.revokeObjectURL(urlPB);
-          URL.revokeObjectURL(urlDecrypted);
         });
 
       } catch (err) {
-        statusEl.innerHTML = `<span class="text-red-600">Gagal: ${err.message}</span>`;
+        statusEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-red-500">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.731 0 2.813-1.874 1.948-3.374L13.949 3.374c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg> Gagal memuat/mendekripsi: ${err.message}`;
       }
     }
 
-    async function main() {
+    async function ensureAndRunMain() {
+      if (ensureAndRunMain._started) return;
+      ensureAndRunMain._started = true;
       const url = q('url');
       const shift = q('shift') || '0';
       const person = q('person') || '';
@@ -441,26 +578,26 @@
       await fetchRelatedLinks(person);
     }
 
-    document.getElementById('toggleRelated')?.addEventListener('click', () => {
-      const list = document.getElementById('relatedList');
-      const chevron = document.getElementById('chevron');
-      list.classList.toggle('hidden');
-      chevron.classList.toggle('rotate-180');
-    });
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const modalDownloadBtn = document.getElementById('modalDownloadBtn');
+    document.querySelector('.close-btn').addEventListener('click', () => modal.style.display = 'none');
+    modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
 
-    if (isLoggedIn()) {
-      hideLockedOverlay();
-      main();
-    } else {
-      showLockedOverlay();
-    }
-
-    window.addEventListener('focus', () => {
+    (function initAccessCheck() {
       if (isLoggedIn()) {
         hideLockedOverlay();
-        main();
+        ensureAndRunMain();
+      } else {
+        showLockedOverlay();
       }
-    });
+      window.addEventListener('focus', () => {
+        if (isLoggedIn()) {
+          hideLockedOverlay();
+          ensureAndRunMain();
+        }
+      });
+    })();
   </script>
 </body>
 </html>
