@@ -25,18 +25,22 @@
     .download-btn.green:hover {background-color: #059669;}
     .media-wrap {display: flex;flex-direction: column;align-items: center;gap: 16px;width: 100%;}
     .frame-btn {display: inline-flex;align-items: center;justify-content: center;padding: 0.75rem 1.5rem;border-radius: 0.375rem;font-weight: 500;transition: all 0.2s ease-in-out;text-decoration: none;background-color: #3b82f6;color: #ffffff;box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);}
+    .frame-btn:hover {background-color: #2563eb;}
     .frames-container {display: grid;grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));gap: 1rem;margin-top: 1rem;width: 100%;}
     .frame-img {width: 100%;height: auto;border-radius: 0.375rem;box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);cursor: pointer;}
     #imageModal {display: none;position: fixed;z-index: 1000;left: 0;top: 0;width: 100%;height: 100%;overflow: auto;background-color: rgba(0,0,0,0.9);align-items: center;justify-content: center;padding: 20px;}
     .modal-content {max-width: 90%;max-height: 90vh;border-radius: 8px;}
     .close-btn {position: absolute;top: 20px;right: 35px;color: #f1f1f1;font-size: 40px;font-weight: bold;cursor: pointer;}
+    .close-btn:hover,.close-btn:focus {color: #bbb;text-decoration: none;}
     .modal-download-btn {position: absolute;bottom: 20px;left: 50%;transform: translateX(-50%);background-color: #10B981;color: white;padding: 10px 20px;border: none;border-radius: 5px;cursor: pointer;font-size: 16px;}
+    .modal-download-btn:hover {background-color: #059669;}
     #relatedSection {margin-top: 2rem;padding: 1rem;background-color: #ffffff;border-radius: 0.5rem;box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);}
     .category-group {margin-bottom: 1rem;}
     .category-heading {font-weight: 600;margin-bottom: 0.5rem;color: #374151;}
     .related-sublist {list-style-type: none;padding: 0;}
     .related-sublist li {padding: 0.75rem;border-bottom: 1px solid #e5e7eb;cursor: pointer;transition: background-color 0.2s;}
     .related-sublist li:hover {background-color: #f3f4f6;}
+    .related-sublist li:last-child {border-bottom: none;}
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen py-8">
@@ -94,9 +98,28 @@
         </div>
         <div class="flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-green-500">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125 1.125h12.75c0 .621 0 1.125-.504 1.125-1.125V11.25m-9-9h1.5a3.375 3.375 0 0 1 3.375 3.375v1.5a1.125 1.125 0 0 0-1.125 1.125h-1.5a3.375 3.375 0 0 1-3.375-3.375V2.25Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c0 .621 0 1.125-.504 1.125-1.125V11.25m-9-9h1.5a3.375 3.375 0 0 1 3.375 3.375v1.5a1.125 1.125 0 0 0-1.125 1.125h-1.5a3.375 3.375 0 0 1-3.375-3.375V2.25Z" />
           </svg>
           <span id="detectedMime">Tipe: -</span>
+        </div>
+      </div>
+
+      <div id="videoControls" class="mb-6 hidden">
+        <label class="block text-base font-medium text-gray-700 mb-2">Atur Ukuran Video</label>
+        <div class="flex items-center gap-4 bg-gray-50 p-3 rounded-lg">
+          <input id="sizeRangeVideo" type="range" min="20" max="150" value="100" class="w-48 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+          <div id="sizeLabelVideo" class="text-sm text-gray-600 font-medium">100%</div>
+        </div>
+        <div class="flex justify-center mt-4">
+          <button id="showFramesBtn" class="frame-btn hidden">Tampilkan Semua Frame</button>
+        </div>
+      </div>
+
+      <div id="imageControls" class="mb-6 hidden">
+        <label class="block text-base font-medium text-gray-700 mb-2">Atur Ukuran Gambar</label>
+        <div class="flex items-center gap-4 bg-gray-50 p-3 rounded-lg">
+          <input id="sizeRangeImage" type="range" min="10" max="200" value="100" class="w-48 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+          <div id="sizeLabelImage" class="text-sm text-gray-600 font-medium">100%</div>
         </div>
       </div>
 
@@ -112,7 +135,8 @@
     </div>
 
     <div class="text-sm text-gray-500 mt-6 md:mt-10 text-center">
-      <p>Parameter: <code>?url=&lt;URL&gt;&amp;shift=&lt;angka&gt;&amp;person=&lt;nama&gt;&amp;name=&lt;judul&gt;</code></p>
+      <p>Parameter yang diterima: <code>?url=&lt;URL&gt;&amp;shift=&lt;angka&gt;&amp;person=&lt;nama&gt;&amp;name=&lt;judul&gt;</code></p>
+      <p class="mt-2">Contoh: <code>dekripsi.html?url=https://example.com/file.txt&amp;shift=3</code></p>
     </div>
   </div>
 
@@ -142,8 +166,11 @@
       let result = '';
       for (let i = 0; i < text.length; i++) {
         let code = text.charCodeAt(i);
-        if (code >= 65 && code <= 90) code = ((code - 65 - s + 260) % 26) + 65;
-        else if (code >= 97 && code <= 122) code = ((code - 97 - s + 260) % 26) + 97;
+        if (code >= 65 && code <= 90) {
+          code = ((code - 65 - s + 260) % 26) + 65;
+        } else if (code >= 97 && code <= 122) {
+          code = ((code - 97 - s + 260) % 26) + 97;
+        }
         result += String.fromCharCode(code);
       }
       return result;
@@ -182,7 +209,9 @@
         if (cleaned.startsWith('iVBOR')) return 'image/png';
         if (cleaned.startsWith('/9j/')) return 'image/jpeg';
         return null;
-      } catch (e) { return null; }
+      } catch (e) {
+        return null;
+      }
     }
 
     function bytesToMB(n) {
@@ -217,7 +246,10 @@
       const relatedSection = document.getElementById('relatedSection');
       const relatedList = document.getElementById('relatedList');
       relatedList.innerHTML = '';
-      if (!person) { relatedSection.classList.add('hidden'); return; }
+      if (!person) {
+        relatedSection.classList.add('hidden');
+        return;
+      }
       const supabaseUrl = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
       const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
       const supabase = window.createClient(supabaseUrl, supabaseKey);
@@ -226,7 +258,10 @@
       try {
         const { data, error } = await supabase.from('links').select('id, person_name, name, category, url, shift_code').ilike('person_name', person);
         if (error) throw error;
-        if (!data || data.length < 1) { relatedSection.classList.add('hidden'); return; }
+        if (!data || data.length < 1) {
+          relatedSection.classList.add('hidden');
+          return;
+        }
         const groupedByCategory = {};
         data.forEach(item => {
           if (item.url === currentUrl && item.shift_code === currentShift) return;
@@ -234,7 +269,10 @@
           if (!groupedByCategory[cat]) groupedByCategory[cat] = [];
           groupedByCategory[cat].push(item);
         });
-        if (Object.keys(groupedByCategory).length === 0) { relatedSection.classList.add('hidden'); return; }
+        if (Object.keys(groupedByCategory).length === 0) {
+          relatedSection.classList.add('hidden');
+          return;
+        }
         Object.keys(groupedByCategory).sort().forEach(category => {
           const groupDiv = document.createElement('div');
           groupDiv.className = 'category-group';
@@ -290,6 +328,12 @@
       const mimeEl = document.getElementById('detectedMime');
       const downloadOriginalBtn = document.getElementById('downloadOriginalBtn');
       const downloadDecryptedBtn = document.getElementById('downloadDecryptedBtn');
+      const videoControls = document.getElementById('videoControls');
+      const sizeRangeVideo = document.getElementById('sizeRangeVideo');
+      const sizeLabelVideo = document.getElementById('sizeLabelVideo');
+      const imageControls = document.getElementById('imageControls');
+      const sizeRangeImage = document.getElementById('sizeRangeImage');
+      const sizeLabelImage = document.getElementById('sizeLabelImage');
       const showFramesBtn = document.getElementById('showFramesBtn');
       const framesPreview = document.getElementById('framesPreview');
       const framesContainer = framesPreview.querySelector('.frames-container');
@@ -301,19 +345,36 @@
       let imageEl = null;
       let decryptedContent = '';
 
+      const KEY_IMG = 'dekrip_image_size_pct';
+      const KEY_VID = 'dekrip_video_size_pct';
+      const savedImg = localStorage.getItem(KEY_IMG);
+      const savedVid = localStorage.getItem(KEY_VID);
+      if (savedImg) {
+        sizeRangeImage.value = savedImg;
+        sizeLabelImage.textContent = `${savedImg}%`;
+      }
+      if (savedVid) {
+        sizeRangeVideo.value = savedVid;
+        sizeLabelVideo.textContent = `${savedVid}%`;
+      }
+
       if (!url) {
-        statusEl.textContent = 'Parameter url tidak ditemukan.';
+        statusEl.textContent = 'Parameter url tidak ditemukan. Pastikan ?url= di query string.';
         return;
       }
 
-      statusEl.innerHTML = `<svg ... animate-spin> Memuat file...`;
+      statusEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-gray-500 animate-spin">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg> Memuat file...`;
 
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`Gagal memuat file: ${res.status}`);
         const encryptedText = await res.text();
 
-        statusEl.innerHTML = `<svg ... animate-spin> Mendekripsi...`;
+        statusEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-gray-500 animate-spin">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg> Mendekripsi...`;
 
         decryptedContent = decryptCaesar(encryptedText, shift);
         const probableBase64 = decryptedContent.trim();
@@ -325,7 +386,8 @@
           currentBlob = base64ToBlob(cleaned, detectedMime);
           objectUrl = URL.createObjectURL(currentBlob);
 
-          fileSizeEl.textContent = `Ukuran: ${bytesToMB(currentBlob.size)}`;
+          const bytesToShow = currentBlob.size;
+          fileSizeEl.textContent = `Ukuran: ${bytesToMB(bytesToShow)}`;
           mimeEl.textContent = `Tipe: ${detectedMime || 'Tidak terdeteksi'}`;
           metaEl.classList.remove('hidden');
 
@@ -334,27 +396,92 @@
             videoEl = document.createElement('video');
             videoEl.controls = true;
             videoEl.playsInline = true;
-            videoEl.className = 'rounded-lg shadow-md w-full max-w-4xl';
+            videoEl.className = 'rounded-lg shadow-md';
+            videoEl.style.maxWidth = '100%';
+            const initPct = Number(sizeRangeVideo.value || 100);
+            videoEl.style.width = `${initPct}%`;
             videoEl.src = objectUrl;
             videoEl.loop = true;
             previewEl.appendChild(createLabel(`${person} - ${name}`));
             const wrap = document.createElement('div');
-            wrap.className = 'media-wrap';
+            wrap.className = 'media-wrap w-full';
             wrap.appendChild(videoEl);
             previewEl.appendChild(wrap);
+
+            videoControls.classList.remove('hidden');
             showFramesBtn.classList.remove('hidden');
+            imageControls.classList.add('hidden');
+
+            sizeRangeVideo.addEventListener('input', () => {
+              const val = Number(sizeRangeVideo.value);
+              sizeLabelVideo.textContent = `${val}%`;
+              videoEl.style.width = `${val}%`;
+              localStorage.setItem(KEY_VID, val);
+            });
+
+            showFramesBtn.addEventListener('click', async () => {
+              if (framesContainer.innerHTML) return;
+              framesPreview.classList.remove('hidden');
+              statusEl.textContent = 'Mengekstrak frame... Ini mungkin memakan waktu.';
+              videoEl.pause();
+
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              canvas.width = videoEl.videoWidth;
+              canvas.height = videoEl.videoHeight;
+
+              const duration = videoEl.duration;
+              const fps = 30;
+              const frameCount = Math.floor(duration * fps);
+              const frameInterval = 1 / fps;
+
+              for (let i = 0; i < frameCount; i++) {
+                videoEl.currentTime = i * frameInterval;
+                await new Promise(resolve => videoEl.addEventListener('seeked', resolve, { once: true }));
+                ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+                const img = document.createElement('img');
+                img.src = canvas.toDataURL('image/jpeg');
+                img.className = 'frame-img';
+                img.alt = `Frame ${i + 1}`;
+                framesContainer.appendChild(img);
+              }
+
+              statusEl.textContent = 'Ekstraksi frame selesai.';
+              const frameImages = document.querySelectorAll('.frame-img');
+              frameImages.forEach((img, index) => {
+                img.addEventListener('click', () => {
+                  modal.style.display = 'flex';
+                  modalImage.src = img.src;
+                  modalDownloadBtn.href = img.src;
+                  modalDownloadBtn.download = `frame_${index + 1}.jpg`;
+                });
+              });
+            });
 
           } else if (detectedMime.startsWith('image/')) {
             previewEl.innerHTML = '';
             imageEl = document.createElement('img');
             imageEl.src = objectUrl;
             imageEl.alt = `${person} - ${name}`;
-            imageEl.className = 'rounded-lg shadow-md w-full max-w-4xl';
+            imageEl.className = 'rounded-lg shadow-md';
+            imageEl.style.maxWidth = '100%';
+            const initImgPct = Number(sizeRangeImage.value || 100);
+            imageEl.style.width = `${initImgPct}%`;
             previewEl.appendChild(createLabel(`${person} - ${name}`));
             const wrap = document.createElement('div');
-            wrap.className = 'media-wrap';
+            wrap.className = 'media-wrap w-full';
             wrap.appendChild(imageEl);
             previewEl.appendChild(wrap);
+
+            imageControls.classList.remove('hidden');
+            videoControls.classList.add('hidden');
+
+            sizeRangeImage.addEventListener('input', () => {
+              const val = Number(sizeRangeImage.value);
+              sizeLabelImage.textContent = `${val}%`;
+              imageEl.style.width = `${val}%`;
+              localStorage.setItem(KEY_IMG, val);
+            });
 
           } else {
             previewEl.innerHTML = '';
@@ -363,6 +490,8 @@
             pre.className = 'mt-3 p-4 bg-gray-50 rounded-lg text-sm max-h-64 overflow-auto';
             pre.textContent = `[Preview base64 (dipotong)]\n${cleaned.slice(0, 1500)}${cleaned.length > 1500 ? '\n\n... (terpotong) ...' : ''}`;
             previewEl.appendChild(pre);
+            videoControls.classList.add('hidden');
+            imageControls.classList.add('hidden');
           }
         } else {
           const textBlob = new Blob([decryptedContent], { type: 'text/plain' });
@@ -375,9 +504,13 @@
           pre.className = 'mt-3 p-4 bg-gray-50 rounded-lg text-sm whitespace-pre-wrap';
           pre.textContent = decryptedContent;
           previewEl.appendChild(pre);
+          videoControls.classList.add('hidden');
+          imageControls.classList.add('hidden');
         }
 
-        statusEl.innerHTML = `<svg ... text-green-500> Selesai.`;
+        statusEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-green-500">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg> Selesai.`;
 
         const blobPB = new Blob([encryptedText], { type: 'application/octet-stream' });
         const tmpUrlPB = URL.createObjectURL(blobPB);
@@ -421,45 +554,6 @@
           document.getElementById('qrSection').classList.remove('hidden');
         }
 
-        showFramesBtn.addEventListener('click', async () => {
-          if (framesContainer.innerHTML) return;
-          framesPreview.classList.remove('hidden');
-          statusEl.textContent = 'Mengekstrak frame...';
-          videoEl.pause();
-
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          canvas.width = videoEl.videoWidth;
-          canvas.height = videoEl.videoHeight;
-
-          const duration = videoEl.duration;
-          const fps = 30;
-          const frameCount = Math.floor(duration * fps);
-          const frameInterval = 1 / fps;
-
-          for (let i = 0; i < frameCount; i++) {
-            videoEl.currentTime = i * frameInterval;
-            await new Promise(resolve => videoEl.addEventListener('seeked', resolve, { once: true }));
-            ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-            const img = document.createElement('img');
-            img.src = canvas.toDataURL('image/jpeg');
-            img.className = 'frame-img';
-            img.alt = `Frame ${i + 1}`;
-            framesContainer.appendChild(img);
-          }
-
-          statusEl.textContent = 'Ekstraksi frame selesai.';
-          const frameImages = document.querySelectorAll('.frame-img');
-          frameImages.forEach((img, index) => {
-            img.addEventListener('click', () => {
-              modal.style.display = 'flex';
-              modalImage.src = img.src;
-              modalDownloadBtn.href = img.src;
-              modalDownloadBtn.download = `frame_${index + 1}.jpg`;
-            });
-          });
-        });
-
         window.addEventListener('beforeunload', () => {
           URL.revokeObjectURL(tmpUrlPB);
           URL.revokeObjectURL(tmpUrlDecrypted);
@@ -467,7 +561,9 @@
         });
 
       } catch (err) {
-        statusEl.innerHTML = `<svg ... text-red-500> Gagal: ${err.message}`;
+        statusEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-red-500">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.731 0 2.813-1.874 1.948-3.374L13.949 3.374c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg> Gagal memuat/mendekripsi: ${err.message}`;
       }
     }
 
