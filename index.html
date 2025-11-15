@@ -85,11 +85,10 @@
         }
         #nameTags {
             display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 0.5rem;
             margin-bottom: 1rem;
-            max-height: 200px;
-            overflow-y: auto;
         }
         .name-tag {
             padding: 0.25rem 0.75rem;
@@ -125,7 +124,7 @@
         }
         #sidebarToggle {
             position: fixed;
-            top: 1rem;
+            bottom: 1rem;
             right: 1rem;
             z-index: 1100;
             background: white;
@@ -363,6 +362,7 @@
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
     const closeSidebar = document.getElementById('closeSidebar');
+    const pageContent = document.getElementById('pageContent');
 
     let lastClickTime = 0;
     let clickCount = 0;
@@ -372,12 +372,26 @@
     let currentQrDataUrl = null;
     let currentQrFilename = null;
 
-    sidebarToggle.addEventListener('click', () => {
+    function openSidebar() {
       sidebar.classList.add('open');
-    });
+      sidebarToggle.style.display = 'none';
+      pageContent.classList.add('blurred');
+    }
 
-    closeSidebar.addEventListener('click', () => {
+    function closeSidebarFunc() {
       sidebar.classList.remove('open');
+      sidebarToggle.style.display = 'block';
+      pageContent.classList.remove('blurred');
+    }
+
+    sidebarToggle.addEventListener('click', openSidebar);
+
+    closeSidebar.addEventListener('click', closeSidebarFunc);
+
+    document.addEventListener('click', (e) => {
+      if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== sidebarToggle) {
+        closeSidebarFunc();
+      }
     });
 
     function showStatus(message, type = 'error') {
