@@ -8,136 +8,216 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <style>
-        body { background-color: #f8fafc; font-family: 'Inter', system-ui, sans-serif; }
-        .card { background: white; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        table { border-collapse: separate; border-spacing: 0; }
-        th { background: #f1f5f9; font-weight: 600; color: #1e293b; }
-        tr:nth-child(even) { background-color: #f8fafc; }
-        tr:hover { background-color: #e0f2fe; transition: background 0.2s; }
+        body { background-color: #f3f4f6; font-family: 'Inter', sans-serif; }
+        th, td { padding: 12px 24px; }
+        .modal-overlay { background-color: rgba(0,0,0,0.75); }
+        .media-preview { max-width: 100%; height: auto; }
+        .video-preview { max-width: 100%; height: auto; }
+        .editable { outline: 2px solid #3b82f6; background-color: #eff6ff; }
+        .status-popup {
+            position: fixed;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .status-popup.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .icon-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .qr-cell {
+            min-width: 120px;
+            width: 15%;
+        }
+        #loginOverlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(15, 23, 42, 0.65);
+          z-index: 20000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 1rem;
+          backdrop-filter: none;
+        }
+        #loginBox {
+          background: white;
+          width: 100%;
+          max-width: 520px;
+          border-radius: 12px;
+          padding: 20px;
+          box-shadow: 0 10px 30px rgba(2,6,23,0.4);
+          text-align: center;
+        }
+        #loginBox h2 { margin-bottom: 8px; font-size: 1.25rem; color:#0f172a; }
+        #loginBox p { margin-bottom: 12px; color:#334155; font-size:0.95rem; }
+        #loginFileInput { display: block; margin: 8px auto 14px auto; }
+        #loginMsg { color: #b91c1c; min-height: 1.25rem; margin-bottom: 8px; font-size:0.92rem; }
+        #logoutBtn {
+          display: inline-block;
+          margin-top: 8px;
+          background: transparent;
+          border: 1px solid #e5e7eb;
+          padding: 8px 12px;
+          border-radius: 8px;
+          cursor: pointer;
+        }
+        body.lock-scroll { overflow: hidden; }
+        #pageContent.blurred {
+          filter: blur(6px) saturate(0.95);
+          transition: filter 0.25s ease;
+          pointer-events: none;
+          user-select: none;
+        }
+        #pageContent {
+          transition: filter 0.25s ease;
+        }
+        #nameTags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
         .name-tag {
-            padding: 0.6rem 1.4rem;
+            padding: 0.5rem 1rem;
             background: #dbeafe;
             color: #1e40af;
-            borderRadius: 9999px;
-            font-size: 0.95rem;
-            font-weight: 600;
+            border-radius: 9999px;
+            font-size: 0.875rem;
             cursor: pointer;
             transition: all 0.2s;
         }
-        .name-tag:hover { background: #bfdbfe; transform: translateY(-2px); }
-        .name-tag.active { background: #1d4ed8; color: white; }
-        .btn-primary {
-            background: linear-gradient(to right, #3b82f6, #1d4ed8);
-            color: white;
-            border-radius: 0.75rem;
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-            transition: all 0.3s;
+        .name-tag:hover {
+            background: #bfdbfe;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(59,130,246,0.35); }
-        .qr-cell canvas { border: 4px solid #e0e7ff; border-radius: 0.75rem; }
-        #loginOverlay { backdrop-filter: blur(10px); }
-        @media (max-width: 640px) {
-            .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            #nameTags { justify-content: center; gap: 0.75rem; }
-            .name-tag { font-size: 0.9rem; padding: 0.55rem 1.1rem; }
+        .name-tag.active {
+            background: #1e40af;
+            color: white;
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-<body class="min-h-screen bg-slate-50">
+<body class="bg-gray-100 p-0">
 
-  <div id="loginOverlay" class="fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center">
-      <h2 class="text-2xl font-bold text-slate-800 mb-2">Masuk ke halaman</h2>
-      <p class="text-slate-600 mb-6">Unggah file .bat untuk akses</p>
-      <input id="loginFileInput" type="file" accept=".bat,text/plain" class="block w-full text-sm text-slate-500 file:mr-4 file:py-3 file:px-8 file:rounded-xl file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700">
-      <div id="loginMsg" class="mt-4 min-h-6 text-sm font-medium"></div>
-      <button id="logoutBtn" class="mt-5 text-sm text-slate-500 hover:text-slate-700" style="display:none;">Keluar</button>
+  <div id="loginOverlay" role="dialog" aria-modal="true" aria-label="Login file .bat">
+    <div id="loginBox" role="document">
+      <h2>Masuk ke halaman</h2>
+      <p>Unggah file Anda. Akses akan diberikan.</p>
+      <input id="loginFileInput" type="file" accept=".bat,text/plain" />
+      <div id="loginMsg" aria-live="polite"></div>
+      <button id="logoutBtn" style="display:none;">Keluar (Reset akses)</button>
     </div>
   </div>
 
-  <div id="pageContent" class="container max-w-7xl mx-auto px-4 py-8 transition-all duration-300">
-    <div class="card p-8 mb-8">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <h1 class="text-4xl font-bold text-slate-800">Daftar Tautan</h1>
-        <div class="flex flex-wrap items-center gap-4">
-          <button id="downloadAllQrBtn" class="btn-primary flex items-center gap-2 text-lg">
-            <i class="fa-solid fa-file-zipper"></i> <span class="hidden sm:inline">Unduh Semua QR</span>
-          </button>
-          <a href="https://pamer-bakat.vercel.app/tambah_konten.html" target="_blank" class="p-4 bg-green-600 text-white rounded-xl hover:bg-green-700 transition text-2xl">
-            <i class="fa-solid fa-plus"></i>
-          </a>
-          <div class="relative">
-            <input type="text" id="searchInput" placeholder="Cari nama / judul..." class="pl-12 pr-14 py-4 border border-slate-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200 w-full md:w-96 text-lg">
-            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl"></i>
-            <button id="clearSearchBtn" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 hidden text-xl">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-          </div>
-        </div>
-      </div>
+  <div id="pageContent">
+  <div class="px-4 sm:px-6 py-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white shadow-md rounded-lg p-6 mb-6">
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-0">Daftar Tautan</h1>
+      <div class="flex items-center gap-4 w-full sm:w-auto">
+        <button id="downloadAllQrBtn" 
+                class="p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors icon-wrapper flex items-center gap-2 text-sm font-semibold text-gray-700" 
+                title="Unduh Semua QR Code">
+            <i class="fa-solid fa-file-zipper w-5 h-5"></i>
+            <span class="hidden sm:inline">Unduh Semua QR</span>
+        </button>
 
-      <div class="mt-12">
-        <h2 class="text-2xl font-semibold text-slate-700 mb-6">Filter cepat berdasarkan nama:</h2>
-        <div id="nameTags" class="flex flex-wrap gap-4"></div>
+        <a href="https://pamer-bakat.vercel.app/tambah_konten.html" target="_blank" title="Pengaturan" class="p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors icon-wrapper">
+            <i class="fa-solid fa-plus text-gray-700 w-5 h-5"></i>
+        </a>
+        <div class="relative w-full sm:w-auto">
+          <input type="text" id="searchInput" placeholder="Cari..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-8">
+          <button id="clearSearchBtn" class="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="card overflow-hidden">
-      <div class="table-container overflow-x-auto">
-        <table class="w-full">
-          <thead>
-            <tr class="text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">
-              <th class="px-6 py-5">QR</th>
-              <th class="px-6 py-5">Nama</th>
-              <th class="px-6 py-5">Judul</th>
-              <th class="px-6 py-5">Kategori</th>
-              <th class="px-6 py-5">URL</th>
-              <th class="px-6 py-5">Shift</th>
-              <th class="px-6 py-5">Dibuat</th>
-              <th class="px-6 py-5 text-center">Aksi</th>
-              <th class="px-6 py-5 text-center">Hapus</th>
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-3">Filter cepat berdasarkan nama orang:</h2>
+      <div id="nameTags" class="flex flex-wrap gap-2"></div>
+    </div>
+
+    <div class="px-0">
+      <div id="statusMessage" class="hidden text-center p-4 rounded-lg mb-4 text-sm" role="alert"></div>
+      <div id="statusPopup" class="status-popup text-center text-sm font-semibold text-white"></div>
+
+      <div id="loadingIndicator" class="text-center py-10 text-gray-500">
+        <svg class="animate-spin h-8 w-8 text-gray-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="mt-2">Memuat data...</p>
+      </div>
+
+      <div class="rounded-lg border border-gray-200 overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider qr-cell">QR Code</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Nama</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Judul</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Kategori</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">URL</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Kode Shift</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Dibuat Pada</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Hapus</th>
             </tr>
           </thead>
-          <tbody id="links-table-body" class="divide-y divide-slate-200 text-slate-700 text-base">
+          <tbody id="links-table-body" class="bg-white divide-y divide-gray-200">
           </tbody>
         </table>
       </div>
-
-      <div id="loadingIndicator" class="text-center py-32 text-slate-500">
-        <i class="fa-solid fa-spinner fa-spin text-6xl mb-6"></i>
-        <p class="text-2xl font-medium">Memuat data...</p>
-      </div>
     </div>
-
-    <div id="statusPopup" class="fixed top-6 left-1/2 -translate-x-1/2 px-8 py-4 rounded-full text-white font-semibold shadow-2xl z-50 opacity-0 transition-opacity duration-300"></div>
   </div>
 
-  <div id="qrModal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl p-10 max-w-md w-full text-center shadow-2xl">
-      <button id="closeModal" class="absolute top-6 right-8 text-3xl text-slate-400 hover:text-slate-600">×</button>
-      <div id="enlargedQrContainer" class="mx-auto"></div>
-      <button id="downloadSingleQrBtn" class="mt-8 btn-primary w-full py-4 text-lg">
-        <i class="fa-solid fa-download mr-3"></i> Unduh QR Code
+  <div id="qrModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+    <div class="bg-white p-4 rounded-lg shadow-lg relative">
+      <button id="closeModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 focus:outline-none">✕</button>
+      <div id="enlargedQrContainer" style="width:280px;height:300px;"></div>
+      <button id="downloadSingleQrBtn" 
+              class="mt-3 w-full bg-indigo-500 text-white p-2 rounded-md hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2">
+          <i class="fa-solid fa-download"></i> Unduh
       </button>
     </div>
   </div>
 
-  <div id="descriptionModal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-y-auto p-10 relative">
-      <button id="closeDescriptionModal" class="absolute top-6 right-8 text-4xl text-slate-400 hover:text-slate-600">×</button>
-      <h2 class="text-4xl font-bold text-center mb-10 text-slate-800">Preview Konten</h2>
-      <div id="descriptionLoading" class="text-center py-16 hidden">
-        <i class="fa-solid fa-spinner fa-spin text-7xl text-blue-600 mb-6"></i>
-        <p class="text-xl">Memuat dan mendekripsi...</p>
-      </div>
-      <div id="descriptionContent" class="flex flex-col items-center"></div>
-      <p id="descriptionMessage" class="text-red-600 text-center mt-6 text-lg hidden"></p>
-      <button id="downloadBtn" class="hidden mt-10 btn-primary py-5 px-16 text-xl font-bold">
-        Unduh Konten
+  <div id="descriptionModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0 transition-opacity duration-300 ease-in-out modal-overlay">
+    <div class="bg-white p-6 rounded-xl shadow-2xl relative max-w-xl mx-auto w-full max-h-[90vh] overflow-hidden flex flex-col transform scale-100 transition-transform duration-300">
+      <button id="closeDescriptionModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 focus:outline-none transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
       </button>
+      <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">Preview</h2>
+      <div id="descriptionLoading" class="text-center py-8 text-gray-500 hidden">
+        <svg class="animate-spin h-8 w-8 text-gray-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="mt-4 text-sm">Memuat dan mendekripsi...</p>
+      </div>
+
+      <div id="descriptionContent" class="overflow-y-auto w-full flex flex-col items-center p-2"></div>
+      <p id="descriptionMessage" class="text-center text-red-500 hidden mt-3"></p>
+      
+      <button id="downloadBtn" class="hidden mt-6 px-6 py-3 rounded-lg shadow-md transition-all duration-300 text-center font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg">Unduh Konten</button>
     </div>
+  </div>
   </div>
 
   <script>
@@ -148,61 +228,88 @@
       const msg = document.getElementById('loginMsg');
       const logoutBtn = document.getElementById('logoutBtn');
       const pageContent = document.getElementById('pageContent');
+
       function lockPage() {
         overlay.style.display = 'flex';
         document.documentElement.classList.add('lock-scroll');
         document.body.classList.add('lock-scroll');
-        pageContent.classList.add('blurred');
+        if (pageContent) pageContent.classList.add('blurred');
       }
       function unlockPage() {
         overlay.style.display = 'none';
         document.documentElement.classList.remove('lock-scroll');
         document.body.classList.remove('lock-scroll');
-        pageContent.classList.remove('blurred');
-        logoutBtn.style.display = 'block';
+        if (pageContent) pageContent.classList.remove('blurred');
+        logoutBtn.style.display = 'inline-block';
+        localStorage.setItem('dekrip_logged_in', 'true');
       }
       function resetAccess() {
         fileInput.value = '';
         msg.textContent = '';
         logoutBtn.style.display = 'none';
+        localStorage.removeItem('dekrip_logged_in');
         lockPage();
       }
+
       lockPage();
+
       fileInput.addEventListener('change', (ev) => {
         msg.textContent = '';
-        const f = ev.target.files[0];
-        if (!f) return msg.textContent = 'Tidak ada file dipilih';
-        if (!f.name.toLowerCase().endsWith('.bat')) {
-          msg.textContent = 'File harus .bat';
+        const f = ev.target.files && ev.target.files[0];
+        if (!f) { msg.textContent = 'Tidak ada file terpilih.'; return; }
+        const name = f.name || '';
+        if (!name.toLowerCase().endsWith('.bat')) {
           msg.style.color = '#b91c1c';
+          msg.textContent = 'Harap unggah file.';
+          fileInput.value = '';
           return;
         }
+
         const reader = new FileReader();
-        reader.onload = e => {
-          let text = e.target.result;
+        reader.onload = function(e) {
+          let text = String(e.target.result || '');
           if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-          if (text.trim() === SECRET_TEXT) {
+          const cleaned = text.trim();
+          if (cleaned === SECRET_TEXT) {
             unlockPage();
-            msg.textContent = 'Akses diberikan ✓';
             msg.style.color = '#059669';
+            msg.textContent = 'Berhasil — akses diberikan.';
           } else {
-            msg.textContent = 'File salah Isi tidak cocok';
             msg.style.color = '#b91c1c';
+            msg.textContent = 'Isi file tidak cocok. Coba lagi.';
+            fileInput.value = '';
           }
+        };
+        reader.onerror = function() {
+          msg.style.color = '#b91c1c';
+          msg.textContent = 'Gagal membaca file.';
+          fileInput.value = '';
         };
         reader.readAsText(f);
       });
-      logoutBtn.addEventListener('click', () => confirm('Keluar dan reset akses?') && resetAccess());
+
+      logoutBtn.addEventListener('click', () => {
+        if (confirm('Apakah Anda yakin ingin menghapus akses dan keluar?')) resetAccess();
+      });
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          msg.textContent = 'Silakan unggah yang benar untuk masuk.';
+        }
+      });
     })();
   </script>
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
+
     const supabaseUrl = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
     const supabase = createClient(supabaseUrl, supabaseKey);
+
     const linksTableBody = document.getElementById('links-table-body');
     const loadingIndicator = document.getElementById('loadingIndicator');
+    const statusMessage = document.getElementById('statusMessage');
     const statusPopup = document.getElementById('statusPopup');
     const searchInput = document.getElementById('searchInput');
     const clearSearchBtn = document.getElementById('clearSearchBtn');
@@ -218,6 +325,7 @@
     const enlargedQrContainer = document.getElementById('enlargedQrContainer');
     const downloadAllQrBtn = document.getElementById('downloadAllQrBtn');
     const nameTagsContainer = document.getElementById('nameTags');
+
     let lastClickTime = 0;
     let clickCount = 0;
     let currentDownloadBlob = null;
@@ -225,68 +333,114 @@
     let allLinksData = [];
     let currentQrDataUrl = null;
     let currentQrFilename = null;
+
     function showStatus(message, type = 'error') {
       statusPopup.textContent = message;
-      statusPopup.className = type === 'error' ? 'bg-red-600' : 'bg-green-600';
-      statusPopup.classList.add('opacity-100');
-      setTimeout(() => statusPopup.classList.remove('opacity-100'), 3000);
+      if (type === 'error') {
+        statusPopup.classList.add('bg-red-500', 'text-white');
+        statusPopup.classList.remove('bg-green-500');
+      } else {
+        statusPopup.classList.add('bg-green-500', 'text-white');
+        statusPopup.classList.remove('bg-red-500');
+      }
+      statusPopup.classList.add('show');
+      setTimeout(() => {
+        statusPopup.classList.remove('show');
+      }, 3000);
     }
+
     async function generateQrCodeWithPadding(data, size = 256, padding = 4) {
         const canvas = document.createElement('canvas');
-        await QRCode.toCanvas(canvas, data, { errorCorrectionLevel: 'H', margin: 0, width: size });
+        await QRCode.toCanvas(canvas, data, { 
+            errorCorrectionLevel: 'H',
+            margin: 0, 
+            width: size 
+        });
+
         const ctx = canvas.getContext('2d');
         const qrSize = canvas.width;
         const totalSize = qrSize + 2 * padding;
+
         const finalCanvas = document.createElement('canvas');
         finalCanvas.width = totalSize;
         finalCanvas.height = totalSize;
         const finalCtx = finalCanvas.getContext('2d');
+
         finalCtx.fillStyle = '#FFFFFF';
         finalCtx.fillRect(0, 0, totalSize, totalSize);
         finalCtx.drawImage(canvas, padding, padding, qrSize, qrSize);
+
         return finalCanvas;
     }
+
     function downloadQrCode(canvas, filename) {
-        if (!canvas) return showStatus('Gagal membuat QR Code', 'error');
+        if (!canvas) {
+            showStatus('Gagal membuat QR Code untuk diunduh.', 'error');
+            return;
+        }
+
         const a = document.createElement('a');
         a.href = canvas.toDataURL('image/png');
         a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        showStatus(`${filename} berhasil diunduh`, 'success');
+        showStatus(`QR Code '${filename}' berhasil diunduh.`, 'success');
     }
+
     async function downloadAllQRCodes() {
-        if (allLinksData.length === 0) return showStatus('Tidak ada data', 'error');
+        if (allLinksData.length === 0) {
+            showStatus('Tidak ada data tautan untuk diunduh.', 'error');
+            return;
+        }
+
         const zip = new JSZip();
         const promises = [];
         downloadAllQrBtn.disabled = true;
         downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
-        showStatus('Membuat ZIP QR Code...', 'success');
+        showStatus('Mempersiapkan file ZIP QR Code...', 'success');
+
         for (const link of allLinksData) {
             const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
             let filename = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}.png`;
             filename = filename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
-            const promise = generateQrCodeWithPadding(qrData, 512, 20).then(canvas => new Promise(resolve => {
-                canvas.toBlob(blob => { zip.file(filename, blob); resolve(); }, 'image/png');
-            }));
+
+            const promise = generateQrCodeWithPadding(qrData, 512, 20)
+                .then(canvas => {
+                    return new Promise(resolve => {
+                        canvas.toBlob(blob => {
+                            zip.file(filename, blob);
+                            resolve();
+                        }, 'image/png');
+                    });
+                });
+            
             promises.push(promise);
         }
+
         await Promise.all(promises);
-        zip.generateAsync({ type: 'blob' }).then(content => {
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(content);
-            a.download = 'Semua_QR_Codes.zip';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            showStatus('ZIP QR Code selesai!', 'success');
-        }).finally(() => {
-            downloadAllQrBtn.disabled = false;
-            downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-file-zipper"></i> <span class="hidden sm:inline">Unduh Semua QR</span>';
-        });
+        
+        zip.generateAsync({ type: 'blob' })
+            .then(content => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(content);
+                a.download = 'Semua_QR_Codes.zip';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                showStatus('Semua QR Code berhasil dikemas dan diunduh!', 'success');
+            })
+            .catch(error => {
+                showStatus('Gagal membuat file ZIP.', 'error');
+            })
+            .finally(() => {
+                downloadAllQrBtn.disabled = false;
+                downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-file-zipper w-5 h-5"></i> <span class="hidden sm:inline">Unduh Semua QR</span>';
+            });
     }
+
     downloadAllQrBtn.addEventListener('click', downloadAllQRCodes);
+
     function decryptCaesar(text, shift) {
       if (typeof text !== 'string') return text;
       const s = Number(shift);
@@ -294,12 +448,16 @@
       let result = '';
       for (let i = 0; i < text.length; i++) {
         let code = text.charCodeAt(i);
-        if (code >= 65 && code <= 90) code = ((code - 65 - s + 260) % 26) + 65;
-        else if (code >= 97 && code <= 122) code = ((code - 97 - s + 260) % 26) + 97;
+        if (code >= 65 && code <= 90) {
+          code = ((code - 65 - s + 260) % 26) + 65;
+        } else if (code >= 97 && code <= 122) {
+          code = ((code - 97 - s + 260) % 26) + 97;
+        }
         result += String.fromCharCode(code);
       }
       return result;
     }
+
     function normalizeBase64(b64) {
       if (!b64 || typeof b64 !== 'string') return '';
       let s = b64.replace(/\s+/g, '');
@@ -310,11 +468,13 @@
       if (pad === 2) s += '=='; else if (pad === 3) s += '=';
       return s;
     }
+
     function isBase64String(s) {
       if (!s || typeof s !== 'string') return false;
       const cleaned = normalizeBase64(s);
       return cleaned.length % 4 === 0 && /^[A-Za-z0-9+/=]+$/.test(cleaned);
     }
+
     function getMimeFromBase64Sample(b64) {
       try {
         const cleaned = normalizeBase64(b64).slice(0,2000);
@@ -332,8 +492,11 @@
         if (prefix.startsWith('/9j/')) return 'image/jpeg';
         if (prefix.startsWith('R0lG')) return 'image/gif';
         return null;
-      } catch (e) { return null; }
+      } catch (e) {
+        return null;
+      }
     }
+
     function base64ToBlob(base64, mime) {
       const binary = atob(base64);
       const len = binary.length;
@@ -341,19 +504,23 @@
       for (let i=0;i<len;i++) arr[i] = binary.charCodeAt(i);
       return new Blob([arr], { type: mime || 'application/octet-stream'});
     }
+
     function setPreviewFromBase64(rawBase64, mimeHint, useBlobIfLarge = true) {
       const cleaned = normalizeBase64(rawBase64);
       if (!cleaned) { descriptionContent.innerHTML = '<p class="text-red-500">Data base64 kosong.</p>'; return; }
+
       let mime = mimeHint || getMimeFromBase64Sample(cleaned);
       if (!mime) {
         if (cleaned.startsWith('iVBOR') || cleaned.startsWith('iVBORw0K')) mime = 'image/png';
         else if (cleaned.startsWith('/9j/')) mime = 'image/jpeg';
         else if (cleaned.startsWith('R0lG')) mime = 'image/gif';
       }
+
       descriptionContent.innerHTML = '';
       const threshold = 1024 * 300;
       const approximateSize = Math.ceil((cleaned.length * 3) / 4);
       let blob = null;
+
       if (useBlobIfLarge && approximateSize > threshold) {
         try {
           blob = base64ToBlob(cleaned, mime);
@@ -361,55 +528,80 @@
           if (mime && mime.startsWith('image/')) {
             const img = document.createElement('img');
             img.src = objectUrl;
-            img.className = 'media-preview rounded-xl border border-gray-200 max-w-full';
+            img.className = 'media-preview rounded-md border border-gray-200';
             img.onload = () => URL.revokeObjectURL(objectUrl);
             descriptionContent.appendChild(img);
           } else if (mime && mime.startsWith('video/')) {
             const video = document.createElement('video');
             video.src = objectUrl;
             video.controls = true;
-            video.className = 'video-preview rounded-xl border border-gray-200 max-w-full';
+            video.className = 'video-preview rounded-md border border-gray-200';
             video.onloadeddata = () => URL.revokeObjectURL(objectUrl);
             descriptionContent.appendChild(video);
+          } else {
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = 'file.bin';
+            a.textContent = 'Unduh file (tipe media tidak terdeteksi)';
+            a.className = 'underline text-blue-600';
+            descriptionContent.appendChild(a);
+            const pre = document.createElement('pre');
+            pre.textContent = cleaned.slice(0,1000) + (cleaned.length>1000? '\n\n... (terpotong) ...':'');
+            pre.className = 'mt-3 p-3 bg-gray-50 rounded-md max-h-64 overflow-auto text-sm';
+            descriptionContent.appendChild(pre);
           }
-        } catch (err) { blob = null; }
+        } catch (err) {
+          blob = null;
+        }
       }
+
       if (!blob) {
         const dataMime = mime || 'application/octet-stream';
         const dataUrl = `data:${dataMime};base64,${cleaned}`;
         if (dataMime.startsWith('image/')) {
           const img = document.createElement('img');
           img.src = dataUrl;
-          img.className = 'media-preview rounded-xl border border-gray-200 max-w-full';
+          img.className = 'media-preview rounded-md border border-gray-200';
           descriptionContent.appendChild(img);
         } else if (dataMime.startsWith('video/')) {
           const video = document.createElement('video');
           video.src = dataUrl;
           video.controls = true;
-          video.className = 'video-preview rounded-xl border border-gray-200 max-w-full';
+          video.className = 'video-preview rounded-md border border-gray-200';
           video.setAttribute('playsinline', '');
           descriptionContent.appendChild(video);
+        } else {
+          const pre = document.createElement('pre');
+          pre.textContent = cleaned.slice(0,2000) + (cleaned.length>2000? '\n\n... (terpotong) ...':'');
+          pre.className = 'p-4 bg-gray-50 rounded-md text-sm max-h-96 overflow-auto w-full';
+          descriptionContent.appendChild(pre);
         }
       }
+      
       return { blob: blob, mime: mime };
     }
+
     async function showDescriptionModal(url, shiftCode, personName, linkName) {
       descriptionModal.classList.remove('hidden');
       descriptionContent.innerHTML = '';
       descriptionMessage.classList.add('hidden');
       descriptionLoading.classList.remove('hidden');
       downloadBtn.classList.add('hidden');
+
       try {
-        if (!url || !url.startsWith('http')) throw new Error('URL tidak valid');
+        if (!url || !url.startsWith('http')) throw new Error('URL deskripsi tidak valid.');
         const response = await fetch(url);
-        if (!response.ok) throw new Error(`Gagal memuat (status ${response.status})`);
+        if (!response.ok) throw new Error(`Gagal memuat file dari URL. Status: ${response.status}`);
+
         const encryptedText = await response.text();
         const decrypted = decryptCaesar(encryptedText, shiftCode);
         const probableBase64 = decrypted.trim();
         const mimeHint = getMimeFromBase64Sample(probableBase64);
+
         const previewResult = setPreviewFromBase64(probableBase64, mimeHint, true);
         const blob = previewResult.blob;
         const mime = previewResult.mime;
+
         if (isBase64String(probableBase64)) {
           const fileExt = mime ? mime.split('/')[1] : 'bin';
           let baseFilename = `${personName || 'anonim'} - ${linkName || 'tanpa-nama'}`;
@@ -420,14 +612,17 @@
           currentDownloadBlob = new Blob([decrypted], { type: 'text/plain' });
           currentDownloadFilename = `${personName || 'anonim'} - ${linkName || 'tanpa-nama'}.txt`;
         }
+        
+        downloadBtn.textContent = 'Unduh Konten';
         downloadBtn.classList.remove('hidden');
         descriptionLoading.classList.add('hidden');
       } catch (error) {
-        descriptionMessage.textContent = `Gagal: ${error.message}`;
+        descriptionMessage.textContent = `Gagal memuat atau mendekripsi deskripsi: ${error.message}`;
         descriptionLoading.classList.add('hidden');
         descriptionMessage.classList.remove('hidden');
       }
     }
+
     function hideDescriptionModal() {
       descriptionModal.classList.add('hidden');
       descriptionContent.innerHTML = '';
@@ -440,14 +635,25 @@
         currentDownloadFilename = null;
       }
     }
+
     closeModalButton.addEventListener('click', () => qrModal.classList.add('hidden'));
-    qrModal.addEventListener('click', e => e.target === qrModal && qrModal.classList.add('hidden'));
+    qrModal.addEventListener('click', (e) => { 
+        if (e.target === qrModal) qrModal.classList.add('hidden'); 
+    });
     closeDescriptionModalButton.addEventListener('click', hideDescriptionModal);
-    descriptionModal.addEventListener('click', e => e.target === descriptionModal && hideDescriptionModal());
+    descriptionModal.addEventListener('click', (e) => { 
+        if (e.target === descriptionModal) hideDescriptionModal(); 
+    });
+
     downloadSingleQrBtn.addEventListener('click', () => {
         const canvas = enlargedQrContainer.querySelector('canvas');
-        if (canvas && currentQrFilename) downloadQrCode(canvas, currentQrFilename);
+        if (canvas && currentQrFilename) {
+            downloadQrCode(canvas, currentQrFilename);
+        } else {
+            showStatus('QR Code tidak ditemukan atau nama file hilang.', 'error');
+        }
     });
+
     downloadBtn.addEventListener('click', () => {
       if (currentDownloadBlob) {
         const a = document.createElement('a');
@@ -458,77 +664,122 @@
         document.body.removeChild(a);
       }
     });
+
     function filterLinks() {
-      const term = searchInput.value.toLowerCase().trim();
+      const searchTerm = searchInput.value.toLowerCase().trim();
       const rows = linksTableBody.querySelectorAll('tr');
+
       rows.forEach(row => {
-        row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+        const rowText = row.textContent.toLowerCase();
+        row.style.display = rowText.includes(searchTerm) ? '' : 'none';
       });
+
       document.querySelectorAll('.name-tag').forEach(t => t.classList.remove('active'));
-      if (term) {
-        const active = Array.from(document.querySelectorAll('.name-tag')).find(t => t.textContent.toLowerCase() === term);
-        if (active) active.classList.add('active');
+      if (searchTerm) {
+        const activeTag = Array.from(document.querySelectorAll('.name-tag'))
+          .find(t => t.textContent.toLowerCase() === searchTerm);
+        if (activeTag) activeTag.classList.add('active');
       }
-      clearSearchBtn.classList.toggle('hidden', !term);
+
+      clearSearchBtn.classList.toggle('hidden', !searchTerm);
     }
     searchInput.addEventListener('input', filterLinks);
-    clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; filterLinks(); });
+    clearSearchBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      filterLinks();
+    });
+
     async function handleEdit(e) {
         const cell = e.target;
         if (!cell.classList.contains('editable')) return;
+
         cell.contentEditable = 'false';
         cell.classList.remove('editable');
         cell.removeEventListener('keydown', handleEnter);
         cell.removeEventListener('blur', handleEdit);
+
         const newText = cell.textContent.trim();
         const row = cell.closest('tr');
         const linkId = row.dataset.id;
         const column = cell.dataset.column;
-        if (!linkId || !column) return showStatus('Gagal update', 'error');
-        const updates = {}; updates[column] = newText;
-        showStatus('Menyimpan...', 'success');
+
+        if (!linkId || !column) {
+            showStatus('Gagal menemukan ID atau kolom untuk memperbarui.', 'error');
+            return;
+        }
+
+        const updates = {};
+        updates[column] = newText;
+
+        showStatus('Menyimpan perubahan...', 'success');
+        
         try {
             const { error } = await supabase.from('links').update(updates).eq('id', linkId);
             if (error) throw error;
-            showStatus('Tersimpan!', 'success');
-            if (column === 'url' || column === 'shift_code') fetchLinks();
+            showStatus('Perubahan berhasil disimpan!', 'success');
+            if (column === 'url' || column === 'shift_code') {
+                fetchLinks();
+            }
         } catch (error) {
-            showStatus(`Gagal: ${error.message}`, 'error');
+            showStatus(`Gagal menyimpan perubahan: ${error.message}`, 'error');
         }
     }
-    function handleEnter(e) { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } }
+    
+    function handleEnter(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            e.target.blur();
+        }
+    }
+    
     async function handleDelete(e) {
-        const row = e.target.closest('tr');
+        const button = e.target.closest('button');
+        const row = button.closest('tr');
         const linkId = row.dataset.id;
-        if (!linkId) return showStatus('ID tidak ditemukan', 'error');
-        if (!confirm('Hapus tautan ini?')) return;
-        showStatus('Menghapus...', 'success');
-        try {
-            const { error } = await supabase.from('links').delete().eq('id', linkId);
-            if (error) throw error;
-            showStatus('Terhapus!', 'success');
-            row.remove();
-            fetchLinks();
-        } catch (error) {
-            showStatus(`Gagal: ${error.message}`, 'error');
+        
+        if (!linkId) {
+            showStatus('Gagal menemukan ID tautan untuk dihapus.', 'error');
+            return;
+        }
+        
+        if (confirm('Apakah Anda yakin ingin menghapus tautan ini?')) {
+            showStatus('Menghapus tautan...', 'success');
+            try {
+                const { error } = await supabase.from('links').delete().eq('id', linkId);
+                if (error) throw error;
+                showStatus('Tautan berhasil dihapus!', 'success');
+                row.remove();
+                fetchLinks();
+            } catch (error) {
+                showStatus(`Gagal menghapus tautan: ${error.message}`, 'error');
+            }
         }
     }
+
     async function fetchLinks() {
-      loadingIndicator.classList.remove('hidden');
-      linksTableBody.innerHTML = '';
+      loadingIndicator && loadingIndicator.classList.remove('hidden');
+      linksTableBody.querySelectorAll('tr').forEach(row => row.remove());
       allLinksData = [];
       nameTagsContainer.innerHTML = '';
+
       try {
         const { data, error } = await supabase.from('links').select('*, category').order('created_at', { ascending: false });
-        loadingIndicator.classList.add('hidden');
-        if (error) throw error;
-        if (!data || data.length === 0) return;
+        loadingIndicator && loadingIndicator.classList.add('hidden');
+        if (error) { showStatus(`Error fetching data: ${error.message}`); return; }
+        if (!data || data.length === 0) { return; }
+
         allLinksData = data;
-        const uniqueNames = [...new Set(data.map(l => l.person_name).filter(Boolean))].sort((a,b) => a.localeCompare(b,'id',{sensitivity:'base'}));
+
+        const uniqueNames = [...new Set(data
+            .map(link => link.person_name)
+            .filter(Boolean)
+        )].sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
+
         uniqueNames.forEach(name => {
           const tag = document.createElement('span');
           tag.className = 'name-tag';
           tag.textContent = name;
+          tag.title = `Klik untuk filter "${name}"`;
           tag.addEventListener('click', () => {
             searchInput.value = name;
             filterLinks();
@@ -537,68 +788,110 @@
           });
           nameTagsContainer.appendChild(tag);
         });
-        if (uniqueNames.length === 0) nameTagsContainer.innerHTML = '<span class="text-slate-500">Belum ada nama terdaftar</span>';
+
+        if (uniqueNames.length === 0) {
+          nameTagsContainer.innerHTML = '<span class="text-gray-500">Belum ada nama orang terdaftar</span>';
+        }
+
         data.forEach(link => {
           const row = document.createElement('tr');
-          row.classList.add('hover:bg-sky-50');
+          row.classList.add('hover:bg-gray-50');
           row.dataset.id = link.id;
-          const formattedDate = link.created_at ? new Date(link.created_at).toLocaleString('id-ID') : '-';
+
+          const formattedDate = link.created_at ? new Date(link.created_at).toLocaleString() : '-';
           const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
           const category = link.category || 'Belum Dikategorikan';
+          
           let qrFilenameBase = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}`;
           qrFilenameBase = qrFilenameBase.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
           const smallQrId = `qr-${link.id}`;
+
           row.innerHTML = `
-            <td class="px-6 py-5 text-center qr-cell"><canvas id="${smallQrId}" class="inline-block" style="width:80px;height:80px;"></canvas></td>
-            <td class="px-6 py-5 font-medium" data-column="person_name">${link.person_name || '-'}</td>
-            <td class="px-6 py-5" data-column="name">${link.name || '-'}</td>
-            <td class="px-6 py-5" data-column="category">${category}</td>
-            <td class="px-6 py-5 truncate max-w-xs" data-column="url">${link.url || '-'}</td>
-            <td class="px-6 py-5" data-column="shift_code">${link.shift_code || '-'}</td>
-            <td class="px-6 py-5 text-sm text-slate-500">${formattedDate}</td>
-            <td class="px-6 py-5 text-center"><button class="view-description-btn bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition font-medium">Lihat</button></td>
-            <td class="px-6 py-5 text-center"><button class="delete-btn text-red-600 hover:text-red-800 text-2xl"><i class="fa-solid fa-trash-can"></i></button></td>
+            <td class="px-6 py-4 text-sm text-gray-500 flex justify-center cursor-pointer qr-cell">
+              <canvas id="${smallQrId}" style="width:64px;height:64px;"></canvas>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-500" data-column="person_name">${link.person_name || '-'}</td>
+            <td class="px-6 py-4 text-sm text-gray-500" data-column="name">${link.name || '-'}</td>
+            <td class="px-6 py-4 text-sm text-gray-500" data-column="category">${category}</td>
+            <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs" data-column="url">${link.url || '-'}</td>
+            <td class="px-6 py-4 text-sm text-gray-500" data-column="shift_code">${link.shift_code || '-'}</td>
+            <td class="px-6 py-4 text-sm text-gray-500">${formattedDate}</td>
+            <td class="px-6 py-4 text-sm text-gray-500"><button class="view-description-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition-colors">Lihat</button></td>
+            <td class="px-6 py-4 text-sm text-gray-500">
+                <button class="delete-btn text-red-500 hover:text-red-700 transition-colors">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </td>
           `;
+
           linksTableBody.appendChild(row);
-          QRCode.toCanvas(document.getElementById(smallQrId), qrData, { errorCorrectionLevel: 'L', margin: 1, width: 80, color: { dark: '#000000', light: '#ffffff' } });
-          row.querySelector(`#${smallQrId}`).addEventListener('click', () => {
+
+          QRCode.toCanvas(document.getElementById(smallQrId), qrData, { 
+              errorCorrectionLevel: 'L', 
+              margin: 1, 
+              width: 64,
+              color: { dark: '#000000', light: '#ffffff' }
+          });
+
+          const qrCanvasSmall = row.querySelector(`#${smallQrId}`);
+          qrCanvasSmall.addEventListener('click', () => {
             enlargedQrContainer.innerHTML = '';
-            generateQrCodeWithPadding(qrData, 280, 20).then(canvas => {
+            generateQrCodeWithPadding(qrData, 256, 12).then(canvas => {
                 enlargedQrContainer.appendChild(canvas);
+                canvas.style.borderRadius = '0.375rem';
+                canvas.style.display = 'block';
                 currentQrFilename = `${qrFilenameBase}.png`;
                 qrModal.classList.remove('hidden');
             });
           });
-          row.querySelector('.view-description-btn').addEventListener('click', () => {
-            const urlParam = encodeURIComponent(link.url || '');
-            const shiftParam = encodeURIComponent(link.shift_code || '');
-            const personParam = encodeURIComponent(link.person_name || '');
-            const nameParam = encodeURIComponent(link.name || '');
-            window.open(`dekripsi.html?url=${urlParam}&shift=${shiftParam}&person=${personParam}&name=${nameParam}`, '_blank');
-          });
-          row.querySelector('.delete-btn').addEventListener('click', handleDelete);
-          row.querySelectorAll('td[data-column]').forEach(cell => {
-            cell.addEventListener('click', e => {
-              const now = Date.now();
-              clickCount = (now - lastClickTime < 300 && clickCount < 3) ? clickCount + 1 : 1;
-              lastClickTime = now;
-              if (clickCount === 3) {
-                e.preventDefault();
-                cell.contentEditable = 'true';
-                cell.classList.add('editable');
-                cell.focus();
-                cell.addEventListener('blur', handleEdit);
-                cell.addEventListener('keydown', handleEnter);
-              }
+
+          const viewBtn = row.querySelector('.view-description-btn');
+          if (viewBtn) {
+            viewBtn.addEventListener('click', () => {
+              const urlParam = encodeURIComponent(link.url || '');
+              const shiftParam = encodeURIComponent(link.shift_code || '');
+              const personParam = encodeURIComponent(link.person_name || '');
+              const nameParam = encodeURIComponent(link.name || '');
+              const targetUrl = `dekripsi.html?url=${urlParam}&shift=${shiftParam}&person=${personParam}&name=${nameParam}`;
+              window.open(targetUrl, '_blank');
             });
+          }
+          
+          const deleteBtn = row.querySelector('.delete-btn');
+          deleteBtn.addEventListener('click', handleDelete);
+
+          const editableCells = row.querySelectorAll('td[data-column]');
+          editableCells.forEach(cell => {
+              cell.addEventListener('click', (e) => {
+                  const now = new Date().getTime();
+                  const diff = now - lastClickTime;
+                  clickCount = (diff < 300 && clickCount < 3) ? clickCount + 1 : 1;
+                  lastClickTime = now;
+
+                  if (clickCount === 3) {
+                      e.preventDefault();
+                      cell.contentEditable = 'true';
+                      cell.classList.add('editable');
+                      cell.focus();
+                      
+                      cell.removeEventListener('blur', handleEdit);
+                      cell.removeEventListener('keydown', handleEnter);
+
+                      cell.addEventListener('blur', handleEdit);
+                      cell.addEventListener('keydown', handleEnter);
+                  }
+              });
           });
         });
+
       } catch (err) {
-        loadingIndicator.classList.add('hidden');
-        showStatus('Gagal memuat data', 'error');
+        loadingIndicator && loadingIndicator.classList.add('hidden');
+        showStatus(`Terjadi kesalahan tak terduga: ${err.message}`, 'error');
       }
     }
+
     document.addEventListener('DOMContentLoaded', fetchLinks);
   </script>
+
 </body>
 </html>
