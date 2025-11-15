@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Daftar Tautan Supabase — Dekripsi & Preview Media</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Tambahkan library QR code generator -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-    <!-- Tambahkan library JSZip untuk membuat file ZIP -->
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <style>
         body { background-color: #f3f4f6; font-family: 'Inter', sans-serif; }
@@ -42,18 +40,16 @@
             min-width: 120px;
             width: 15%;
         }
-
-        /* ===== overlay login baru ===== */
         #loginOverlay {
           position: fixed;
           inset: 0;
           background: rgba(15, 23, 42, 0.65);
-          z-index: 20000; /* sangat tinggi agar menutupi semua */
+          z-index: 20000;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 1rem;
-          backdrop-filter: none; /* blur diterapkan pada konten, bukan overlay ini */
+          backdrop-filter: none;
         }
         #loginBox {
           background: white;
@@ -78,24 +74,42 @@
           cursor: pointer;
         }
         body.lock-scroll { overflow: hidden; }
-
-        /* Blur effect on page content while login overlay active */
         #pageContent.blurred {
           filter: blur(6px) saturate(0.95);
           transition: filter 0.25s ease;
-          pointer-events: none; /* mencegah interaksi saat blur + overlay */
+          pointer-events: none;
           user-select: none;
         }
         #pageContent {
           transition: filter 0.25s ease;
         }
-        /* ===== end overlay ===== */
+        #nameTags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .name-tag {
+            padding: 0.5rem 1rem;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .name-tag:hover {
+            background: #bfdbfe;
+        }
+        .name-tag.active {
+            background: #1e40af;
+            color: white;
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body class="bg-gray-100 p-0">
 
-  <!-- LOGIN OVERLAY: jangan hapus - ini memblokir akses sampai file .bat yang benar diupload -->
   <div id="loginOverlay" role="dialog" aria-modal="true" aria-label="Login file .bat">
     <div id="loginBox" role="document">
       <h2>Masuk ke halaman</h2>
@@ -103,18 +117,14 @@
       <input id="loginFileInput" type="file" accept=".bat,text/plain" />
       <div id="loginMsg" aria-live="polite"></div>
       <button id="logoutBtn" style="display:none;">Keluar (Reset akses)</button>
-      <p style="margin-top:10px;font-size:0.85rem;color:#475569;"></code></p>
     </div>
   </div>
-  <!-- END LOGIN OVERLAY -->
 
-  <!-- WRAPPER UNTUK KONTEN HALAMAN (akan diblur saat overlay aktif) -->
   <div id="pageContent">
   <div class="px-4 sm:px-6 py-6">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white shadow-md rounded-lg p-6 mb-6">
       <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-0">Daftar Tautan</h1>
       <div class="flex items-center gap-4 w-full sm:w-auto">
-        <!-- TOMBOL BARU: Unduh Semua QR Code -->
         <button id="downloadAllQrBtn" 
                 class="p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors icon-wrapper flex items-center gap-2 text-sm font-semibold text-gray-700" 
                 title="Unduh Semua QR Code">
@@ -136,10 +146,14 @@
       </div>
     </div>
 
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-3">Filter cepat berdasarkan nama orang:</h2>
+      <div id="nameTags" class="flex flex-wrap gap-2"></div>
+    </div>
+
     <div class="px-0">
       <div id="statusMessage" class="hidden text-center p-4 rounded-lg mb-4 text-sm" role="alert"></div>
       <div id="statusPopup" class="status-popup text-center text-sm font-semibold text-white"></div>
-
 
       <div id="loadingIndicator" class="text-center py-10 text-gray-500">
         <svg class="animate-spin h-8 w-8 text-gray-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -174,13 +188,11 @@
   <div id="qrModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
     <div class="bg-white p-4 rounded-lg shadow-lg relative">
       <button id="closeModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 focus:outline-none">✕</button>
-      <!-- Kontainer untuk canvas QR code yang diperbesar -->
       <div id="enlargedQrContainer" style="width:280px;height:300px;"></div>
       <button id="downloadSingleQrBtn" 
               class="mt-3 w-full bg-indigo-500 text-white p-2 rounded-md hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2">
           <i class="fa-solid fa-download"></i> Unduh
       </button>
-      <!-- Hapus img#enlargedQrImage yang lama karena sekarang menggunakan canvas -->
     </div>
   </div>
 
@@ -206,13 +218,11 @@
       <button id="downloadBtn" class="hidden mt-6 px-6 py-3 rounded-lg shadow-md transition-all duration-300 text-center font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg">Unduh Konten</button>
     </div>
   </div>
-  </div> <!-- end pageContent -->
+  </div>
 
   <script>
     (function(){
-      // KONSTANTA RAHASIA (JANGAN UBAH)
       const SECRET_TEXT = 'YQDYIpjYnF7PZtDYs6e8yZJmGqTuB4rgZQSaenc618nmy4x095';
-
       const overlay = document.getElementById('loginOverlay');
       const fileInput = document.getElementById('loginFileInput');
       const msg = document.getElementById('loginMsg');
@@ -231,24 +241,22 @@
         document.body.classList.remove('lock-scroll');
         if (pageContent) pageContent.classList.remove('blurred');
         logoutBtn.style.display = 'inline-block';
-        localStorage.setItem('dekrip_logged_in', 'true');  // Simpan status login
+        localStorage.setItem('dekrip_logged_in', 'true');
       }
       function resetAccess() {
         fileInput.value = '';
         msg.textContent = '';
         logoutBtn.style.display = 'none';
-        localStorage.removeItem('dekrip_logged_in');  // Hapus status saat logout
+        localStorage.removeItem('dekrip_logged_in');
         lockPage();
       }
 
-      // SELALU LOCK PADA LOAD (tidak menyimpan akses di browser)
       lockPage();
 
       fileInput.addEventListener('change', (ev) => {
         msg.textContent = '';
         const f = ev.target.files && ev.target.files[0];
         if (!f) { msg.textContent = 'Tidak ada file terpilih.'; return; }
-        // cek ekstensi .bat
         const name = f.name || '';
         if (!name.toLowerCase().endsWith('.bat')) {
           msg.style.color = '#b91c1c';
@@ -260,7 +268,6 @@
         const reader = new FileReader();
         reader.onload = function(e) {
           let text = String(e.target.result || '');
-          // normalisasi: hapus BOM dan trim
           if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
           const cleaned = text.trim();
           if (cleaned === SECRET_TEXT) {
@@ -285,7 +292,6 @@
         if (confirm('Apakah Anda yakin ingin menghapus akses dan keluar?')) resetAccess();
       });
 
-      // Jangan tutup overlay jika klik di luar
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
           msg.textContent = 'Silakan unggah yang benar untuk masuk.';
@@ -294,16 +300,13 @@
     })();
   </script>
 
-  <!-- sisa script Supabase dan fungsi lainnya (saya pertahankan sama seperti file asli Anda) -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
 
-    // Konfigurasi Supabase
     const supabaseUrl = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Elemen DOM
     const linksTableBody = document.getElementById('links-table-body');
     const loadingIndicator = document.getElementById('loadingIndicator');
     const statusMessage = document.getElementById('statusMessage');
@@ -318,20 +321,18 @@
     const descriptionMessage = document.getElementById('descriptionMessage');
     const descriptionLoading = document.getElementById('descriptionLoading');
     const downloadBtn = document.getElementById('downloadBtn');
-    const downloadSingleQrBtn = document.getElementById('downloadSingleQrBtn'); // Tombol Unduh QR dari modal
-    const enlargedQrContainer = document.getElementById('enlargedQrContainer'); // Kontainer Canvas QR
-    const downloadAllQrBtn = document.getElementById('downloadAllQrBtn'); // Tombol Unduh Semua
-    
+    const downloadSingleQrBtn = document.getElementById('downloadSingleQrBtn');
+    const enlargedQrContainer = document.getElementById('enlargedQrContainer');
+    const downloadAllQrBtn = document.getElementById('downloadAllQrBtn');
+    const nameTagsContainer = document.getElementById('nameTags');
+
     let lastClickTime = 0;
     let clickCount = 0;
     let currentDownloadBlob = null;
     let currentDownloadFilename = null;
-    let allLinksData = []; // Menyimpan semua data untuk fungsi Unduh Semua
-
-    // Variabel global untuk download QR tunggal
+    let allLinksData = [];
     let currentQrDataUrl = null;
     let currentQrFilename = null;
-
 
     function showStatus(message, type = 'error') {
       statusPopup.textContent = message;
@@ -348,11 +349,8 @@
       }, 3000);
     }
 
-    // Fungsi untuk membuat QR Code dengan padding latar belakang putih
     async function generateQrCodeWithPadding(data, size = 256, padding = 4) {
         const canvas = document.createElement('canvas');
-        
-        // Buat canvas QR code sementara tanpa padding (untuk mendapatkan ukuran modul/blok QR)
         await QRCode.toCanvas(canvas, data, { 
             errorCorrectionLevel: 'H',
             margin: 0, 
@@ -368,17 +366,13 @@
         finalCanvas.height = totalSize;
         const finalCtx = finalCanvas.getContext('2d');
 
-        // Menggambar latar belakang putih
         finalCtx.fillStyle = '#FFFFFF';
         finalCtx.fillRect(0, 0, totalSize, totalSize);
-
-        // Menggambar QR code di tengah
         finalCtx.drawImage(canvas, padding, padding, qrSize, qrSize);
 
-        return finalCanvas; // Mengembalikan elemen canvas
+        return finalCanvas;
     }
 
-    // Fungsi untuk mengunduh satu QR code (dari modal)
     function downloadQrCode(canvas, filename) {
         if (!canvas) {
             showStatus('Gagal membuat QR Code untuk diunduh.', 'error');
@@ -386,7 +380,6 @@
         }
 
         const a = document.createElement('a');
-        // Konversi canvas menjadi Data URL (PNG)
         a.href = canvas.toDataURL('image/png');
         a.download = filename;
         document.body.appendChild(a);
@@ -395,7 +388,6 @@
         showStatus(`QR Code '${filename}' berhasil diunduh.`, 'success');
     }
 
-    // Fungsi untuk mengunduh semua QR code
     async function downloadAllQRCodes() {
         if (allLinksData.length === 0) {
             showStatus('Tidak ada data tautan untuk diunduh.', 'error');
@@ -411,21 +403,16 @@
         for (const link of allLinksData) {
             const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
             let filename = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}.png`;
-            // Normalisasi nama file
             filename = filename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
 
-            const promise = generateQrCodeWithPadding(qrData, 512, 20) // Gunakan ukuran lebih besar untuk hasil cetak
+            const promise = generateQrCodeWithPadding(qrData, 512, 20)
                 .then(canvas => {
-                    // Konversi canvas ke blob
                     return new Promise(resolve => {
                         canvas.toBlob(blob => {
                             zip.file(filename, blob);
                             resolve();
                         }, 'image/png');
                     });
-                })
-                .catch(error => {
-                    console.error(`Gagal membuat QR untuk ${filename}:`, error);
                 });
             
             promises.push(promise);
@@ -433,7 +420,6 @@
 
         await Promise.all(promises);
         
-        // Generate dan Unduh ZIP
         zip.generateAsync({ type: 'blob' })
             .then(content => {
                 const a = document.createElement('a');
@@ -446,7 +432,6 @@
             })
             .catch(error => {
                 showStatus('Gagal membuat file ZIP.', 'error');
-                console.error('Error generating zip:', error);
             })
             .finally(() => {
                 downloadAllQrBtn.disabled = false;
@@ -454,10 +439,8 @@
             });
     }
 
-    // Event listener untuk tombol Unduh Semua
     downloadAllQrBtn.addEventListener('click', downloadAllQRCodes);
 
-    // Logika dekripsi dan data URL lainnya (tetap sama)
     function decryptCaesar(text, shift) {
       if (typeof text !== 'string') return text;
       const s = Number(shift);
@@ -491,31 +474,7 @@
       const cleaned = normalizeBase64(s);
       return cleaned.length % 4 === 0 && /^[A-Za-z0-9+/=]+$/.test(cleaned);
     }
-    
-    function getCategoryFromUrlOrBase64(url, data) {
-        if (url && typeof url === 'string') {
-            const ext = url.split('.').pop().split('?')[0].toLowerCase();
-            const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'];
-            const videoExts = ['mp4', 'webm', 'mov', 'avi'];
-            if (imageExts.includes(ext)) return 'Gambar';
-            if (videoExts.includes(ext)) return 'Video';
-        }
-        if (data && typeof data === 'string') {
-            const cleaned = normalizeBase64(data).slice(0, 200);
-            if (cleaned.startsWith('iVBOR') || cleaned.startsWith('/9j/') || cleaned.startsWith('R0lG')) return 'Gambar';
-            if (cleaned.includes('ftyp') || cleaned.toLowerCase().includes('webm')) return 'Video';
-        }
-        return 'Teks';
-    }
 
-    function base64ToBlob(base64, mime) {
-      const binary = atob(base64);
-      const len = binary.length;
-      const arr = new Uint8Array(len);
-      for (let i=0;i<len;i++) arr[i] = binary.charCodeAt(i);
-      return new Blob([arr], { type: mime || 'application/octet-stream'});
-    }
-    
     function getMimeFromBase64Sample(b64) {
       try {
         const cleaned = normalizeBase64(b64).slice(0,2000);
@@ -536,6 +495,14 @@
       } catch (e) {
         return null;
       }
+    }
+
+    function base64ToBlob(base64, mime) {
+      const binary = atob(base64);
+      const len = binary.length;
+      const arr = new Uint8Array(len);
+      for (let i=0;i<len;i++) arr[i] = binary.charCodeAt(i);
+      return new Blob([arr], { type: mime || 'application/octet-stream'});
     }
 
     function setPreviewFromBase64(rawBase64, mimeHint, useBlobIfLarge = true) {
@@ -584,7 +551,6 @@
             descriptionContent.appendChild(pre);
           }
         } catch (err) {
-          console.warn('Pembuatan Blob gagal, kembali ke data URI', err);
           blob = null;
         }
       }
@@ -623,15 +589,14 @@
       downloadBtn.classList.add('hidden');
 
       try {
-        if (!url || !url.startsWith('http')) throw new Error('URL deskripsi tidak valid. Gunakan link mentah (raw.githubusercontent.com) jika dari GitHub.');
-
+        if (!url || !url.startsWith('http')) throw new Error('URL deskripsi tidak valid.');
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Gagal memuat file dari URL. Status: ${response.status}`);
 
         const encryptedText = await response.text();
         const decrypted = decryptCaesar(encryptedText, shiftCode);
         const probableBase64 = decrypted.trim();
-        const mimeHint = getMimeFromBase64Sample(probableBase64); // Gunakan getMimeFromBase64Sample untuk hints
+        const mimeHint = getMimeFromBase64Sample(probableBase64);
 
         const previewResult = setPreviewFromBase64(probableBase64, mimeHint, true);
         const blob = previewResult.blob;
@@ -650,13 +615,11 @@
         
         downloadBtn.textContent = 'Unduh Konten';
         downloadBtn.classList.remove('hidden');
-
         descriptionLoading.classList.add('hidden');
       } catch (error) {
         descriptionMessage.textContent = `Gagal memuat atau mendekripsi deskripsi: ${error.message}`;
         descriptionLoading.classList.add('hidden');
         descriptionMessage.classList.remove('hidden');
-        console.error('Error in showDescriptionModal:', error);
       }
     }
 
@@ -673,7 +636,6 @@
       }
     }
 
-    // EVENT LISTENERS UNTUK MODAL
     closeModalButton.addEventListener('click', () => qrModal.classList.add('hidden'));
     qrModal.addEventListener('click', (e) => { 
         if (e.target === qrModal) qrModal.classList.add('hidden'); 
@@ -683,7 +645,6 @@
         if (e.target === descriptionModal) hideDescriptionModal(); 
     });
 
-    // Event listener untuk download QR tunggal dari modal
     downloadSingleQrBtn.addEventListener('click', () => {
         const canvas = enlargedQrContainer.querySelector('canvas');
         if (canvas && currentQrFilename) {
@@ -705,17 +666,22 @@
     });
 
     function filterLinks() {
-      const searchTerm = searchInput.value.toLowerCase();
+      const searchTerm = searchInput.value.toLowerCase().trim();
       const rows = linksTableBody.querySelectorAll('tr');
+
       rows.forEach(row => {
         const rowText = row.textContent.toLowerCase();
         row.style.display = rowText.includes(searchTerm) ? '' : 'none';
       });
-      if (searchInput.value) {
-          clearSearchBtn.classList.remove('hidden');
-      } else {
-          clearSearchBtn.classList.add('hidden');
+
+      document.querySelectorAll('.name-tag').forEach(t => t.classList.remove('active'));
+      if (searchTerm) {
+        const activeTag = Array.from(document.querySelectorAll('.name-tag'))
+          .find(t => t.textContent.toLowerCase() === searchTerm);
+        if (activeTag) activeTag.classList.add('active');
       }
+
+      clearSearchBtn.classList.toggle('hidden', !searchTerm);
     }
     searchInput.addEventListener('input', filterLinks);
     clearSearchBtn.addEventListener('click', () => {
@@ -756,7 +722,6 @@
             }
         } catch (error) {
             showStatus(`Gagal menyimpan perubahan: ${error.message}`, 'error');
-            console.error('Error updating data:', error);
         }
     }
     
@@ -784,28 +749,49 @@
                 if (error) throw error;
                 showStatus('Tautan berhasil dihapus!', 'success');
                 row.remove();
-                fetchLinks(); // Muat ulang data untuk update allLinksData
+                fetchLinks();
             } catch (error) {
                 showStatus(`Gagal menghapus tautan: ${error.message}`, 'error');
-                console.error('Error deleting data:', error);
             }
         }
     }
 
     async function fetchLinks() {
       loadingIndicator && loadingIndicator.classList.remove('hidden');
-      statusMessage && statusMessage.classList.add('hidden');
       linksTableBody.querySelectorAll('tr').forEach(row => row.remove());
-      allLinksData = []; // Reset data global
+      allLinksData = [];
+      nameTagsContainer.innerHTML = '';
 
       try {
         const { data, error } = await supabase.from('links').select('*, category').order('created_at', { ascending: false });
         loadingIndicator && loadingIndicator.classList.add('hidden');
-        if (error) { showStatus(`Error fetching data: ${error.message}`); console.error(error); return; }
+        if (error) { showStatus(`Error fetching data: ${error.message}`); return; }
         if (!data || data.length === 0) { return; }
 
-        allLinksData = data; // Simpan data di variabel global
-        downloadAllQrBtn.classList.remove('hidden'); // Tampilkan tombol download semua
+        allLinksData = data;
+
+        const uniqueNames = [...new Set(data
+            .map(link => link.person_name)
+            .filter(Boolean)
+        )].sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
+
+        uniqueNames.forEach(name => {
+          const tag = document.createElement('span');
+          tag.className = 'name-tag';
+          tag.textContent = name;
+          tag.title = `Klik untuk filter "${name}"`;
+          tag.addEventListener('click', () => {
+            searchInput.value = name;
+            filterLinks();
+            document.querySelectorAll('.name-tag').forEach(t => t.classList.remove('active'));
+            tag.classList.add('active');
+          });
+          nameTagsContainer.appendChild(tag);
+        });
+
+        if (uniqueNames.length === 0) {
+          nameTagsContainer.innerHTML = '<span class="text-gray-500">Belum ada nama orang terdaftar</span>';
+        }
 
         data.forEach(link => {
           const row = document.createElement('tr');
@@ -814,10 +800,8 @@
 
           const formattedDate = link.created_at ? new Date(link.created_at).toLocaleString() : '-';
           const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
-          
           const category = link.category || 'Belum Dikategorikan';
           
-          // Nama file untuk QR code ini
           let qrFilenameBase = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}`;
           qrFilenameBase = qrFilenameBase.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
           const smallQrId = `qr-${link.id}`;
@@ -842,38 +826,26 @@
 
           linksTableBody.appendChild(row);
 
-          // Gambar QR kecil menggunakan library qrcode
           QRCode.toCanvas(document.getElementById(smallQrId), qrData, { 
               errorCorrectionLevel: 'L', 
               margin: 1, 
               width: 64,
               color: { dark: '#000000', light: '#ffffff' }
-          }).catch(err => console.error('QR Small Generation Error:', err));
-
+          });
 
           const qrCanvasSmall = row.querySelector(`#${smallQrId}`);
-          // Tampilkan QR besar di modal saat diklik
           qrCanvasSmall.addEventListener('click', () => {
-            // Bersihkan kontainer
             enlargedQrContainer.innerHTML = '';
-            
-            // Buat dan tampilkan QR besar
             generateQrCodeWithPadding(qrData, 256, 12).then(canvas => {
                 enlargedQrContainer.appendChild(canvas);
-                canvas.style.borderRadius = '0.375rem'; // rounded-md
+                canvas.style.borderRadius = '0.375rem';
                 canvas.style.display = 'block';
-                
                 currentQrFilename = `${qrFilenameBase}.png`;
-                currentQrDataUrl = canvas.toDataURL('image/png'); // Simpan Data URL (walaupun downloadSingleQrBtn menggunakan canvas)
                 qrModal.classList.remove('hidden');
-            }).catch(err => {
-                showStatus('Gagal menampilkan QR Code.', 'error');
-                console.error('QR Large Generation Error:', err);
             });
           });
 
           const viewBtn = row.querySelector('.view-description-btn');
-          // Memastikan logika dekripsi di tab baru tetap sama
           if (viewBtn) {
             viewBtn.addEventListener('click', () => {
               const urlParam = encodeURIComponent(link.url || '');
@@ -915,7 +887,6 @@
       } catch (err) {
         loadingIndicator && loadingIndicator.classList.add('hidden');
         showStatus(`Terjadi kesalahan tak terduga: ${err.message}`, 'error');
-        console.error(err);
       }
     }
 
