@@ -84,7 +84,7 @@
       </div>
 
       <div id="preview" class="mb-8"></div>
-
+      
       <div class="flex justify-center gap-2 mt-4">
         <a id="downloadOriginalBtn" class="download-btn gray hidden">
           Unduh .pb
@@ -113,6 +113,10 @@
           </svg>
           <span id="detectedMime">Tipe: -</span>
         </div>
+      </div>
+
+      <div class="flex justify-center mt-4 hidden" id="videoActions">
+        <button id="showFramesBtn" class="frame-btn">Tampilkan Semua Frame</button>
       </div>
 
       <div id="framesPreview" class="mb-8 hidden">
@@ -318,6 +322,7 @@
       const showFramesBtn = document.getElementById('showFramesBtn');
       const framesPreview = document.getElementById('framesPreview');
       const framesContainer = framesPreview.querySelector('.frames-container');
+      const videoActions = document.getElementById('videoActions');
 
       let objectUrl = null;
       let currentBlob = null;
@@ -374,8 +379,7 @@
             wrap.className = 'media-wrap w-full';
             wrap.appendChild(videoEl);
             previewEl.appendChild(wrap);
-
-            showFramesBtn.classList.remove('hidden');
+            videoActions.classList.remove('hidden');
 
             showFramesBtn.addEventListener('click', async () => {
               if (framesContainer.innerHTML) return;
