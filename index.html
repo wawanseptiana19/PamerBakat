@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <style>
         body { background-color: #f3f4f6; font-family: 'Inter', sans-serif; }
-        th, td { padding: 12px 24px; }
+        th, td { padding: 16px 32px; } /* Diperbesar untuk area klik lebih luas */
         .modal-overlay { background-color: rgba(0,0,0,0.75); }
         .media-preview { max-width: 100%; height: auto; }
         .video-preview { max-width: 100%; height: auto; }
@@ -85,17 +85,16 @@
         }
         #nameTags {
             display: flex;
-            flex-direction: row;
             flex-wrap: wrap;
             gap: 0.5rem;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
         .name-tag {
-            padding: 0.25rem 0.75rem;
+            padding: 0.5rem 1rem;
             background: #dbeafe;
             color: #1e40af;
             border-radius: 9999px;
-            font-size: 0.75rem;
+            font-size: 0.875rem;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -105,33 +104,6 @@
         .name-tag.active {
             background: #1e40af;
             color: white;
-        }
-        #sidebar {
-            position: fixed;
-            top: 0;
-            right: -300px;
-            width: 300px;
-            height: 100%;
-            background: white;
-            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-            transition: right 0.3s ease;
-            z-index: 1000;
-            padding: 1rem;
-            overflow-y: auto;
-        }
-        #sidebar.open {
-            right: 0;
-        }
-        #sidebarToggle {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            z-index: 1100;
-            background: white;
-            border: 2px solid #e5e7eb;
-            padding: 0.5rem;
-            border-radius: 0.375rem;
-            cursor: pointer;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -152,6 +124,31 @@
   <div class="px-4 sm:px-6 py-6">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white shadow-md rounded-lg p-6 mb-6">
       <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-0">Daftar Tautan</h1>
+      <div class="flex items-center gap-4 w-full sm:w-auto">
+        <button id="downloadAllQrBtn" 
+                class="p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors icon-wrapper flex items-center gap-2 text-sm font-semibold text-gray-700" 
+                title="Unduh Semua QR Code">
+            <i class="fa-solid fa-file-zipper w-5 h-5"></i>
+            <span class="hidden sm:inline">Unduh Semua QR</span>
+        </button>
+
+        <a href="https://pamer-bakat.vercel.app/tambah_konten.html" target="_blank" title="Pengaturan" class="p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors icon-wrapper">
+            <i class="fa-solid fa-plus text-gray-700 w-5 h-5"></i>
+        </a>
+        <div class="relative w-full sm:w-auto">
+          <input type="text" id="searchInput" placeholder="Cari..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-8">
+          <button id="clearSearchBtn" class="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold text-gray-800 mb-3">Filter cepat berdasarkan nama orang:</h2>
+      <div id="nameTags" class="flex flex-wrap gap-2"></div>
     </div>
 
     <div class="px-0">
@@ -221,37 +218,6 @@
       <button id="downloadBtn" class="hidden mt-6 px-6 py-3 rounded-lg shadow-md transition-all duration-300 text-center font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg">Unduh Konten</button>
     </div>
   </div>
-  </div>
-
-  <button id="sidebarToggle" class="p-2">
-    <i class="fa-solid fa-bars text-gray-700 w-5 h-5"></i>
-  </button>
-
-  <div id="sidebar">
-    <button id="closeSidebar" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
-      <i class="fa-solid fa-times"></i>
-    </button>
-    <h2 class="text-lg font-semibold mb-4">Menu</h2>
-    <button id="downloadAllQrBtn" 
-            class="mb-4 p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors icon-wrapper flex items-center gap-2 text-sm font-semibold text-gray-700 w-full justify-center" 
-            title="Unduh Semua QR Code">
-        <i class="fa-solid fa-file-zipper w-5 h-5"></i>
-        Unduh Semua QR
-    </button>
-    <a href="https://pamer-bakat.vercel.app/tambah_konten.html" target="_blank" title="Pengaturan" class="mb-4 p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors icon-wrapper flex items-center gap-2 text-sm font-semibold text-gray-700 w-full justify-center">
-        <i class="fa-solid fa-plus text-gray-700 w-5 h-5"></i>
-        Tambah Konten
-    </a>
-    <div class="relative mb-4">
-      <input type="text" id="searchInput" placeholder="Cari..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-8">
-      <button id="clearSearchBtn" class="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none hidden">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-    <h3 class="text-md font-semibold text-gray-800 mb-2">Filter Nama</h3>
-    <div id="nameTags"></div>
   </div>
 
   <script>
@@ -359,10 +325,6 @@
     const enlargedQrContainer = document.getElementById('enlargedQrContainer');
     const downloadAllQrBtn = document.getElementById('downloadAllQrBtn');
     const nameTagsContainer = document.getElementById('nameTags');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const closeSidebar = document.getElementById('closeSidebar');
-    const pageContent = document.getElementById('pageContent');
 
     let lastClickTime = 0;
     let clickCount = 0;
@@ -371,28 +333,6 @@
     let allLinksData = [];
     let currentQrDataUrl = null;
     let currentQrFilename = null;
-
-    function openSidebar() {
-      sidebar.classList.add('open');
-      sidebarToggle.style.display = 'none';
-      pageContent.classList.add('blurred');
-    }
-
-    function closeSidebarFunc() {
-      sidebar.classList.remove('open');
-      sidebarToggle.style.display = 'block';
-      pageContent.classList.remove('blurred');
-    }
-
-    sidebarToggle.addEventListener('click', openSidebar);
-
-    closeSidebar.addEventListener('click', closeSidebarFunc);
-
-    document.addEventListener('click', (e) => {
-      if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== sidebarToggle) {
-        closeSidebarFunc();
-      }
-    });
 
     function showStatus(message, type = 'error') {
       statusPopup.textContent = message;
@@ -495,7 +435,7 @@
             })
             .finally(() => {
                 downloadAllQrBtn.disabled = false;
-                downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-file-zipper w-5 h-5"></i> Unduh Semua QR';
+                downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-file-zipper w-5 h-5"></i> <span class="hidden sm:inline">Unduh Semua QR</span>';
             });
     }
 
@@ -870,11 +810,11 @@
             <td class="px-6 py-4 text-sm text-gray-500 flex justify-center cursor-pointer qr-cell">
               <canvas id="${smallQrId}" style="width:64px;height:64px;"></canvas>
             </td>
-            <td class="px-6 py-4 text-sm text-gray-500" data-column="person_name">${link.person_name || '-'}</td>
-            <td class="px-6 py-4 text-sm text-gray-500" data-column="name">${link.name || '-'}</td>
-            <td class="px-6 py-4 text-sm text-gray-500" data-column="category">${category}</td>
-            <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs" data-column="url">${link.url || '-'}</td>
-            <td class="px-6 py-4 text-sm text-gray-500" data-column="shift_code">${link.shift_code || '-'}</td>
+            <td class="px-6 py-4 text-sm text-gray-500 cursor-pointer" data-column="person_name">${link.person_name || '-'}</td>
+            <td class="px-6 py-4 text-sm text-gray-500 cursor-pointer" data-column="name">${link.name || '-'}</td>
+            <td class="px-6 py-4 text-sm text-gray-500 cursor-pointer" data-column="category">${category}</td>
+            <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs cursor-pointer" data-column="url">${link.url || '-'}</td>
+            <td class="px-6 py-4 text-sm text-gray-500 cursor-pointer" data-column="shift_code">${link.shift_code || '-'}</td>
             <td class="px-6 py-4 text-sm text-gray-500">${formattedDate}</td>
             <td class="px-6 py-4 text-sm text-gray-500"><button class="view-description-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition-colors">Lihat</button></td>
             <td class="px-6 py-4 text-sm text-gray-500">
@@ -925,10 +865,10 @@
               cell.addEventListener('click', (e) => {
                   const now = new Date().getTime();
                   const diff = now - lastClickTime;
-                  clickCount = (diff < 300 && clickCount < 3) ? clickCount + 1 : 1;
+                  clickCount = (diff < 500 && clickCount < 2) ? clickCount + 1 : 1; // Diubah ke double click dengan waktu 500ms
                   lastClickTime = now;
 
-                  if (clickCount === 3) {
+                  if (clickCount === 2) {
                       e.preventDefault();
                       cell.contentEditable = 'true';
                       cell.classList.add('editable');
