@@ -276,7 +276,7 @@
             li.dataset.name = item.name;
             li.addEventListener('click', () => {
               const targetUrl = `dekripsi.html?url=${encodeURIComponent(item.url)}&shift=${encodeURIComponent(item.shift_code)}&person=${encodeURIComponent(item.person_name)}&name=${encodeURIComponent(item.name)}`;
-              window.open(targetUrl, '_blank');
+              window.location.href = targetUrl
             });
             sublist.appendChild(li);
           });
