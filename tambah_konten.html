@@ -8,13 +8,51 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
+        /* Menggunakan font Inter */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
         }
-        .tab-content.hidden {
-            display: none;
+
+        /* Styling untuk konten tab yang akan dianimasikan */
+        .tab-content {
+            overflow: hidden; /* Penting untuk animasi max-height */
+            transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out;
+            max-height: 1000px; /* Nilai besar yang cukup untuk menampung konten */
+            opacity: 1;
         }
+
+        /* State tersembunyi untuk konten tab */
+        .tab-content.tab-hidden {
+            max-height: 0;
+            opacity: 0;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+        }
+
+        /* Styling untuk modal */
+        #modal-container {
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        #modal-container.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #modal-container .bg-white {
+            transform: scale(0.9);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        #modal-container.show .bg-white {
+            transform: scale(1);
+        }
+
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4 bg-gray-100">
@@ -62,7 +100,7 @@
         </div>
 
         <!-- Tab Content 2: Enkripsi File -->
-        <div id="tab2-content" class="tab-content hidden">
+        <div id="tab2-content" class="tab-content tab-hidden">
             <label for="fileInput" class="block text-sm font-medium text-gray-700 mb-2">Pilih gambar atau video</label>
             <input id="fileInput" type="file" class="w-full px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" accept="image/*,video/*">
             
@@ -85,7 +123,8 @@
     </div>
     
     <!-- Modal for notifications -->
-    <div id="modal-container" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+    <!-- Menggunakan kelas 'hidden' dihilangkan, diganti dengan styling CSS opacity dan visibility -->
+    <div id="modal-container" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
         <div class="bg-white p-6 rounded-lg shadow-xl text-center">
             <p id="modal-title" class="text-lg font-bold mb-4"></p>
             <p id="modal-message"></p>
@@ -116,35 +155,48 @@
         const modalMessage = document.getElementById('modal-message');
         const modalCloseBtn = document.getElementById('modal-close-btn');
 
-        // Function to show custom modal
+        // Function to show custom modal (added 'show' class for animation)
         function showModal(title, message) {
             modalTitle.textContent = title;
             modalMessage.textContent = message;
-            modalContainer.classList.remove('hidden');
+            modalContainer.classList.add('show'); // Ganti 'hidden' dengan 'show' untuk animasi
         }
 
         modalCloseBtn.addEventListener('click', () => {
-            modalContainer.classList.add('hidden');
+            modalContainer.classList.remove('show');
         });
 
         // Function to switch tabs
         function switchTab(tabNumber) {
+            // Update button styles
             tab1Btn.classList.remove('border-blue-500', 'text-blue-600');
             tab2Btn.classList.remove('border-blue-500', 'text-blue-600');
-            tab1Content.classList.add('hidden');
-            tab2Content.classList.add('hidden');
+            
+            // Hide all content tabs with animation class
+            tab1Content.classList.add('tab-hidden');
+            tab2Content.classList.add('tab-hidden');
 
+
+            // Activate the selected tab
             if (tabNumber === 1) {
                 tab1Btn.classList.add('border-blue-500', 'text-blue-600');
-                tab1Content.classList.remove('hidden');
+                // Beri sedikit jeda untuk transisi tab yang lain
+                setTimeout(() => {
+                    tab1Content.classList.remove('tab-hidden');
+                }, 50); 
             } else {
                 tab2Btn.classList.add('border-blue-500', 'text-blue-600');
-                tab2Content.classList.remove('hidden');
+                // Beri sedikit jeda untuk transisi tab yang lain
+                setTimeout(() => {
+                    tab2Content.classList.remove('tab-hidden');
+                }, 50);
             }
         }
 
         // Initially show the first tab and activate its button
-        switchTab(1);
+        // Kita tidak perlu memanggil switchTab(1) di sini karena di HTML kita sudah set tab 1 aktif dan tab 2 tersembunyi
+        tab1Btn.classList.add('border-blue-500', 'text-blue-600');
+
 
         // Event Listeners for Tab Buttons
         tab1Btn.addEventListener('click', () => switchTab(1));
@@ -161,6 +213,7 @@
                 notification.classList.remove('text-red-500');
                 notification.classList.add('text-green-500');
             }
+            // Timeout untuk menyembunyikan notifikasi dengan transisi
             setTimeout(() => {
                 notification.style.opacity = 0;
             }, 3000);
@@ -179,9 +232,19 @@
                 return;
             }
 
+            // Tambahkan loading state pada tombol submit (opsional)
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
+
+
             const { error } = await supabaseClient.from('links').insert([
                 { person_name: personName, name: linkName, url: linkUrl, category: category, shift_code: shiftCode }
             ]);
+
+            // Hapus loading state
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Simpan';
 
             if (error) {
                 console.error("Supabase insert error:", error);
@@ -210,6 +273,10 @@
                 return;
             }
 
+            // Tambahkan loading state pada tombol enkripsi
+            encryptBtn.disabled = true;
+            encryptBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-2"></i> Mengenkripsi...';
+
             const file = fileInput.files[0];
             const reader = new FileReader();
 
@@ -221,7 +288,6 @@
                 const a = document.createElement('a');
                 
                 // Generate a random filename with a date and a unique ID
-                const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
                 const randomId = crypto.randomUUID().split('-')[0];
                 const newFilename = `${randomId}.pb`;
                 
@@ -234,11 +300,19 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
+
+                // Hapus loading state
+                encryptBtn.disabled = false;
+                encryptBtn.innerHTML = '<i class="fas fa-lock mr-2"></i> Enkripsi & Unduh';
                 
                 showModal("Berhasil", `Proses enkripsi selesai. File .pb berhasil diunduh dengan nama:\n${newFilename}`);
             };
 
             reader.onerror = function () {
+                // Hapus loading state jika gagal
+                encryptBtn.disabled = false;
+                encryptBtn.innerHTML = '<i class="fas fa-lock mr-2"></i> Enkripsi & Unduh';
+
                 showModal("Gagal", "Gagal membaca file. Coba ulangi.");
             };
 
