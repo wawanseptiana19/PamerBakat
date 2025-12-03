@@ -7,1705 +7,952 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #ec4899;
-            --accent: #8b5cf6;
-            --success: #10b981;
-            --danger: #ef4444;
-            --dark: #0f172a;
-            --light: #f8fafc;
-        }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body { 
-            background: var(--dark);
-            min-height: 100vh;
-            font-family: 'Poppins', sans-serif;
-            overflow-x: hidden;
-        }
-        
-        /* Animated Background */
-        .bg-animated {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: linear-gradient(125deg, #0f172a 0%, #1e1b4b 25%, #312e81 50%, #1e1b4b 75%, #0f172a 100%);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
-        }
-        
-        .bg-animated::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%236366f1' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            opacity: 0.5;
-        }
-        
-        @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-        
-        /* Floating Orbs */
-        .orb {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.4;
-            animation: float 20s ease-in-out infinite;
-            pointer-events: none;
-        }
-        
-        .orb-1 {
-            width: 400px;
-            height: 400px;
-            background: var(--primary);
-            top: -100px;
-            left: -100px;
-            animation-delay: 0s;
-        }
-        
-        .orb-2 {
-            width: 300px;
-            height: 300px;
-            background: var(--secondary);
-            bottom: -50px;
-            right: -50px;
-            animation-delay: -5s;
-        }
-        
-        .orb-3 {
-            width: 250px;
-            height: 250px;
-            background: var(--accent);
-            top: 50%;
-            left: 50%;
-            animation-delay: -10s;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            25% { transform: translate(50px, -50px) scale(1.1); }
-            50% { transform: translate(0, 50px) scale(0.9); }
-            75% { transform: translate(-50px, -25px) scale(1.05); }
-        }
-        
-        /* Glass Card */
-        .glass {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-        
-        /* Link Cards */
-        .link-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            overflow: hidden;
-            position: relative;
-            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-        
-        .link-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.5s ease;
-        }
-        
-        .link-card::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            pointer-events: none;
-        }
-        
-        .link-card:hover {
-            transform: translateY(-12px) scale(1.02);
-            border-color: rgba(99, 102, 241, 0.5);
-            box-shadow: 
-                0 25px 50px rgba(99, 102, 241, 0.25),
-                0 0 100px rgba(99, 102, 241, 0.1);
-        }
-        
-        .link-card:hover::before {
-            transform: scaleX(1);
-        }
-        
-        .link-card:hover::after {
-            opacity: 1;
-        }
-        
-        .link-card:hover .qr-glow {
-            box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
-        }
-        
-        /* QR Container */
-        .qr-glow {
-            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
-            border-radius: 16px;
-            padding: 10px;
-            transition: all 0.4s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .qr-glow:hover {
-            transform: scale(1.1) rotate(3deg);
-        }
-        
-        /* Buttons */
-        .btn-glow {
-            position: relative;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .btn-glow::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s ease;
-        }
-        
-        .btn-glow:hover::before {
-            left: 100%;
-        }
-        
-        .btn-glow:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
-        }
-        
-        .btn-outline {
-            background: transparent;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            padding: 10px 20px;
-            border-radius: 12px;
-            color: white;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-        
-        .btn-danger {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            border: none;
-            padding: 10px 14px;
-            border-radius: 10px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-danger:hover {
-            transform: scale(1.1);
-            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5);
-        }
-        
-        /* Category Badges */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            border-radius: 50px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border: 1px solid transparent;
-        }
-        
-        .badge-video { 
-            background: rgba(236, 72, 153, 0.2); 
-            color: #f472b6; 
-            border-color: rgba(236, 72, 153, 0.3);
-        }
-        .badge-image { 
-            background: rgba(59, 130, 246, 0.2); 
-            color: #60a5fa; 
-            border-color: rgba(59, 130, 246, 0.3);
-        }
-        .badge-audio { 
-            background: rgba(16, 185, 129, 0.2); 
-            color: #34d399; 
-            border-color: rgba(16, 185, 129, 0.3);
-        }
-        .badge-document { 
-            background: rgba(245, 158, 11, 0.2); 
-            color: #fbbf24; 
-            border-color: rgba(245, 158, 11, 0.3);
-        }
-        .badge-default { 
-            background: rgba(148, 163, 184, 0.2); 
-            color: #94a3b8; 
-            border-color: rgba(148, 163, 184, 0.3);
-        }
-        
-        /* Sidebar */
-        #sidebar {
-            position: fixed;
-            top: 0;
-            right: -400px;
-            width: 380px;
-            height: 100%;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(20px);
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
-            transition: right 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-            z-index: 1000;
-            padding: 30px;
-            overflow-y: auto;
-        }
-        
-        #sidebar.open {
-            right: 0;
-        }
-        
-        #sidebar::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        #sidebar::-webkit-scrollbar-thumb {
-            background: rgba(99, 102, 241, 0.5);
-            border-radius: 3px;
-        }
-        
-        /* Floating Action Button */
-        .fab-container {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 1100;
-        }
-        
-        .fab {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 
-                0 8px 30px rgba(99, 102, 241, 0.5),
-                0 0 0 0 rgba(99, 102, 241, 0.5);
-            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-            position: relative;
-            overflow: hidden;
-            animation: pulse-ring 2s infinite;
-        }
-        
-        .fab::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
-            z-index: -1;
-            animation: rotate 3s linear infinite;
-        }
-        
-        .fab::after {
-            content: '';
-            position: absolute;
-            inset: 2px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-        }
-        
-        .fab i {
-            position: relative;
-            z-index: 1;
-            color: white;
-            font-size: 1.5rem;
-            transition: transform 0.4s ease;
-        }
-        
-        .fab:hover {
-            transform: scale(1.15);
-            box-shadow: 
-                0 15px 50px rgba(99, 102, 241, 0.6),
-                0 0 80px rgba(99, 102, 241, 0.3);
-        }
-        
-        .fab:hover i {
-            transform: rotate(180deg);
-        }
-        
-        .fab.active i {
-            transform: rotate(45deg);
-        }
-        
-        @keyframes pulse-ring {
-            0% { box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5), 0 0 0 0 rgba(99, 102, 241, 0.4); }
-            70% { box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5), 0 0 0 20px rgba(99, 102, 241, 0); }
-            100% { box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5), 0 0 0 0 rgba(99, 102, 241, 0); }
-        }
-        
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Name Tags */
-        .name-tag {
-            padding: 8px 16px;
-            background: rgba(99, 102, 241, 0.1);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            color: #a5b4fc;
-            border-radius: 50px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .name-tag:hover {
-            background: rgba(99, 102, 241, 0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(99, 102, 241, 0.3);
-        }
-        
-        .name-tag.active {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: white;
-            border-color: transparent;
-        }
-        
-        /* Search Input */
-        .search-box {
-            position: relative;
-        }
-        
-        .search-box input {
-            width: 100%;
-            padding: 14px 20px;
-            padding-left: 50px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 14px;
-            color: white;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-        }
-        
-        .search-box input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-        }
-        
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.1);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-        }
-        
-        .search-box i {
-            position: absolute;
-            left: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: rgba(255, 255, 255, 0.4);
-        }
-        
-        /* Modal */
-        .modal-overlay { 
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-        }
-        
-        .modal-content {
-            background: rgba(30, 27, 75, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
-            max-width: 500px;
-            width: 95%;
-            max-height: 90vh;
-            overflow: hidden;
-            animation: modalIn 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-        
-        @keyframes modalIn {
-            from {
-                opacity: 0;
-                transform: scale(0.8) translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-        
-        /* Stats Cards */
-        .stat-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 24px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s ease;
-        }
-        
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(transparent, rgba(99, 102, 241, 0.1), transparent 30%);
-            animation: rotate 4s linear infinite;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary);
-        }
-        
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #fff, #a5b4fc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            position: relative;
-        }
-        
-        .stat-label {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.5);
-            font-weight: 500;
-            margin-top: 4px;
-            position: relative;
-        }
-        
-        /* Loading Spinner */
-        .loader {
-            width: 60px;
-            height: 60px;
-            position: relative;
-        }
-        
-        .loader::before,
-        .loader::after {
-            content: '';
-            position: absolute;
-            border-radius: 50%;
-            animation: pulsOut 1.8s ease-in-out infinite;
-        }
-        
-        .loader::before {
-            inset: 0;
-            border: 4px solid var(--primary);
-            animation-delay: -0.9s;
-        }
-        
-        .loader::after {
-            inset: 10px;
-            border: 4px solid var(--secondary);
-        }
-        
-        @keyframes pulsOut {
-            0%, 100% { transform: scale(0.5); opacity: 0; }
-            50% { transform: scale(1); opacity: 1; }
-        }
-        
-        /* Login Overlay */
-        #loginOverlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.98);
-            z-index: 20000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-        
-        #loginBox {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            width: 100%;
-            max-width: 450px;
-            border-radius: 32px;
-            padding: 48px 40px;
-            text-align: center;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
-        }
-        
-        #loginBox .icon-lock {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 24px;
-            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.4);
-        }
-        
-        #loginBox h2 { 
-            margin-bottom: 12px; 
-            font-size: 1.75rem; 
-            font-weight: 700;
-            color: white;
-        }
-        
-        #loginBox p { 
-            margin-bottom: 28px; 
-            color: rgba(255, 255, 255, 0.5); 
-            font-size: 0.95rem; 
-        }
-        
-        #loginFileInput { 
-            display: block; 
-            margin: 20px auto;
-            padding: 16px;
-            border: 2px dashed rgba(99, 102, 241, 0.4);
-            border-radius: 16px;
-            width: 100%;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: rgba(99, 102, 241, 0.05);
-            color: white;
-        }
-        
-        #loginFileInput:hover {
-            border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.1);
-        }
-        
-        #loginMsg { 
-            min-height: 1.5rem; 
-            margin-bottom: 16px; 
-            font-size: 0.9rem; 
-            font-weight: 500;
-        }
-        
-        #logoutBtn {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        #logoutBtn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
-        }
-        
-        /* Editable */
-        .editable { 
-            outline: 2px solid var(--primary); 
-            background-color: rgba(99, 102, 241, 0.2);
-            border-radius: 8px;
-            padding: 4px 8px;
-        }
-        
-        /* Status Popup */
+        body { background-color: #f3f4f6; font-family: 'Inter', sans-serif; }
+        th, td { padding: 12px 24px; }
+        .modal-overlay { background-color: rgba(0,0,0,0.75); }
+        .media-preview { max-width: 100%; height: auto; }
+        .video-preview { max-width: 100%; height: auto; }
+        .editable { outline: 2px solid #3b82f6; background-color: #eff6ff; }
         .status-popup {
             position: fixed;
-            top: 24px;
+            top: 1rem;
             left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            padding: 14px 28px;
-            border-radius: 50px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            z-index: 10000;
-            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            transform: translateX(-50%);
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
             opacity: 0;
-            font-weight: 600;
-            backdrop-filter: blur(10px);
+            pointer-events: none;
         }
-        
         .status-popup.show {
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
-        
-        /* Info Rows */
-        .info-row {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        .icon-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
-        
-        .info-row:last-child {
-            border-bottom: none;
+        .qr-cell {
+            min-width: 120px;
+            width: 15%;
         }
-        
-        .info-label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.4);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            min-width: 70px;
+        #loginOverlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(15, 23, 42, 0.65);
+          z-index: 20000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 1rem;
+          backdrop-filter: none;
         }
-        
-        .info-value {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.8);
-            word-break: break-all;
-            flex: 1;
+        #loginBox {
+          background: white;
+          width: 100%;
+          max-width: 520px;
+          border-radius: 12px;
+          padding: 20px;
+          box-shadow: 0 10px 30px rgba(2,6,23,0.4);
+          text-align: center;
         }
-        
-        /* Card Sections */
-        .card-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            position: relative;
+        #loginBox h2 { margin-bottom: 8px; font-size: 1.25rem; color:#0f172a; }
+        #loginBox p { margin-bottom: 12px; color:#334155; font-size:0.95rem; }
+        #loginFileInput { display: block; margin: 8px auto 14px auto; }
+        #loginMsg { color: #b91c1c; min-height: 1.25rem; margin-bottom: 8px; font-size:0.92rem; }
+        #logoutBtn {
+          display: inline-block;
+          margin-top: 8px;
+          background: transparent;
+          border: 1px solid #e5e7eb;
+          padding: 8px 12px;
+          border-radius: 8px;
+          cursor: pointer;
         }
-        
-        .card-body {
-            padding: 20px 24px;
-            position: relative;
-        }
-        
-        .card-footer {
-            padding: 16px 24px;
-            background: rgba(0, 0, 0, 0.2);
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            position: relative;
-        }
-        
-        /* Cards Grid */
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 24px;
-        }
-        
-        @media (max-width: 640px) {
-            .cards-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            #sidebar {
-                width: 100%;
-                right: -100%;
-            }
-            
-            .fab {
-                width: 56px;
-                height: 56px;
-            }
-        }
-        
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .empty-state i {
-            font-size: 5rem;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 24px;
-        }
-        
-        /* Loading State */
-        .loading-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 80px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        /* Scroll behavior */
         body.lock-scroll { overflow: hidden; }
-        
         #pageContent.blurred {
-            filter: blur(10px) saturate(0.5);
-            transition: filter 0.4s ease;
-            pointer-events: none;
-            user-select: none;
+          filter: blur(6px) saturate(0.95);
+          transition: filter 0.25s ease;
+          pointer-events: none;
+          user-select: none;
         }
-        
         #pageContent {
-            transition: filter 0.4s ease;
+          transition: filter 0.25s ease;
         }
-        
-        /* Hint Text */
-        .hint-text {
-            font-size: 0.7rem;
-            color: rgba(255, 255, 255, 0.3);
+        #nameTags {
             display: flex;
-            align-items: center;
-            gap: 6px;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
         }
-        
-        /* Sidebar Overlay */
-        .sidebar-overlay {
+        .name-tag {
+            padding: 0.25rem 0.75rem;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .name-tag:hover {
+            background: #bfdbfe;
+        }
+        .name-tag.active {
+            background: #1e40af;
+            color: white;
+        }
+        #sidebar {
             position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.4s ease;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100%;
+            background: white;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            padding: 1rem;
+            overflow-y: auto;
         }
-        
-        .sidebar-overlay.show {
-            opacity: 1;
-            visibility: visible;
+        #sidebar.open {
+            right: 0;
         }
-        
-        /* Animations for cards */
-        @keyframes cardIn {
-            from {
-                opacity: 0;
-                transform: translateY(30px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-        
-        .card-animated {
-            animation: cardIn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-            opacity: 0;
-        }
-        
-        /* Title Gradient */
-        .title-gradient {
-            background: linear-gradient(135deg, #fff 0%, #a5b4fc 50%, #f472b6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            background-size: 200% 200%;
-            animation: gradientText 5s ease infinite;
-        }
-        
-        @keyframes gradientText {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-        
-        /* Preview styles */
-        .media-preview { max-width: 100%; height: auto; border-radius: 12px; }
-        .video-preview { max-width: 100%; height: auto; border-radius: 12px; }
+#sidebarToggle {
+        position: fixed;
+        bottom: 1rem;
+        right: 1rem;
+        z-index: 1200; /* Ditingkatkan untuk menghindari overlapping */
+        background: white;
+        border: 2px solid #e5e7eb;
+        padding: 0.5rem; /* Diperbesar dari 0.5rem menjadi 1rem */
+        border-radius: 0.5rem;
+        cursor: pointer;
+        touch-action: manipulation; /* Optimasi untuk touch devices */
+    }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-<body>
-    <!-- Animated Background -->
-    <div class="bg-animated"></div>
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
+<body class="bg-gray-100 p-0">
 
-    <!-- Login Overlay -->
-    <div id="loginOverlay" role="dialog" aria-modal="true">
-        <div id="loginBox">
-            <div class="icon-lock">
-                <i class="fa-solid fa-lock text-3xl text-white"></i>
-            </div>
-            <h2>Selamat Datang</h2>
-            <p>Unggah file kredensial untuk mengakses halaman ini</p>
-            <input id="loginFileInput" type="file" accept=".bat,text/plain" />
-            <div id="loginMsg" aria-live="polite"></div>
-            <button id="logoutBtn" style="display:none;">
-                <i class="fa-solid fa-right-from-bracket"></i> Keluar
-            </button>
-        </div>
+  <div id="loginOverlay" role="dialog" aria-modal="true" aria-label="Login file .bat">
+    <div id="loginBox" role="document">
+      <h2>Masuk ke halaman</h2>
+      <p>Unggah file Anda. Akses akan diberikan.</p>
+      <input id="loginFileInput" type="file" accept=".bat,text/plain" />
+      <div id="loginMsg" aria-live="polite"></div>
+      <button id="logoutBtn" style="display:none;">Keluar (Reset akses)</button>
+    </div>
+  </div>
+
+  <div id="pageContent">
+  <div class="px-4 sm:px-6 py-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white shadow-md rounded-lg p-6 mb-6">
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-0">Daftar Tautan</h1>
     </div>
 
-    <!-- Main Content -->
-    <div id="pageContent">
-        <div class="px-4 sm:px-8 py-8 max-w-[1800px] mx-auto">
-            <!-- Header -->
-            <div class="glass rounded-3xl p-8 mb-8">
-                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                    <div>
-                        <h1 class="text-4xl sm:text-5xl font-extrabold title-gradient mb-3">
-                            📋 Daftar Tautan
-                        </h1>
-                        <p class="text-white/50 text-lg">Kelola dan lihat semua tautan terenkripsi Anda</p>
-                    </div>
-                    <div class="flex gap-4 flex-wrap">
-                        <div class="stat-card">
-                            <div class="stat-number" id="totalLinks">0</div>
-                            <div class="stat-label">Total Tautan</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number" id="totalPeople">0</div>
-                            <div class="stat-label">Kontributor</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="px-0">
+      <div id="statusMessage" class="hidden text-center p-4 rounded-lg mb-4 text-sm" role="alert"></div>
+      <div id="statusPopup" class="status-popup text-center text-sm font-semibold text-white"></div>
 
-            <!-- Status Popup -->
-            <div id="statusPopup" class="status-popup"></div>
+      <div id="loadingIndicator" class="text-center py-10 text-gray-500">
+        <svg class="animate-spin h-8 w-8 text-gray-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="mt-2">Memuat data...</p>
+      </div>
 
-            <!-- Loading Indicator -->
-            <div id="loadingIndicator" class="loading-state">
-                <div class="loader"></div>
-                <p class="mt-8 text-white/50 font-medium">Memuat data...</p>
-            </div>
-
-            <!-- Cards Grid -->
-            <div id="cardsContainer" class="cards-grid hidden"></div>
-
-            <!-- Empty State -->
-            <div id="emptyState" class="empty-state hidden">
-                <i class="fa-solid fa-inbox"></i>
-                <h3 class="text-2xl font-bold text-white mb-3">Tidak Ada Data</h3>
-                <p class="text-white/50">Belum ada tautan yang tersedia saat ini.</p>
-            </div>
-        </div>
-
-        <!-- QR Modal -->
-        <div id="qrModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4">
-            <div class="modal-content p-8 relative">
-                <button id="closeModal" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:rotate-90">
-                    <i class="fa-solid fa-times text-white"></i>
-                </button>
-                <h3 class="text-2xl font-bold text-white mb-6 text-center">QR Code</h3>
-                <div id="enlargedQrContainer" class="flex justify-center items-center bg-white/5 rounded-2xl p-6 border border-white/10" style="min-height:280px;"></div>
-                <button id="downloadSingleQrBtn" class="btn-glow w-full mt-6 justify-center">
-                    <i class="fa-solid fa-download"></i> Unduh QR Code
-                </button>
-            </div>
-        </div>
-
-        <!-- Description Modal -->
-        <div id="descriptionModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
-            <div class="modal-content flex flex-col max-h-[85vh]">
-                <div class="p-6 border-b border-white/10 relative">
-                    <button id="closeDescriptionModal" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:rotate-90">
-                        <i class="fa-solid fa-times text-white"></i>
-                    </button>
-                    <h2 class="text-2xl font-bold text-center title-gradient">Preview Konten</h2>
-                </div>
-                
-                <div id="descriptionLoading" class="text-center py-12 hidden">
-                    <div class="loader mx-auto"></div>
-                    <p class="mt-6 text-white/50">Memuat dan mendekripsi...</p>
-                </div>
-
-                <div id="descriptionContent" class="overflow-y-auto flex-1 p-6 flex flex-col items-center"></div>
-                <p id="descriptionMessage" class="text-center text-red-400 hidden p-4"></p>
-                
-                <div class="p-6 border-t border-white/10">
-                    <button id="downloadBtn" class="hidden btn-glow w-full justify-center">
-                        <i class="fa-solid fa-download"></i> Unduh Konten
-                    </button>
-                </div>
-            </div>
-        </div>
+      <div class="rounded-lg border border-gray-200 overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider qr-cell">QR Code</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Nama</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Judul</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Kategori</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">URL</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Kode Shift</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Dibuat Pada</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
+              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Hapus</th>
+            </tr>
+          </thead>
+          <tbody id="links-table-body" class="bg-white divide-y divide-gray-200">
+          </tbody>
+        </table>
+      </div>
     </div>
+  </div>
 
-    <!-- Sidebar Overlay -->
-    <div id="sidebarOverlay" class="sidebar-overlay"></div>
-
-    <!-- Floating Action Button -->
-    <div class="fab-container">
-        <button id="sidebarToggle" class="fab" aria-label="Toggle Menu">
-            <i class="fa-solid fa-plus"></i>
-        </button>
+  <div id="qrModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+    <div class="bg-white p-4 rounded-lg shadow-lg relative">
+      <button id="closeModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 focus:outline-none">✕</button>
+      <div id="enlargedQrContainer" style="width:280px;height:300px;"></div>
+      <button id="downloadSingleQrBtn" 
+              class="mt-3 w-full bg-indigo-500 text-white p-2 rounded-md hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2">
+          <i class="fa-solid fa-download"></i> Unduh
+      </button>
     </div>
+  </div>
 
-    <!-- Sidebar -->
-    <div id="sidebar">
-        <button id="closeSidebar" class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:rotate-90">
-            <i class="fa-solid fa-times text-white"></i>
-        </button>
-        
-        <h2 class="text-2xl font-bold text-white mb-8 flex items-center gap-3">
-            <i class="fa-solid fa-compass text-indigo-400"></i> Menu
-        </h2>
-        
-        <button id="downloadAllQrBtn" class="btn-outline w-full mb-4 justify-center">
-            <i class="fa-solid fa-file-zipper"></i> Unduh Semua QR
-        </button>
-        
-        <a href="https://pamer-bakat.vercel.app/tambah_konten.html" target="_blank" class="btn-glow w-full mb-8 justify-center text-center no-underline block">
-            <i class="fa-solid fa-plus"></i> Tambah Konten
-        </a>
-        
-        <div class="search-box mb-8">
-            <i class="fa-solid fa-search"></i>
-            <input type="text" id="searchInput" placeholder="Cari tautan...">
-            <button id="clearSearchBtn" class="absolute top-1/2 right-4 transform -translate-y-1/2 text-white/40 hover:text-white hidden">
-                <i class="fa-solid fa-times-circle"></i>
-            </button>
-        </div>
-        
-        <h3 class="text-sm font-bold text-white/40 uppercase tracking-widest mb-4">Filter Nama</h3>
-        <div id="nameTags" class="flex flex-wrap gap-2"></div>
+  <div id="descriptionModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0 transition-opacity duration-300 ease-in-out modal-overlay">
+    <div class="bg-white p-6 rounded-xl shadow-2xl relative max-w-xl mx-auto w-full max-h-[90vh] overflow-hidden flex flex-col transform scale-100 transition-transform duration-300">
+      <button id="closeDescriptionModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 focus:outline-none transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">Preview</h2>
+      <div id="descriptionLoading" class="text-center py-8 text-gray-500 hidden">
+        <svg class="animate-spin h-8 w-8 text-gray-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="mt-4 text-sm">Memuat dan mendekripsi...</p>
+      </div>
+
+      <div id="descriptionContent" class="overflow-y-auto w-full flex flex-col items-center p-2"></div>
+      <p id="descriptionMessage" class="text-center text-red-500 hidden mt-3"></p>
+      
+      <button id="downloadBtn" class="hidden mt-6 px-6 py-3 rounded-lg shadow-md transition-all duration-300 text-center font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg">Unduh Konten</button>
     </div>
+  </div>
+  </div>
 
-    <script>
-        (function(){
-            const SECRET_TEXT = 'YQDYIpjYnF7PZtDYs6e8yZJmGqTuB4rgZQSaenc618nmy4x095';
-            const overlay = document.getElementById('loginOverlay');
-            const fileInput = document.getElementById('loginFileInput');
-            const msg = document.getElementById('loginMsg');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const pageContent = document.getElementById('pageContent');
+<button id="sidebarToggle" class="p-4"> <!-- Diperbesar kelas padding dari p-2 ke p-4 -->
+    <i class="fa-solid fa-bars text-gray-700 w-8 h-8"></i> <!-- Diperbesar dari w-5 h-5 ke w-8 h-8 -->
+</button>
+  <div id="sidebar">
+    <button id="closeSidebar" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
+      <i class="fa-solid fa-times"></i>
+    </button>
+    <h2 class="text-lg font-semibold mb-4">Menu</h2>
+    <button id="downloadAllQrBtn" 
+            class="mb-4 p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors icon-wrapper flex items-center gap-2 text-sm font-semibold text-gray-700 w-full justify-center" 
+            title="Unduh Semua QR Code">
+        <i class="fa-solid fa-file-zipper w-5 h-5"></i>
+        Unduh Semua QR
+    </button>
+    <a href="https://pamer-bakat.vercel.app/tambah_konten.html" target="_blank" title="Pengaturan" class="mb-4 p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors icon-wrapper flex items-center gap-2 text-sm font-semibold text-gray-700 w-full justify-center">
+        <i class="fa-solid fa-plus text-gray-700 w-5 h-5"></i>
+        Tambah Konten
+    </a>
+    <div class="relative mb-4">
+      <input type="text" id="searchInput" placeholder="Cari..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-8">
+      <button id="clearSearchBtn" class="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <h3 class="text-md font-semibold text-gray-800 mb-2">Filter Nama</h3>
+    <div id="nameTags"></div>
+  </div>
 
-            function lockPage() {
-                overlay.style.display = 'flex';
-                document.documentElement.classList.add('lock-scroll');
-                document.body.classList.add('lock-scroll');
-                if (pageContent) pageContent.classList.add('blurred');
-            }
-            
-            function unlockPage() {
-                overlay.style.display = 'none';
-                document.documentElement.classList.remove('lock-scroll');
-                document.body.classList.remove('lock-scroll');
-                if (pageContent) pageContent.classList.remove('blurred');
-                logoutBtn.style.display = 'inline-flex';
-                localStorage.setItem('dekrip_logged_in', 'true');
-            }
-            
-            function resetAccess() {
-                fileInput.value = '';
-                msg.textContent = '';
-                logoutBtn.style.display = 'none';
-                localStorage.removeItem('dekrip_logged_in');
-                lockPage();
-            }
+  <script>
+    (function(){
+      const SECRET_TEXT = 'YQDYIpjYnF7PZtDYs6e8yZJmGqTuB4rgZQSaenc618nmy4x095';
+      const overlay = document.getElementById('loginOverlay');
+      const fileInput = document.getElementById('loginFileInput');
+      const msg = document.getElementById('loginMsg');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const pageContent = document.getElementById('pageContent');
 
-            lockPage();
+      function lockPage() {
+        overlay.style.display = 'flex';
+        document.documentElement.classList.add('lock-scroll');
+        document.body.classList.add('lock-scroll');
+        if (pageContent) pageContent.classList.add('blurred');
+      }
+      function unlockPage() {
+        overlay.style.display = 'none';
+        document.documentElement.classList.remove('lock-scroll');
+        document.body.classList.remove('lock-scroll');
+        if (pageContent) pageContent.classList.remove('blurred');
+        logoutBtn.style.display = 'inline-block';
+        localStorage.setItem('dekrip_logged_in', 'true');
+      }
+      function resetAccess() {
+        fileInput.value = '';
+        msg.textContent = '';
+        logoutBtn.style.display = 'none';
+        localStorage.removeItem('dekrip_logged_in');
+        lockPage();
+      }
 
-            fileInput.addEventListener('change', (ev) => {
-                msg.textContent = '';
-                const f = ev.target.files && ev.target.files[0];
-                if (!f) { msg.textContent = 'Tidak ada file terpilih.'; return; }
-                const name = f.name || '';
-                if (!name.toLowerCase().endsWith('.bat')) {
-                    msg.style.color = '#f87171';
-                    msg.textContent = 'Harap unggah file yang benar.';
-                    fileInput.value = '';
-                    return;
-                }
+      lockPage();
 
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    let text = String(e.target.result || '');
-                    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-                    const cleaned = text.trim();
-                    if (cleaned === SECRET_TEXT) {
-                        unlockPage();
-                        msg.style.color = '#34d399';
-                        msg.textContent = 'Berhasil — akses diberikan.';
-                    } else {
-                        msg.style.color = '#f87171';
-                        msg.textContent = 'Isi file tidak cocok. Coba lagi.';
-                        fileInput.value = '';
-                    }
-                };
-                reader.onerror = function() {
-                    msg.style.color = '#f87171';
-                    msg.textContent = 'Gagal membaca file.';
-                    fileInput.value = '';
-                };
-                reader.readAsText(f);
-            });
-
-            logoutBtn.addEventListener('click', () => {
-                if (confirm('Apakah Anda yakin ingin menghapus akses dan keluar?')) resetAccess();
-            });
-
-            overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) {
-                    msg.textContent = 'Silakan unggah file yang benar untuk masuk.';
-                }
-            });
-        })();
-    </script>
-
-    <script type="module">
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
-
-        const supabaseUrl = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
-        const supabase = createClient(supabaseUrl, supabaseKey);
-
-        const cardsContainer = document.getElementById('cardsContainer');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const emptyState = document.getElementById('emptyState');
-        const statusPopup = document.getElementById('statusPopup');
-        const searchInput = document.getElementById('searchInput');
-        const clearSearchBtn = document.getElementById('clearSearchBtn');
-        const qrModal = document.getElementById('qrModal');
-        const closeModalButton = document.getElementById('closeModal');
-        const descriptionModal = document.getElementById('descriptionModal');
-        const closeDescriptionModalButton = document.getElementById('closeDescriptionModal');
-        const descriptionContent = document.getElementById('descriptionContent');
-        const descriptionMessage = document.getElementById('descriptionMessage');
-        const descriptionLoading = document.getElementById('descriptionLoading');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const downloadSingleQrBtn = document.getElementById('downloadSingleQrBtn');
-        const enlargedQrContainer = document.getElementById('enlargedQrContainer');
-        const downloadAllQrBtn = document.getElementById('downloadAllQrBtn');
-        const nameTagsContainer = document.getElementById('nameTags');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const closeSidebar = document.getElementById('closeSidebar');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const totalLinksEl = document.getElementById('totalLinks');
-        const totalPeopleEl = document.getElementById('totalPeople');
-
-        let lastClickTime = 0;
-        let clickCount = 0;
-        let currentDownloadBlob = null;
-        let currentDownloadFilename = null;
-        let allLinksData = [];
-        let currentQrFilename = null;
-
-        function openSidebar(e) {
-            e.stopPropagation();
-            sidebar.classList.add('open');
-            sidebarOverlay.classList.add('show');
-            sidebarToggle.classList.add('active');
+      fileInput.addEventListener('change', (ev) => {
+        msg.textContent = '';
+        const f = ev.target.files && ev.target.files[0];
+        if (!f) { msg.textContent = 'Tidak ada file terpilih.'; return; }
+        const name = f.name || '';
+        if (!name.toLowerCase().endsWith('.bat')) {
+          msg.style.color = '#b91c1c';
+          msg.textContent = 'Harap unggah file.';
+          fileInput.value = '';
+          return;
         }
 
-        function closeSidebarFunc() {
-            sidebar.classList.remove('open');
-            sidebarOverlay.classList.remove('show');
-            sidebarToggle.classList.remove('active');
-        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          let text = String(e.target.result || '');
+          if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+          const cleaned = text.trim();
+          if (cleaned === SECRET_TEXT) {
+            unlockPage();
+            msg.style.color = '#059669';
+            msg.textContent = 'Berhasil — akses diberikan.';
+          } else {
+            msg.style.color = '#b91c1c';
+            msg.textContent = 'Isi file tidak cocok. Coba lagi.';
+            fileInput.value = '';
+          }
+        };
+        reader.onerror = function() {
+          msg.style.color = '#b91c1c';
+          msg.textContent = 'Gagal membaca file.';
+          fileInput.value = '';
+        };
+        reader.readAsText(f);
+      });
 
-        sidebarToggle.addEventListener('click', (e) => {
-            if (sidebar.classList.contains('open')) {
-                closeSidebarFunc();
-            } else {
-                openSidebar(e);
-            }
+      logoutBtn.addEventListener('click', () => {
+        if (confirm('Apakah Anda yakin ingin menghapus akses dan keluar?')) resetAccess();
+      });
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          msg.textContent = 'Silakan unggah yang benar untuk masuk.';
+        }
+      });
+    })();
+  </script>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
+
+    const supabaseUrl = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const linksTableBody = document.getElementById('links-table-body');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const statusMessage = document.getElementById('statusMessage');
+    const statusPopup = document.getElementById('statusPopup');
+    const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const qrModal = document.getElementById('qrModal');
+    const closeModalButton = document.getElementById('closeModal');
+    const descriptionModal = document.getElementById('descriptionModal');
+    const closeDescriptionModalButton = document.getElementById('closeDescriptionModal');
+    const descriptionContent = document.getElementById('descriptionContent');
+    const descriptionMessage = document.getElementById('descriptionMessage');
+    const descriptionLoading = document.getElementById('descriptionLoading');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const downloadSingleQrBtn = document.getElementById('downloadSingleQrBtn');
+    const enlargedQrContainer = document.getElementById('enlargedQrContainer');
+    const downloadAllQrBtn = document.getElementById('downloadAllQrBtn');
+    const nameTagsContainer = document.getElementById('nameTags');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const closeSidebar = document.getElementById('closeSidebar');
+    const pageContent = document.getElementById('pageContent');
+
+    let lastClickTime = 0;
+    let clickCount = 0;
+    let currentDownloadBlob = null;
+    let currentDownloadFilename = null;
+    let allLinksData = [];
+    let currentQrDataUrl = null;
+    let currentQrFilename = null;
+
+function openSidebar(e) {
+        e.stopPropagation(); // Tambahan untuk mencegah konflik event bubbling
+        sidebar.classList.add('open');
+        sidebarToggle.style.display = 'none';
+        pageContent.classList.add('blurred');
+    }
+
+    function closeSidebarFunc() {
+      sidebar.classList.remove('open');
+      sidebarToggle.style.display = 'block';
+      pageContent.classList.remove('blurred');
+    }
+
+    sidebarToggle.addEventListener('click', openSidebar);
+
+    closeSidebar.addEventListener('click', closeSidebarFunc);
+
+    document.addEventListener('click', (e) => {
+      if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== sidebarToggle) {
+        closeSidebarFunc();
+      }
+    });
+
+    function showStatus(message, type = 'error') {
+      statusPopup.textContent = message;
+      if (type === 'error') {
+        statusPopup.classList.add('bg-red-500', 'text-white');
+        statusPopup.classList.remove('bg-green-500');
+      } else {
+        statusPopup.classList.add('bg-green-500', 'text-white');
+        statusPopup.classList.remove('bg-red-500');
+      }
+      statusPopup.classList.add('show');
+      setTimeout(() => {
+        statusPopup.classList.remove('show');
+      }, 3000);
+    }
+
+    async function generateQrCodeWithPadding(data, size = 256, padding = 4) {
+        const canvas = document.createElement('canvas');
+        await QRCode.toCanvas(canvas, data, { 
+            errorCorrectionLevel: 'H',
+            margin: 0, 
+            width: size 
         });
-        
-        closeSidebar.addEventListener('click', closeSidebarFunc);
-        sidebarOverlay.addEventListener('click', closeSidebarFunc);
 
-        function showStatus(message, type = 'error') {
-            statusPopup.textContent = message;
-            statusPopup.style.background = type === 'error' 
-                ? 'linear-gradient(135deg, #ef4444, #dc2626)' 
-                : 'linear-gradient(135deg, #10b981, #059669)';
-            statusPopup.style.color = 'white';
-            statusPopup.classList.add('show');
-            setTimeout(() => statusPopup.classList.remove('show'), 3000);
+        const ctx = canvas.getContext('2d');
+        const qrSize = canvas.width;
+        const totalSize = qrSize + 2 * padding;
+
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = totalSize;
+        finalCanvas.height = totalSize;
+        const finalCtx = finalCanvas.getContext('2d');
+
+        finalCtx.fillStyle = '#FFFFFF';
+        finalCtx.fillRect(0, 0, totalSize, totalSize);
+        finalCtx.drawImage(canvas, padding, padding, qrSize, qrSize);
+
+        return finalCanvas;
+    }
+
+    function downloadQrCode(canvas, filename) {
+        if (!canvas) {
+            showStatus('Gagal membuat QR Code untuk diunduh.', 'error');
+            return;
         }
 
-        async function generateQrCodeWithPadding(data, size = 256, padding = 4) {
-            const canvas = document.createElement('canvas');
-            await QRCode.toCanvas(canvas, data, { 
-                errorCorrectionLevel: 'H',
-                margin: 0, 
-                width: size 
-            });
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showStatus(`QR Code '${filename}' berhasil diunduh.`, 'success');
+    }
 
-            const qrSize = canvas.width;
-            const totalSize = qrSize + 2 * padding;
-            const finalCanvas = document.createElement('canvas');
-            finalCanvas.width = totalSize;
-            finalCanvas.height = totalSize;
-            const finalCtx = finalCanvas.getContext('2d');
-            finalCtx.fillStyle = '#FFFFFF';
-            finalCtx.fillRect(0, 0, totalSize, totalSize);
-            finalCtx.drawImage(canvas, padding, padding, qrSize, qrSize);
-            return finalCanvas;
+    async function downloadAllQRCodes() {
+        if (allLinksData.length === 0) {
+            showStatus('Tidak ada data tautan untuk diunduh.', 'error');
+            return;
         }
 
-        function downloadQrCode(canvas, filename) {
-            if (!canvas) {
-                showStatus('Gagal membuat QR Code.', 'error');
-                return;
-            }
-            const a = document.createElement('a');
-            a.href = canvas.toDataURL('image/png');
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            showStatus(`QR Code berhasil diunduh.`, 'success');
-        }
+        const zip = new JSZip();
+        const promises = [];
+        downloadAllQrBtn.disabled = true;
+        downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+        showStatus('Mempersiapkan file ZIP QR Code...', 'success');
 
-        async function downloadAllQRCodes() {
-            if (allLinksData.length === 0) {
-                showStatus('Tidak ada data tautan.', 'error');
-                return;
-            }
+        for (const link of allLinksData) {
+            const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
+            let filename = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}.png`;
+            filename = filename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
 
-            const zip = new JSZip();
-            downloadAllQrBtn.disabled = true;
-            downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
-            showStatus('Mempersiapkan file ZIP...', 'success');
-
-            const promises = allLinksData.map(link => {
-                const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
-                let filename = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}.png`;
-                filename = filename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
-
-                return generateQrCodeWithPadding(qrData, 512, 20)
-                    .then(canvas => new Promise(resolve => {
+            const promise = generateQrCodeWithPadding(qrData, 512, 20)
+                .then(canvas => {
+                    return new Promise(resolve => {
                         canvas.toBlob(blob => {
                             zip.file(filename, blob);
                             resolve();
                         }, 'image/png');
-                    }));
-            });
-
-            await Promise.all(promises);
-            
-            zip.generateAsync({ type: 'blob' })
-                .then(content => {
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(content);
-                    a.download = 'Semua_QR_Codes.zip';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    showStatus('Semua QR Code berhasil diunduh!', 'success');
-                })
-                .finally(() => {
-                    downloadAllQrBtn.disabled = false;
-                    downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-file-zipper"></i> Unduh Semua QR';
+                    });
                 });
-        }
-
-        downloadAllQrBtn.addEventListener('click', downloadAllQRCodes);
-
-        function decryptCaesar(text, shift) {
-            if (typeof text !== 'string') return text;
-            const s = Number(shift);
-            if (isNaN(s)) return text;
-            let result = '';
-            for (let i = 0; i < text.length; i++) {
-                let code = text.charCodeAt(i);
-                if (code >= 65 && code <= 90) {
-                    code = ((code - 65 - s + 260) % 26) + 65;
-                } else if (code >= 97 && code <= 122) {
-                    code = ((code - 97 - s + 260) % 26) + 97;
-                }
-                result += String.fromCharCode(code);
-            }
-            return result;
-        }
-
-        function normalizeBase64(b64) {
-            if (!b64 || typeof b64 !== 'string') return '';
-            let s = b64.replace(/\s+/g, '');
-            const dataMatch = s.match(/^data:.*;base64,(.*)$/i);
-            if (dataMatch) s = dataMatch[1];
-            s = s.replace(/-/g, '+').replace(/_/g, '/');
-            const pad = s.length % 4;
-            if (pad === 2) s += '==';
-            else if (pad === 3) s += '=';
-            return s;
-        }
-
-        function isBase64String(s) {
-            if (!s || typeof s !== 'string') return false;
-            const cleaned = normalizeBase64(s);
-            return cleaned.length % 4 === 0 && /^[A-Za-z0-9+/=]+$/.test(cleaned);
-        }
-
-        function getMimeFromBase64Sample(b64) {
-            try {
-                const cleaned = normalizeBase64(b64).slice(0, 2000);
-                if (!cleaned) return null;
-                const bin = atob(cleaned);
-                if (bin.charCodeAt(0) === 0x89 && bin[1] === 'P') return 'image/png';
-                if (bin.charCodeAt(0) === 0xFF && bin.charCodeAt(1) === 0xD8) return 'image/jpeg';
-                if (bin.startsWith('GIF8')) return 'image/gif';
-                if (bin.indexOf('ftyp') !== -1) return 'video/mp4';
-                const prefix = normalizeBase64(b64).slice(0, 8);
-                if (prefix.startsWith('iVBOR')) return 'image/png';
-                if (prefix.startsWith('/9j/')) return 'image/jpeg';
-                if (prefix.startsWith('R0lG')) return 'image/gif';
-                return null;
-            } catch (e) {
-                return null;
-            }
-        }
-
-        function base64ToBlob(base64, mime) {
-            const binary = atob(base64);
-            const arr = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
-            return new Blob([arr], { type: mime || 'application/octet-stream' });
-        }
-
-        function setPreviewFromBase64(rawBase64, mimeHint) {
-            const cleaned = normalizeBase64(rawBase64);
-            if (!cleaned) {
-                descriptionContent.innerHTML = '<p class="text-red-400">Data base64 kosong.</p>';
-                return { blob: null, mime: null };
-            }
-
-            let mime = mimeHint || getMimeFromBase64Sample(cleaned);
-            descriptionContent.innerHTML = '';
-            let blob = null;
-
-            try {
-                blob = base64ToBlob(cleaned, mime);
-                const objectUrl = URL.createObjectURL(blob);
-                
-                if (mime && mime.startsWith('image/')) {
-                    const img = document.createElement('img');
-                    img.src = objectUrl;
-                    img.className = 'media-preview border border-white/10 shadow-2xl';
-                    img.onload = () => URL.revokeObjectURL(objectUrl);
-                    descriptionContent.appendChild(img);
-                } else if (mime && mime.startsWith('video/')) {
-                    const video = document.createElement('video');
-                    video.src = objectUrl;
-                    video.controls = true;
-                    video.className = 'video-preview border border-white/10 shadow-2xl';
-                    video.onloadeddata = () => URL.revokeObjectURL(objectUrl);
-                    descriptionContent.appendChild(video);
-                } else {
-                    const a = document.createElement('a');
-                    a.href = objectUrl;
-                    a.download = 'file.bin';
-                    a.textContent = 'Unduh file';
-                    a.className = 'btn-glow';
-                    descriptionContent.appendChild(a);
-                }
-            } catch (err) {
-                blob = null;
-                descriptionContent.innerHTML = '<p class="text-red-400">Gagal memproses data.</p>';
-            }
             
-            return { blob, mime };
+            promises.push(promise);
         }
 
-        async function showDescriptionModal(url, shiftCode, personName, linkName) {
-            descriptionModal.classList.remove('hidden');
-            descriptionContent.innerHTML = '';
-            descriptionMessage.classList.add('hidden');
-            descriptionLoading.classList.remove('hidden');
-            downloadBtn.classList.add('hidden');
-
-            try {
-                if (!url || !url.startsWith('http')) throw new Error('URL tidak valid.');
-                const response = await fetch(url);
-                if (!response.ok) throw new Error(`Gagal memuat file. Status: ${response.status}`);
-
-                const encryptedText = await response.text();
-                const decrypted = decryptCaesar(encryptedText, shiftCode);
-                const probableBase64 = decrypted.trim();
-                const mimeHint = getMimeFromBase64Sample(probableBase64);
-                const { blob, mime } = setPreviewFromBase64(probableBase64, mimeHint);
-
-                if (isBase64String(probableBase64)) {
-                    const fileExt = mime ? mime.split('/')[1] : 'bin';
-                    let baseFilename = `${personName || 'anonim'} - ${linkName || 'tanpa-nama'}`;
-                    baseFilename = baseFilename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-');
-                    currentDownloadFilename = `${baseFilename}.${fileExt}`;
-                    currentDownloadBlob = blob;
-                } else {
-                    currentDownloadBlob = new Blob([decrypted], { type: 'text/plain' });
-                    currentDownloadFilename = `${personName || 'anonim'} - ${linkName || 'tanpa-nama'}.txt`;
-                }
-                
-                downloadBtn.innerHTML = '<i class="fa-solid fa-download"></i> Unduh Konten';
-                downloadBtn.classList.remove('hidden');
-                descriptionLoading.classList.add('hidden');
-            } catch (error) {
-                descriptionMessage.textContent = `Gagal: ${error.message}`;
-                descriptionLoading.classList.add('hidden');
-                descriptionMessage.classList.remove('hidden');
-            }
-        }
-
-        function hideDescriptionModal() {
-            descriptionModal.classList.add('hidden');
-            descriptionContent.innerHTML = '';
-            descriptionMessage.classList.add('hidden');
-            descriptionLoading.classList.add('hidden');
-            downloadBtn.classList.add('hidden');
-            currentDownloadBlob = null;
-            currentDownloadFilename = null;
-        }
-
-        closeModalButton.addEventListener('click', () => qrModal.classList.add('hidden'));
-        qrModal.addEventListener('click', (e) => { if (e.target === qrModal) qrModal.classList.add('hidden'); });
-        closeDescriptionModalButton.addEventListener('click', hideDescriptionModal);
-        descriptionModal.addEventListener('click', (e) => { if (e.target === descriptionModal) hideDescriptionModal(); });
-
-        downloadSingleQrBtn.addEventListener('click', () => {
-            const canvas = enlargedQrContainer.querySelector('canvas');
-            if (canvas && currentQrFilename) {
-                downloadQrCode(canvas, currentQrFilename);
-            }
-        });
-
-        downloadBtn.addEventListener('click', () => {
-            if (currentDownloadBlob) {
+        await Promise.all(promises);
+        
+        zip.generateAsync({ type: 'blob' })
+            .then(content => {
                 const a = document.createElement('a');
-                a.href = URL.createObjectURL(currentDownloadBlob);
-                a.download = currentDownloadFilename;
+                a.href = URL.createObjectURL(content);
+                a.download = 'Semua_QR_Codes.zip';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
-            }
-        });
-
-        function filterLinks() {
-            const searchTerm = searchInput.value.toLowerCase().trim();
-            const cards = cardsContainer.querySelectorAll('.link-card');
-
-            cards.forEach(card => {
-                card.style.display = card.textContent.toLowerCase().includes(searchTerm) ? '' : 'none';
+                showStatus('Semua QR Code berhasil dikemas dan diunduh!', 'success');
+            })
+            .catch(error => {
+                showStatus('Gagal membuat file ZIP.', 'error');
+            })
+            .finally(() => {
+                downloadAllQrBtn.disabled = false;
+                downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-file-zipper w-5 h-5"></i> Unduh Semua QR';
             });
+    }
 
-            document.querySelectorAll('.name-tag').forEach(t => t.classList.remove('active'));
-            if (searchTerm) {
-                const activeTag = Array.from(document.querySelectorAll('.name-tag'))
-                    .find(t => t.textContent.toLowerCase() === searchTerm);
-                if (activeTag) activeTag.classList.add('active');
-            }
-            clearSearchBtn.classList.toggle('hidden', !searchTerm);
+    downloadAllQrBtn.addEventListener('click', downloadAllQRCodes);
+
+    function decryptCaesar(text, shift) {
+      if (typeof text !== 'string') return text;
+      const s = Number(shift);
+      if (isNaN(s)) return text;
+      let result = '';
+      for (let i = 0; i < text.length; i++) {
+        let code = text.charCodeAt(i);
+        if (code >= 65 && code <= 90) {
+          code = ((code - 65 - s + 260) % 26) + 65;
+        } else if (code >= 97 && code <= 122) {
+          code = ((code - 97 - s + 260) % 26) + 97;
+        }
+        result += String.fromCharCode(code);
+      }
+      return result;
+    }
+
+    function normalizeBase64(b64) {
+      if (!b64 || typeof b64 !== 'string') return '';
+      let s = b64.replace(/\s+/g, '');
+      const dataMatch = s.match(/^data:.*;base64,(.*)$/i);
+      if (dataMatch) s = dataMatch[1];
+      s = s.replace(/-/g, '+').replace(/_/g, '/');
+      const pad = s.length % 4;
+      if (pad === 2) s += '=='; else if (pad === 3) s += '=';
+      return s;
+    }
+
+    function isBase64String(s) {
+      if (!s || typeof s !== 'string') return false;
+      const cleaned = normalizeBase64(s);
+      return cleaned.length % 4 === 0 && /^[A-Za-z0-9+/=]+$/.test(cleaned);
+    }
+
+    function getMimeFromBase64Sample(b64) {
+      try {
+        const cleaned = normalizeBase64(b64).slice(0,2000);
+        if (!cleaned) return null;
+        const bin = atob(cleaned);
+        const c0 = bin.charCodeAt(0), c1 = bin.charCodeAt(1);
+        if (c0 === 0x89 && bin[1] === 'P' && bin[2] === 'N' && bin[3] === 'G') return 'image/png';
+        if (c0 === 0xFF && c1 === 0xD8) return 'image/jpeg';
+        if (bin.startsWith('GIF87a') || bin.startsWith('GIF89a')) return 'image/gif';
+        if (bin.trim().startsWith('<svg')) return 'image/svg+xml';
+        if (bin.indexOf('ftyp') !== -1) return 'video/mp4';
+        if (bin.toLowerCase().indexOf('webm') !== -1) return 'video/webm';
+        const prefix = normalizeBase64(b64).slice(0,8);
+        if (prefix.startsWith('iVBOR') || prefix.startsWith('iVBORw0K')) return 'image/png';
+        if (prefix.startsWith('/9j/')) return 'image/jpeg';
+        if (prefix.startsWith('R0lG')) return 'image/gif';
+        return null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function base64ToBlob(base64, mime) {
+      const binary = atob(base64);
+      const len = binary.length;
+      const arr = new Uint8Array(len);
+      for (let i=0;i<len;i++) arr[i] = binary.charCodeAt(i);
+      return new Blob([arr], { type: mime || 'application/octet-stream'});
+    }
+
+    function setPreviewFromBase64(rawBase64, mimeHint, useBlobIfLarge = true) {
+      const cleaned = normalizeBase64(rawBase64);
+      if (!cleaned) { descriptionContent.innerHTML = '<p class="text-red-500">Data base64 kosong.</p>'; return; }
+
+      let mime = mimeHint || getMimeFromBase64Sample(cleaned);
+      if (!mime) {
+        if (cleaned.startsWith('iVBOR') || cleaned.startsWith('iVBORw0K')) mime = 'image/png';
+        else if (cleaned.startsWith('/9j/')) mime = 'image/jpeg';
+        else if (cleaned.startsWith('R0lG')) mime = 'image/gif';
+      }
+
+      descriptionContent.innerHTML = '';
+      const threshold = 1024 * 300;
+      const approximateSize = Math.ceil((cleaned.length * 3) / 4);
+      let blob = null;
+
+      if (useBlobIfLarge && approximateSize > threshold) {
+        try {
+          blob = base64ToBlob(cleaned, mime);
+          const objectUrl = URL.createObjectURL(blob);
+          if (mime && mime.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = objectUrl;
+            img.className = 'media-preview rounded-md border border-gray-200';
+            img.onload = () => URL.revokeObjectURL(objectUrl);
+            descriptionContent.appendChild(img);
+          } else if (mime && mime.startsWith('video/')) {
+            const video = document.createElement('video');
+            video.src = objectUrl;
+            video.controls = true;
+            video.className = 'video-preview rounded-md border border-gray-200';
+            video.onloadeddata = () => URL.revokeObjectURL(objectUrl);
+            descriptionContent.appendChild(video);
+          } else {
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = 'file.bin';
+            a.textContent = 'Unduh file (tipe media tidak terdeteksi)';
+            a.className = 'underline text-blue-600';
+            descriptionContent.appendChild(a);
+            const pre = document.createElement('pre');
+            pre.textContent = cleaned.slice(0,1000) + (cleaned.length>1000? '\n\n... (terpotong) ...':'');
+            pre.className = 'mt-3 p-3 bg-gray-50 rounded-md max-h-64 overflow-auto text-sm';
+            descriptionContent.appendChild(pre);
+          }
+        } catch (err) {
+          blob = null;
+        }
+      }
+
+      if (!blob) {
+        const dataMime = mime || 'application/octet-stream';
+        const dataUrl = `data:${dataMime};base64,${cleaned}`;
+        if (dataMime.startsWith('image/')) {
+          const img = document.createElement('img');
+          img.src = dataUrl;
+          img.className = 'media-preview rounded-md border border-gray-200';
+          descriptionContent.appendChild(img);
+        } else if (dataMime.startsWith('video/')) {
+          const video = document.createElement('video');
+          video.src = dataUrl;
+          video.controls = true;
+          video.className = 'video-preview rounded-md border border-gray-200';
+          video.setAttribute('playsinline', '');
+          descriptionContent.appendChild(video);
+        } else {
+          const pre = document.createElement('pre');
+          pre.textContent = cleaned.slice(0,2000) + (cleaned.length>2000? '\n\n... (terpotong) ...':'');
+          pre.className = 'p-4 bg-gray-50 rounded-md text-sm max-h-96 overflow-auto w-full';
+          descriptionContent.appendChild(pre);
+        }
+      }
+      
+      return { blob: blob, mime: mime };
+    }
+
+    async function showDescriptionModal(url, shiftCode, personName, linkName) {
+      descriptionModal.classList.remove('hidden');
+      descriptionContent.innerHTML = '';
+      descriptionMessage.classList.add('hidden');
+      descriptionLoading.classList.remove('hidden');
+      downloadBtn.classList.add('hidden');
+
+      try {
+        if (!url || !url.startsWith('http')) throw new Error('URL deskripsi tidak valid.');
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Gagal memuat file dari URL. Status: ${response.status}`);
+
+        const encryptedText = await response.text();
+        const decrypted = decryptCaesar(encryptedText, shiftCode);
+        const probableBase64 = decrypted.trim();
+        const mimeHint = getMimeFromBase64Sample(probableBase64);
+
+        const previewResult = setPreviewFromBase64(probableBase64, mimeHint, true);
+        const blob = previewResult.blob;
+        const mime = previewResult.mime;
+
+        if (isBase64String(probableBase64)) {
+          const fileExt = mime ? mime.split('/')[1] : 'bin';
+          let baseFilename = `${personName || 'anonim'} - ${linkName || 'tanpa-nama'}`;
+          baseFilename = baseFilename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+          currentDownloadFilename = `${baseFilename}.${fileExt}`;
+          currentDownloadBlob = blob;
+        } else {
+          currentDownloadBlob = new Blob([decrypted], { type: 'text/plain' });
+          currentDownloadFilename = `${personName || 'anonim'} - ${linkName || 'tanpa-nama'}.txt`;
         }
         
-        searchInput.addEventListener('input', filterLinks);
-        clearSearchBtn.addEventListener('click', () => {
-            searchInput.value = '';
-            filterLinks();
-        });
+        downloadBtn.textContent = 'Unduh Konten';
+        downloadBtn.classList.remove('hidden');
+        descriptionLoading.classList.add('hidden');
+      } catch (error) {
+        descriptionMessage.textContent = `Gagal memuat atau mendekripsi deskripsi: ${error.message}`;
+        descriptionLoading.classList.add('hidden');
+        descriptionMessage.classList.remove('hidden');
+      }
+    }
 
-        function getCategoryClass(category) {
-            const cat = (category || '').toLowerCase();
-            if (cat.includes('video')) return 'badge-video';
-            if (cat.includes('image') || cat.includes('gambar') || cat.includes('foto')) return 'badge-image';
-            if (cat.includes('audio') || cat.includes('musik')) return 'badge-audio';
-            if (cat.includes('dokumen') || cat.includes('document')) return 'badge-document';
-            return 'badge-default';
+    function hideDescriptionModal() {
+      descriptionModal.classList.add('hidden');
+      descriptionContent.innerHTML = '';
+      descriptionMessage.classList.add('hidden');
+      descriptionLoading.classList.add('hidden');
+      downloadBtn.classList.add('hidden');
+      if (currentDownloadBlob) {
+        URL.revokeObjectURL(URL.createObjectURL(currentDownloadBlob));
+        currentDownloadBlob = null;
+        currentDownloadFilename = null;
+      }
+    }
+
+    closeModalButton.addEventListener('click', () => qrModal.classList.add('hidden'));
+    qrModal.addEventListener('click', (e) => { 
+        if (e.target === qrModal) qrModal.classList.add('hidden'); 
+    });
+    closeDescriptionModalButton.addEventListener('click', hideDescriptionModal);
+    descriptionModal.addEventListener('click', (e) => { 
+        if (e.target === descriptionModal) hideDescriptionModal(); 
+    });
+
+    downloadSingleQrBtn.addEventListener('click', () => {
+        const canvas = enlargedQrContainer.querySelector('canvas');
+        if (canvas && currentQrFilename) {
+            downloadQrCode(canvas, currentQrFilename);
+        } else {
+            showStatus('QR Code tidak ditemukan atau nama file hilang.', 'error');
+        }
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      if (currentDownloadBlob) {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(currentDownloadBlob);
+        a.download = currentDownloadFilename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    });
+
+    function filterLinks() {
+      const searchTerm = searchInput.value.toLowerCase().trim();
+      const rows = linksTableBody.querySelectorAll('tr');
+
+      rows.forEach(row => {
+        const rowText = row.textContent.toLowerCase();
+        row.style.display = rowText.includes(searchTerm) ? '' : 'none';
+      });
+
+      document.querySelectorAll('.name-tag').forEach(t => t.classList.remove('active'));
+      if (searchTerm) {
+        const activeTag = Array.from(document.querySelectorAll('.name-tag'))
+          .find(t => t.textContent.toLowerCase() === searchTerm);
+        if (activeTag) activeTag.classList.add('active');
+      }
+
+      clearSearchBtn.classList.toggle('hidden', !searchTerm);
+    }
+    searchInput.addEventListener('input', filterLinks);
+    clearSearchBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      filterLinks();
+    });
+
+    async function handleEdit(e) {
+        const cell = e.target;
+        if (!cell.classList.contains('editable')) return;
+
+        cell.contentEditable = 'false';
+        cell.classList.remove('editable');
+        cell.removeEventListener('keydown', handleEnter);
+        cell.removeEventListener('blur', handleEdit);
+
+        const newText = cell.textContent.trim();
+        const row = cell.closest('tr');
+        const linkId = row.dataset.id;
+        const column = cell.dataset.column;
+
+        if (!linkId || !column) {
+            showStatus('Gagal menemukan ID atau kolom untuk memperbarui.', 'error');
+            return;
         }
 
-        function getCategoryIcon(category) {
-            const cat = (category || '').toLowerCase();
-            if (cat.includes('video')) return 'fa-video';
-            if (cat.includes('image') || cat.includes('gambar') || cat.includes('foto')) return 'fa-image';
-            if (cat.includes('audio') || cat.includes('musik')) return 'fa-music';
-            if (cat.includes('dokumen') || cat.includes('document')) return 'fa-file-alt';
-            return 'fa-folder';
-        }
+        const updates = {};
+        updates[column] = newText;
 
-        async function handleEdit(e) {
-            const cell = e.target;
-            if (!cell.classList.contains('editable')) return;
-
-            cell.contentEditable = 'false';
-            cell.classList.remove('editable');
-
-            const newText = cell.textContent.trim();
-            const card = cell.closest('.link-card');
-            const linkId = card.dataset.id;
-            const column = cell.dataset.column;
-
-            if (!linkId || !column) return;
-
-            showStatus('Menyimpan...', 'success');
-            
-            try {
-                const { error } = await supabase.from('links').update({ [column]: newText }).eq('id', linkId);
-                if (error) throw error;
-                showStatus('Tersimpan!', 'success');
-                if (column === 'url' || column === 'shift_code') fetchLinks();
-            } catch (error) {
-                showStatus(`Gagal: ${error.message}`, 'error');
+        showStatus('Menyimpan perubahan...', 'success');
+        
+        try {
+            const { error } = await supabase.from('links').update(updates).eq('id', linkId);
+            if (error) throw error;
+            showStatus('Perubahan berhasil disimpan!', 'success');
+            if (column === 'url' || column === 'shift_code') {
+                fetchLinks();
             }
+        } catch (error) {
+            showStatus(`Gagal menyimpan perubahan: ${error.message}`, 'error');
+        }
+    }
+    
+    function handleEnter(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            e.target.blur();
+        }
+    }
+    
+    async function handleDelete(e) {
+        const button = e.target.closest('button');
+        const row = button.closest('tr');
+        const linkId = row.dataset.id;
+        
+        if (!linkId) {
+            showStatus('Gagal menemukan ID tautan untuk dihapus.', 'error');
+            return;
         }
         
-        function handleEnter(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                e.target.blur();
-            }
-        }
-        
-        async function handleDelete(e) {
-            const card = e.target.closest('.link-card');
-            const linkId = card.dataset.id;
-            
-            if (!linkId || !confirm('Hapus tautan ini?')) return;
-            
-            showStatus('Menghapus...', 'success');
+        if (confirm('Apakah Anda yakin ingin menghapus tautan ini?')) {
+            showStatus('Menghapus tautan...', 'success');
             try {
                 const { error } = await supabase.from('links').delete().eq('id', linkId);
                 if (error) throw error;
-                showStatus('Terhapus!', 'success');
-                card.style.transform = 'scale(0.8)';
-                card.style.opacity = '0';
-                setTimeout(() => {
-                    card.remove();
-                    fetchLinks();
-                }, 300);
+                showStatus('Tautan berhasil dihapus!', 'success');
+                row.remove();
+                fetchLinks();
             } catch (error) {
-                showStatus(`Gagal: ${error.message}`, 'error');
+                showStatus(`Gagal menghapus tautan: ${error.message}`, 'error');
             }
         }
+    }
 
-        async function fetchLinks() {
-            loadingIndicator.classList.remove('hidden');
-            cardsContainer.classList.add('hidden');
-            emptyState.classList.add('hidden');
-            cardsContainer.innerHTML = '';
-            allLinksData = [];
-            nameTagsContainer.innerHTML = '';
+    async function fetchLinks() {
+      loadingIndicator && loadingIndicator.classList.remove('hidden');
+      linksTableBody.querySelectorAll('tr').forEach(row => row.remove());
+      allLinksData = [];
+      nameTagsContainer.innerHTML = '';
 
-            try {
-                const { data, error } = await supabase.from('links').select('*, category').order('created_at', { ascending: false });
-                loadingIndicator.classList.add('hidden');
-                
-                if (error) { 
-                    showStatus(`Error: ${error.message}`); 
-                    return; 
-                }
-                
-                if (!data || data.length === 0) { 
-                    emptyState.classList.remove('hidden');
-                    totalLinksEl.textContent = '0';
-                    totalPeopleEl.textContent = '0';
-                    return; 
-                }
+      try {
+        const { data, error } = await supabase.from('links').select('*, category').order('created_at', { ascending: false });
+        loadingIndicator && loadingIndicator.classList.add('hidden');
+        if (error) { showStatus(`Error fetching data: ${error.message}`); return; }
+        if (!data || data.length === 0) { return; }
 
-                allLinksData = data;
-                cardsContainer.classList.remove('hidden');
+        allLinksData = data;
 
-                totalLinksEl.textContent = data.length;
-                const uniquePeople = [...new Set(data.map(link => link.person_name).filter(Boolean))];
-                totalPeopleEl.textContent = uniquePeople.length;
+        const uniqueNames = [...new Set(data
+            .map(link => link.person_name)
+            .filter(Boolean)
+        )].sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
 
-                const sortedNames = uniquePeople.sort((a, b) => a.localeCompare(b, 'id'));
-                sortedNames.forEach(name => {
-                    const tag = document.createElement('span');
-                    tag.className = 'name-tag';
-                    tag.textContent = name;
-                    tag.addEventListener('click', () => {
-                        searchInput.value = name;
-                        filterLinks();
-                        document.querySelectorAll('.name-tag').forEach(t => t.classList.remove('active'));
-                        tag.classList.add('active');
-                    });
-                    nameTagsContainer.appendChild(tag);
-                });
+        uniqueNames.forEach(name => {
+          const tag = document.createElement('span');
+          tag.className = 'name-tag';
+          tag.textContent = name;
+          tag.title = `Klik untuk filter "${name}"`;
+          tag.addEventListener('click', () => {
+            searchInput.value = name;
+            filterLinks();
+            document.querySelectorAll('.name-tag').forEach(t => t.classList.remove('active'));
+            tag.classList.add('active');
+          });
+          nameTagsContainer.appendChild(tag);
+        });
 
-                if (sortedNames.length === 0) {
-                    nameTagsContainer.innerHTML = '<span class="text-white/40 text-sm">Belum ada nama</span>';
-                }
-
-                data.forEach((link, index) => {
-                    const card = document.createElement('div');
-                    card.className = 'link-card card-animated';
-                    card.dataset.id = link.id;
-                    card.style.animationDelay = `${index * 0.08}s`;
-
-                    const formattedDate = link.created_at ? new Date(link.created_at).toLocaleDateString('id-ID', {
-                        day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                    }) : '-';
-                    
-                    const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
-                    const category = link.category || 'Lainnya';
-                    const qrCanvasId = `qr-${link.id}`;
-                    let qrFilenameBase = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}`.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-');
-
-                    card.innerHTML = `
-                        <div class="card-header">
-                            <div class="flex items-start justify-between gap-4">
-                                <div class="flex-1 min-w-0">
-                                    <h3 class="text-lg font-bold text-white truncate cursor-pointer" data-column="name" title="Triple-click untuk edit">${link.name || 'Tanpa Judul'}</h3>
-                                    <p class="text-sm text-white/50 flex items-center gap-2 mt-1">
-                                        <i class="fa-solid fa-user text-indigo-400"></i>
-                                        <span class="cursor-pointer" data-column="person_name">${link.person_name || 'Anonim'}</span>
-                                    </p>
-                                </div>
-                                <div class="qr-glow cursor-pointer" title="Klik untuk memperbesar">
-                                    <canvas id="${qrCanvasId}" style="width:70px;height:70px;display:block;border-radius:8px;"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="card-body">
-                            <div class="flex items-center gap-2 mb-4">
-                                <span class="badge ${getCategoryClass(category)}">
-                                    <i class="fa-solid ${getCategoryIcon(category)}"></i>
-                                    <span data-column="category">${category}</span>
-                                </span>
-                            </div>
-                            
-                            <div class="space-y-1">
-                                <div class="info-row">
-                                    <span class="info-label">URL</span>
-                                    <span class="info-value truncate cursor-pointer" data-column="url">${link.url || '-'}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">Shift</span>
-                                    <span class="info-value font-mono cursor-pointer" data-column="shift_code">${link.shift_code || '-'}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">Dibuat</span>
-                                    <span class="info-value">${formattedDate}</span>
-                                </div>
-                            </div>
-                            <p class="hint-text mt-4"><i class="fa-solid fa-lightbulb"></i> Triple-click teks untuk edit</p>
-                        </div>
-                        
-                        <div class="card-footer">
-                            <button class="view-description-btn btn-glow flex-1 justify-center">
-                                <i class="fa-solid fa-eye"></i> Lihat
-                            </button>
-                            <button class="delete-btn btn-danger" title="Hapus">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </div>
-                    `;
-
-                    cardsContainer.appendChild(card);
-
-                    QRCode.toCanvas(document.getElementById(qrCanvasId), qrData, { 
-                        errorCorrectionLevel: 'L', 
-                        margin: 1, 
-                        width: 70,
-                        color: { dark: '#ffffff', light: 'transparent' }
-                    });
-
-                    card.querySelector('.qr-glow').addEventListener('click', () => {
-                        enlargedQrContainer.innerHTML = '';
-                        generateQrCodeWithPadding(qrData, 256, 12).then(canvas => {
-                            enlargedQrContainer.appendChild(canvas);
-                            canvas.style.borderRadius = '12px';
-                            currentQrFilename = `${qrFilenameBase}.png`;
-                            qrModal.classList.remove('hidden');
-                        });
-                    });
-
-                    card.querySelector('.view-description-btn').addEventListener('click', () => {
-                        const params = new URLSearchParams({
-                            url: link.url || '',
-                            shift: link.shift_code || '',
-                            person: link.person_name || '',
-                            name: link.name || ''
-                        });
-                        window.open(`dekripsi.html?${params}`, '_blank');
-                    });
-                    
-                    card.querySelector('.delete-btn').addEventListener('click', handleDelete);
-
-                    card.querySelectorAll('[data-column]').forEach(cell => {
-                        cell.addEventListener('click', (e) => {
-                            const now = Date.now();
-                            clickCount = (now - lastClickTime < 300 && clickCount < 3) ? clickCount + 1 : 1;
-                            lastClickTime = now;
-
-                            if (clickCount === 3) {
-                                e.preventDefault();
-                                cell.contentEditable = 'true';
-                                cell.classList.add('editable');
-                                cell.focus();
-                                
-                                const range = document.createRange();
-                                range.selectNodeContents(cell);
-                                const selection = window.getSelection();
-                                selection.removeAllRanges();
-                                selection.addRange(range);
-                                
-                                cell.addEventListener('blur', handleEdit, { once: true });
-                                cell.addEventListener('keydown', handleEnter);
-                            }
-                        });
-                    });
-                });
-
-            } catch (err) {
-                loadingIndicator.classList.add('hidden');
-                showStatus(`Error: ${err.message}`, 'error');
-            }
+        if (uniqueNames.length === 0) {
+          nameTagsContainer.innerHTML = '<span class="text-gray-500">Belum ada nama orang terdaftar</span>';
         }
 
-        document.addEventListener('DOMContentLoaded', fetchLinks);
-    </script>
+        data.forEach(link => {
+          const row = document.createElement('tr');
+          row.classList.add('hover:bg-gray-50');
+          row.dataset.id = link.id;
+
+          const formattedDate = link.created_at ? new Date(link.created_at).toLocaleString() : '-';
+          const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
+          const category = link.category || 'Belum Dikategorikan';
+          
+          let qrFilenameBase = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}`;
+          qrFilenameBase = qrFilenameBase.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+          const smallQrId = `qr-${link.id}`;
+
+          row.innerHTML = `
+            <td class="px-6 py-4 text-sm text-gray-500 flex justify-center cursor-pointer qr-cell">
+              <canvas id="${smallQrId}" style="width:64px;height:64px;"></canvas>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-500" data-column="person_name">${link.person_name || '-'}</td>
+            <td class="px-6 py-4 text-sm text-gray-500" data-column="name">${link.name || '-'}</td>
+            <td class="px-6 py-4 text-sm text-gray-500" data-column="category">${category}</td>
+            <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs" data-column="url">${link.url || '-'}</td>
+            <td class="px-6 py-4 text-sm text-gray-500" data-column="shift_code">${link.shift_code || '-'}</td>
+            <td class="px-6 py-4 text-sm text-gray-500">${formattedDate}</td>
+            <td class="px-6 py-4 text-sm text-gray-500"><button class="view-description-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition-colors">Lihat</button></td>
+            <td class="px-6 py-4 text-sm text-gray-500">
+                <button class="delete-btn text-red-500 hover:text-red-700 transition-colors">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </td>
+          `;
+
+          linksTableBody.appendChild(row);
+
+          QRCode.toCanvas(document.getElementById(smallQrId), qrData, { 
+              errorCorrectionLevel: 'L', 
+              margin: 1, 
+              width: 64,
+              color: { dark: '#000000', light: '#ffffff' }
+          });
+
+          const qrCanvasSmall = row.querySelector(`#${smallQrId}`);
+          qrCanvasSmall.addEventListener('click', () => {
+            enlargedQrContainer.innerHTML = '';
+            generateQrCodeWithPadding(qrData, 256, 12).then(canvas => {
+                enlargedQrContainer.appendChild(canvas);
+                canvas.style.borderRadius = '0.375rem';
+                canvas.style.display = 'block';
+                currentQrFilename = `${qrFilenameBase}.png`;
+                qrModal.classList.remove('hidden');
+            });
+          });
+
+          const viewBtn = row.querySelector('.view-description-btn');
+          if (viewBtn) {
+            viewBtn.addEventListener('click', () => {
+              const urlParam = encodeURIComponent(link.url || '');
+              const shiftParam = encodeURIComponent(link.shift_code || '');
+              const personParam = encodeURIComponent(link.person_name || '');
+              const nameParam = encodeURIComponent(link.name || '');
+              const targetUrl = `dekripsi.html?url=${urlParam}&shift=${shiftParam}&person=${personParam}&name=${nameParam}`;
+              window.open(targetUrl, '_blank');
+            });
+          }
+          
+          const deleteBtn = row.querySelector('.delete-btn');
+          deleteBtn.addEventListener('click', handleDelete);
+
+          const editableCells = row.querySelectorAll('td[data-column]');
+          editableCells.forEach(cell => {
+              cell.addEventListener('click', (e) => {
+                  const now = new Date().getTime();
+                  const diff = now - lastClickTime;
+                  clickCount = (diff < 300 && clickCount < 3) ? clickCount + 1 : 1;
+                  lastClickTime = now;
+
+                  if (clickCount === 3) {
+                      e.preventDefault();
+                      cell.contentEditable = 'true';
+                      cell.classList.add('editable');
+                      cell.focus();
+                      
+                      cell.removeEventListener('blur', handleEdit);
+                      cell.removeEventListener('keydown', handleEnter);
+
+                      cell.addEventListener('blur', handleEdit);
+                      cell.addEventListener('keydown', handleEnter);
+                  }
+              });
+          });
+        });
+
+      } catch (err) {
+        loadingIndicator && loadingIndicator.classList.add('hidden');
+        showStatus(`Terjadi kesalahan tak terduga: ${err.message}`, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchLinks);
+  </script>
+
 </body>
 </html>
