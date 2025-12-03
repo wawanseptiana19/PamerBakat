@@ -8,14 +8,29 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --light: #f8fafc;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
         
         body { 
-            font-family: 'Poppins', sans-serif;
+            background: var(--dark);
             min-height: 100vh;
-            background: #0f0f1a;
+            font-family: 'Poppins', sans-serif;
             overflow-x: hidden;
         }
         
@@ -27,9 +42,9 @@
             width: 100%;
             height: 100%;
             z-index: -1;
-            background: linear-gradient(125deg, #0f0f1a 0%, #1a1a2e 25%, #16213e 50%, #1a1a2e 75%, #0f0f1a 100%);
+            background: linear-gradient(125deg, #0f172a 0%, #1e1b4b 25%, #312e81 50%, #1e1b4b 75%, #0f172a 100%);
             background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
+            animation: gradientShift 15s ease infinite;
         }
         
         .bg-animated::before {
@@ -37,15 +52,15 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%236366f1' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
         }
         
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
         }
         
         /* Floating Orbs */
@@ -53,33 +68,33 @@
             position: fixed;
             border-radius: 50%;
             filter: blur(80px);
-            opacity: 0.5;
-            z-index: -1;
+            opacity: 0.4;
             animation: float 20s ease-in-out infinite;
+            pointer-events: none;
         }
         
         .orb-1 {
             width: 400px;
             height: 400px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: var(--primary);
             top: -100px;
-            right: -100px;
+            left: -100px;
             animation-delay: 0s;
         }
         
         .orb-2 {
             width: 300px;
             height: 300px;
-            background: linear-gradient(135deg, #f093fb, #f5576c);
+            background: var(--secondary);
             bottom: -50px;
-            left: -50px;
+            right: -50px;
             animation-delay: -5s;
         }
         
         .orb-3 {
             width: 250px;
             height: 250px;
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            background: var(--accent);
             top: 50%;
             left: 50%;
             animation-delay: -10s;
@@ -88,27 +103,27 @@
         @keyframes float {
             0%, 100% { transform: translate(0, 0) scale(1); }
             25% { transform: translate(50px, -50px) scale(1.1); }
-            50% { transform: translate(-30px, 30px) scale(0.9); }
-            75% { transform: translate(-50px, -30px) scale(1.05); }
+            50% { transform: translate(0, 50px) scale(0.9); }
+            75% { transform: translate(-50px, -25px) scale(1.05); }
         }
         
         /* Glass Card */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
         
         /* Link Cards */
         .link-card {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 24px;
             overflow: hidden;
             position: relative;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
         }
         
         .link-card::before {
@@ -118,16 +133,17 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #667eea);
-            background-size: 300% 100%;
-            animation: shimmer 3s linear infinite;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.5s ease;
         }
         
         .link-card::after {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, transparent 50%);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
             opacity: 0;
             transition: opacity 0.5s ease;
             pointer-events: none;
@@ -135,153 +151,338 @@
         
         .link-card:hover {
             transform: translateY(-12px) scale(1.02);
-            border-color: rgba(102, 126, 234, 0.3);
+            border-color: rgba(99, 102, 241, 0.5);
             box-shadow: 
-                0 25px 50px rgba(102, 126, 234, 0.2),
-                0 0 100px rgba(102, 126, 234, 0.1);
+                0 25px 50px rgba(99, 102, 241, 0.25),
+                0 0 100px rgba(99, 102, 241, 0.1);
+        }
+        
+        .link-card:hover::before {
+            transform: scaleX(1);
         }
         
         .link-card:hover::after {
             opacity: 1;
         }
         
-        @keyframes shimmer {
-            0% { background-position: 300% 0; }
-            100% { background-position: -300% 0; }
+        .link-card:hover .qr-glow {
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
         }
         
-        /* QR Wrapper */
-        .qr-wrapper {
-            background: rgba(255, 255, 255, 0.1);
+        /* QR Container */
+        .qr-glow {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
             border-radius: 16px;
-            padding: 8px;
+            padding: 10px;
             transition: all 0.4s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .qr-wrapper::before {
-            content: '\f00e';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(102, 126, 234, 0.9);
-            color: white;
-            font-size: 1.5rem;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            border-radius: 16px;
-        }
-        
-        .qr-wrapper:hover::before {
-            opacity: 1;
-        }
-        
-        .qr-wrapper:hover {
+        .qr-glow:hover {
             transform: scale(1.1) rotate(3deg);
         }
         
-        /* Category Badge */
-        .category-badge {
+        /* Buttons */
+        .btn-glow {
+            position: relative;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-glow::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-glow:hover::before {
+            left: 100%;
+        }
+        
+        .btn-glow:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border: none;
+            padding: 10px 14px;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-danger:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5);
+        }
+        
+        /* Category Badges */
+        .badge {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 8px 16px;
+            padding: 6px 14px;
             border-radius: 50px;
             font-size: 0.7rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
-            color: #a78bfa;
-            border: 1px solid rgba(167, 139, 250, 0.3);
+            border: 1px solid transparent;
         }
         
-        /* Action Buttons */
-        .action-btn {
-            padding: 12px 24px;
-            border-radius: 14px;
-            font-weight: 600;
-            font-size: 0.875rem;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: inline-flex;
+        .badge-video { 
+            background: rgba(236, 72, 153, 0.2); 
+            color: #f472b6; 
+            border-color: rgba(236, 72, 153, 0.3);
+        }
+        .badge-image { 
+            background: rgba(59, 130, 246, 0.2); 
+            color: #60a5fa; 
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        .badge-audio { 
+            background: rgba(16, 185, 129, 0.2); 
+            color: #34d399; 
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        .badge-document { 
+            background: rgba(245, 158, 11, 0.2); 
+            color: #fbbf24; 
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        .badge-default { 
+            background: rgba(148, 163, 184, 0.2); 
+            color: #94a3b8; 
+            border-color: rgba(148, 163, 184, 0.3);
+        }
+        
+        /* Sidebar */
+        #sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 380px;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            transition: right 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            z-index: 1000;
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        #sidebar.open {
+            right: 0;
+        }
+        
+        #sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #sidebar::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 3px;
+        }
+        
+        /* Floating Action Button */
+        .fab-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1100;
+        }
+        
+        .fab {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            cursor: pointer;
+            display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            cursor: pointer;
-            border: none;
+            box-shadow: 
+                0 8px 30px rgba(99, 102, 241, 0.5),
+                0 0 0 0 rgba(99, 102, 241, 0.5);
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
             position: relative;
             overflow: hidden;
+            animation: pulse-ring 2s infinite;
         }
         
-        .action-btn::before {
+        .fab::before {
             content: '';
             position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            inset: -2px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+            z-index: -1;
+            animation: rotate 3s linear infinite;
         }
         
-        .action-btn:hover::before {
-            opacity: 1;
+        .fab::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
         }
         
-        .action-btn.primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .fab i {
+            position: relative;
+            z-index: 1;
             color: white;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            font-size: 1.5rem;
+            transition: transform 0.4s ease;
         }
         
-        .action-btn.primary:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.5);
+        .fab:hover {
+            transform: scale(1.15);
+            box-shadow: 
+                0 15px 50px rgba(99, 102, 241, 0.6),
+                0 0 80px rgba(99, 102, 241, 0.3);
         }
         
-        .action-btn.danger {
-            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+        .fab:hover i {
+            transform: rotate(180deg);
+        }
+        
+        .fab.active i {
+            transform: rotate(45deg);
+        }
+        
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5), 0 0 0 0 rgba(99, 102, 241, 0.4); }
+            70% { box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5), 0 0 0 20px rgba(99, 102, 241, 0); }
+            100% { box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5), 0 0 0 0 rgba(99, 102, 241, 0); }
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Name Tags */
+        .name-tag {
+            padding: 8px 16px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #a5b4fc;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .name-tag:hover {
+            background: rgba(99, 102, 241, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(99, 102, 241, 0.3);
+        }
+        
+        .name-tag.active {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
             color: white;
-            box-shadow: 0 4px 20px rgba(245, 87, 108, 0.3);
+            border-color: transparent;
         }
         
-        .action-btn.danger:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 30px rgba(245, 87, 108, 0.4);
+        /* Search Input */
+        .search-box {
+            position: relative;
         }
         
-        .action-btn.secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: #e2e8f0;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        .search-box input {
+            width: 100%;
+            padding: 14px 20px;
+            padding-left: 50px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            color: white;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
         }
         
-        .action-btn.secondary:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-3px);
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
         }
         
-        /* Modals */
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        /* Modal */
         .modal-overlay { 
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(10px);
         }
         
         .modal-content {
-            background: linear-gradient(145deg, #1e1e30, #151525);
+            background: rgba(30, 27, 75, 0.95);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 28px;
-            box-shadow: 
-                0 25px 80px rgba(0, 0, 0, 0.5),
-                0 0 100px rgba(102, 126, 234, 0.1);
-            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 24px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+            max-width: 500px;
+            width: 95%;
+            max-height: 90vh;
+            overflow: hidden;
+            animation: modalIn 0.4s cubic-bezier(0.23, 1, 0.32, 1);
         }
         
-        @keyframes modalPop {
+        @keyframes modalIn {
             from {
                 opacity: 0;
                 transform: scale(0.8) translateY(50px);
@@ -292,19 +493,196 @@
             }
         }
         
+        /* Stats Cards */
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(transparent, rgba(99, 102, 241, 0.1), transparent 30%);
+            animation: rotate 4s linear infinite;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, #a5b4fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+            margin-top: 4px;
+            position: relative;
+        }
+        
+        /* Loading Spinner */
+        .loader {
+            width: 60px;
+            height: 60px;
+            position: relative;
+        }
+        
+        .loader::before,
+        .loader::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            animation: pulsOut 1.8s ease-in-out infinite;
+        }
+        
+        .loader::before {
+            inset: 0;
+            border: 4px solid var(--primary);
+            animation-delay: -0.9s;
+        }
+        
+        .loader::after {
+            inset: 10px;
+            border: 4px solid var(--secondary);
+        }
+        
+        @keyframes pulsOut {
+            0%, 100% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Login Overlay */
+        #loginOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.98);
+            z-index: 20000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        
+        #loginBox {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 450px;
+            border-radius: 32px;
+            padding: 48px 40px;
+            text-align: center;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+        }
+        
+        #loginBox .icon-lock {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.4);
+        }
+        
+        #loginBox h2 { 
+            margin-bottom: 12px; 
+            font-size: 1.75rem; 
+            font-weight: 700;
+            color: white;
+        }
+        
+        #loginBox p { 
+            margin-bottom: 28px; 
+            color: rgba(255, 255, 255, 0.5); 
+            font-size: 0.95rem; 
+        }
+        
+        #loginFileInput { 
+            display: block; 
+            margin: 20px auto;
+            padding: 16px;
+            border: 2px dashed rgba(99, 102, 241, 0.4);
+            border-radius: 16px;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(99, 102, 241, 0.05);
+            color: white;
+        }
+        
+        #loginFileInput:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+        
+        #loginMsg { 
+            min-height: 1.5rem; 
+            margin-bottom: 16px; 
+            font-size: 0.9rem; 
+            font-weight: 500;
+        }
+        
+        #logoutBtn {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        #logoutBtn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
+        }
+        
+        /* Editable */
+        .editable { 
+            outline: 2px solid var(--primary); 
+            background-color: rgba(99, 102, 241, 0.2);
+            border-radius: 8px;
+            padding: 4px 8px;
+        }
+        
         /* Status Popup */
         .status-popup {
             position: fixed;
-            top: 2rem;
+            top: 24px;
             left: 50%;
-            transform: translateX(-50%) translateY(-20px);
-            padding: 1rem 2rem;
-            border-radius: 16px;
+            transform: translateX(-50%) translateY(-100px);
+            padding: 14px 28px;
+            border-radius: 50px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             z-index: 10000;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
             opacity: 0;
-            pointer-events: none;
             font-weight: 600;
             backdrop-filter: blur(10px);
         }
@@ -314,266 +692,12 @@
             transform: translateX(-50%) translateY(0);
         }
         
-        /* Login Overlay */
-        #loginOverlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 15, 26, 0.95);
-            z-index: 20000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            backdrop-filter: blur(20px);
-        }
-        
-        #loginBox {
-            background: linear-gradient(145deg, #1e1e30, #151525);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            width: 100%;
-            max-width: 440px;
-            border-radius: 28px;
-            padding: 48px 40px;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
-            text-align: center;
-            animation: modalPop 0.5s ease;
-        }
-        
-        #loginBox h2 { 
-            margin-bottom: 8px; 
-            font-size: 1.75rem; 
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea, #f093fb);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        #loginBox p { 
-            margin-bottom: 28px; 
-            color: #94a3b8; 
-            font-size: 0.95rem; 
-        }
-        
-        #loginFileInput { 
-            display: block; 
-            margin: 20px auto;
-            padding: 16px;
-            border: 2px dashed rgba(102, 126, 234, 0.3);
-            border-radius: 16px;
-            width: 100%;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: rgba(102, 126, 234, 0.05);
-            color: #94a3b8;
-        }
-        
-        #loginFileInput:hover {
-            border-color: rgba(102, 126, 234, 0.6);
-            background: rgba(102, 126, 234, 0.1);
-        }
-        
-        #loginMsg { 
-            min-height: 1.5rem; 
-            margin-bottom: 16px; 
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-        
-        #logoutBtn {
-            display: inline-block;
-            margin-top: 16px;
-            background: rgba(245, 87, 108, 0.1);
-            border: 1px solid rgba(245, 87, 108, 0.3);
-            padding: 12px 24px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #f5576c;
-            transition: all 0.3s ease;
-        }
-        
-        #logoutBtn:hover {
-            background: rgba(245, 87, 108, 0.2);
-            transform: translateY(-2px);
-        }
-        
-        body.lock-scroll { overflow: hidden; }
-        
-        #pageContent.blurred {
-            filter: blur(10px) saturate(0.8);
-            transition: filter 0.3s ease;
-            pointer-events: none;
-            user-select: none;
-        }
-        
-        /* Name Tags */
-        .name-tag {
-            padding: 8px 16px;
-            background: rgba(102, 126, 234, 0.1);
-            color: #a78bfa;
-            border: 1px solid rgba(102, 126, 234, 0.2);
-            border-radius: 50px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .name-tag:hover {
-            background: rgba(102, 126, 234, 0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
-        }
-        
-        .name-tag.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border-color: transparent;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        /* Sidebar */
-        #sidebar {
-            position: fixed;
-            top: 0;
-            right: -380px;
-            width: 380px;
-            height: 100%;
-            background: linear-gradient(180deg, #1e1e30, #151525);
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: -10px 0 50px rgba(0, 0, 0, 0.5);
-            transition: right 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 2000;
-            padding: 32px;
-            overflow-y: auto;
-        }
-        
-        #sidebar.open {
-            right: 0;
-        }
-        
-        /* Sidebar Toggle Button - IMPROVED */
-        #sidebarToggle {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            z-index: 1500;
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            box-shadow: 
-                0 8px 32px rgba(102, 126, 234, 0.4),
-                0 0 0 4px rgba(102, 126, 234, 0.2);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-        
-        #sidebarToggle::before {
-            content: '';
-            position: absolute;
-            inset: -4px;
-            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb, #667eea);
-            border-radius: 24px;
-            z-index: -1;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            background-size: 300% 300%;
-            animation: shimmer 3s linear infinite;
-        }
-        
-        #sidebarToggle:hover {
-            transform: scale(1.1) rotate(5deg);
-            box-shadow: 
-                0 12px 40px rgba(102, 126, 234, 0.5),
-                0 0 0 6px rgba(102, 126, 234, 0.3);
-        }
-        
-        #sidebarToggle:hover::before {
-            opacity: 1;
-        }
-        
-        #sidebarToggle:active {
-            transform: scale(0.95);
-        }
-        
-        #sidebarToggle i {
-            font-size: 1.5rem;
-            transition: transform 0.3s ease;
-        }
-        
-        #sidebarToggle:hover i {
-            transform: rotate(90deg);
-        }
-        
-        #sidebarToggle.open {
-            right: 400px;
-            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
-        }
-        
-        #sidebarToggle.open i::before {
-            content: '\f00d';
-        }
-        
-        /* Cards Container */
-        .cards-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-            gap: 28px;
-        }
-        
-        @media (max-width: 640px) {
-            .cards-container {
-                grid-template-columns: 1fr;
-            }
-            
-            #sidebarToggle {
-                bottom: 1.5rem;
-                right: 1.5rem;
-                width: 56px;
-                height: 56px;
-            }
-            
-            #sidebar {
-                width: 100%;
-                right: -100%;
-            }
-            
-            #sidebarToggle.open {
-                right: 1.5rem;
-            }
-        }
-        
-        /* Card Sections */
-        .card-header {
-            padding: 24px;
-            background: rgba(255, 255, 255, 0.02);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .card-body {
-            padding: 24px;
-        }
-        
-        .card-footer {
-            padding: 20px 24px;
-            background: rgba(0, 0, 0, 0.2);
-            display: flex;
-            gap: 12px;
-        }
-        
         /* Info Rows */
         .info-row {
             display: flex;
             align-items: flex-start;
             gap: 12px;
-            padding: 14px 0;
+            padding: 12px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
         
@@ -584,7 +708,7 @@
         .info-label {
             font-size: 0.7rem;
             font-weight: 600;
-            color: #64748b;
+            color: rgba(255, 255, 255, 0.4);
             text-transform: uppercase;
             letter-spacing: 1px;
             min-width: 70px;
@@ -592,94 +716,53 @@
         
         .info-value {
             font-size: 0.85rem;
-            color: #e2e8f0;
+            color: rgba(255, 255, 255, 0.8);
             word-break: break-all;
             flex: 1;
         }
         
-        /* Animations */
-        .fade-in {
-            animation: fadeIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            opacity: 0;
+        /* Card Sections */
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
         }
         
-        @keyframes fadeIn {
-            from { 
-                opacity: 0; 
-                transform: translateY(30px) scale(0.95); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0) scale(1); 
-            }
+        .card-body {
+            padding: 20px 24px;
+            position: relative;
         }
         
-        /* Editable */
-        .editable { 
-            outline: 2px solid #667eea; 
-            background: rgba(102, 126, 234, 0.1);
-            border-radius: 8px;
-            padding: 4px 8px;
-        }
-        
-        /* Search Input */
-        .search-input {
-            width: 100%;
-            padding: 14px 20px;
-            padding-right: 45px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 14px;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.05);
-            color: #e2e8f0;
-        }
-        
-        .search-input::placeholder {
-            color: #64748b;
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: rgba(102, 126, 234, 0.5);
-            background: rgba(102, 126, 234, 0.1);
-            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
-        }
-        
-        /* Sidebar Button */
-        .sidebar-btn {
-            width: 100%;
-            padding: 16px 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.03);
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #e2e8f0;
+        .card-footer {
+            padding: 16px 24px;
+            background: rgba(0, 0, 0, 0.2);
             display: flex;
-            align-items: center;
-            justify-content: center;
             gap: 12px;
-            transition: all 0.3s ease;
-            margin-bottom: 12px;
+            flex-wrap: wrap;
+            position: relative;
         }
         
-        .sidebar-btn:hover {
-            border-color: rgba(102, 126, 234, 0.5);
-            background: rgba(102, 126, 234, 0.1);
-            transform: translateY(-2px);
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 24px;
         }
         
-        .sidebar-btn.gradient {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-        }
-        
-        .sidebar-btn.gradient:hover {
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
-            transform: translateY(-3px);
+        @media (max-width: 640px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            #sidebar {
+                width: 100%;
+                right: -100%;
+            }
+            
+            .fab {
+                width: 56px;
+                height: 56px;
+            }
         }
         
         /* Empty State */
@@ -687,87 +770,106 @@
             text-align: center;
             padding: 80px 20px;
             background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .empty-state i {
             font-size: 5rem;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin-bottom: 24px;
         }
         
-        /* Stats Badge */
-        .stats-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background: rgba(102, 126, 234, 0.1);
-            border: 1px solid rgba(102, 126, 234, 0.2);
-            border-radius: 50px;
-            color: #a78bfa;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.02);
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: rgba(102, 126, 234, 0.3);
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(102, 126, 234, 0.5);
-        }
-        
-        .media-preview, .video-preview { 
-            max-width: 100%; 
-            height: auto; 
-            border-radius: 16px; 
-        }
-        
-        /* Pulse animation for loading */
-        .pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        /* Close button style */
-        .close-btn {
-            width: 44px;
-            height: 44px;
+        /* Loading State */
+        .loading-state {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.05);
+            padding: 80px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #94a3b8;
-            cursor: pointer;
-            transition: all 0.3s ease;
         }
         
-        .close-btn:hover {
-            background: rgba(245, 87, 108, 0.1);
-            border-color: rgba(245, 87, 108, 0.3);
-            color: #f5576c;
-            transform: rotate(90deg);
+        /* Scroll behavior */
+        body.lock-scroll { overflow: hidden; }
+        
+        #pageContent.blurred {
+            filter: blur(10px) saturate(0.5);
+            transition: filter 0.4s ease;
+            pointer-events: none;
+            user-select: none;
         }
+        
+        #pageContent {
+            transition: filter 0.4s ease;
+        }
+        
+        /* Hint Text */
+        .hint-text {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+        }
+        
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Animations for cards */
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .card-animated {
+            animation: cardIn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            opacity: 0;
+        }
+        
+        /* Title Gradient */
+        .title-gradient {
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 50%, #f472b6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            background-size: 200% 200%;
+            animation: gradientText 5s ease infinite;
+        }
+        
+        @keyframes gradientText {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        /* Preview styles */
+        .media-preview { max-width: 100%; height: auto; border-radius: 12px; }
+        .video-preview { max-width: 100%; height: auto; border-radius: 12px; }
     </style>
 </head>
 <body>
@@ -780,38 +882,40 @@
     <!-- Login Overlay -->
     <div id="loginOverlay" role="dialog" aria-modal="true">
         <div id="loginBox">
-            <div class="mb-8">
-                <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                    <i class="fa-solid fa-lock text-3xl text-white"></i>
-                </div>
-                <h2>Selamat Datang</h2>
-                <p>Unggah file kredensial untuk mendapatkan akses</p>
+            <div class="icon-lock">
+                <i class="fa-solid fa-lock text-3xl text-white"></i>
             </div>
+            <h2>Selamat Datang</h2>
+            <p>Unggah file kredensial untuk mengakses halaman ini</p>
             <input id="loginFileInput" type="file" accept=".bat,text/plain" />
             <div id="loginMsg" aria-live="polite"></div>
             <button id="logoutBtn" style="display:none;">
-                <i class="fa-solid fa-right-from-bracket mr-2"></i> Keluar
+                <i class="fa-solid fa-right-from-bracket"></i> Keluar
             </button>
         </div>
     </div>
 
     <!-- Main Content -->
     <div id="pageContent">
-        <div class="px-4 sm:px-8 py-8 max-w-7xl mx-auto">
+        <div class="px-4 sm:px-8 py-8 max-w-[1800px] mx-auto">
             <!-- Header -->
-            <div class="glass-card p-8 mb-8">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+            <div class="glass rounded-3xl p-8 mb-8">
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                     <div>
-                        <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-2">
-                            <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-                                Daftar Tautan
-                            </span>
+                        <h1 class="text-4xl sm:text-5xl font-extrabold title-gradient mb-3">
+                            📋 Daftar Tautan
                         </h1>
-                        <p class="text-gray-400">Kelola semua tautan terenkripsi Anda</p>
+                        <p class="text-white/50 text-lg">Kelola dan lihat semua tautan terenkripsi Anda</p>
                     </div>
-                    <div class="stats-badge">
-                        <i class="fa-solid fa-link"></i>
-                        <span id="totalLinks">0 Tautan</span>
+                    <div class="flex gap-4 flex-wrap">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalLinks">0</div>
+                            <div class="stat-label">Total Tautan</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalPeople">0</div>
+                            <div class="stat-label">Kontributor</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -819,37 +923,32 @@
             <!-- Status Popup -->
             <div id="statusPopup" class="status-popup"></div>
 
-            <!-- Loading -->
-            <div id="loadingIndicator" class="text-center py-20">
-                <div class="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/20 mb-6">
-                    <svg class="animate-spin h-12 w-12 text-purple-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                </div>
-                <p class="text-gray-400 text-lg font-medium pulse">Memuat data...</p>
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="loading-state">
+                <div class="loader"></div>
+                <p class="mt-8 text-white/50 font-medium">Memuat data...</p>
             </div>
+
+            <!-- Cards Grid -->
+            <div id="cardsContainer" class="cards-grid hidden"></div>
 
             <!-- Empty State -->
             <div id="emptyState" class="empty-state hidden">
-                <i class="fa-solid fa-folder-open"></i>
-                <h3 class="text-2xl font-bold text-white mb-2">Belum Ada Tautan</h3>
-                <p class="text-gray-400">Tambahkan tautan pertama Anda untuk memulai</p>
+                <i class="fa-solid fa-inbox"></i>
+                <h3 class="text-2xl font-bold text-white mb-3">Tidak Ada Data</h3>
+                <p class="text-white/50">Belum ada tautan yang tersedia saat ini.</p>
             </div>
-
-            <!-- Cards Container -->
-            <div id="cards-container" class="cards-container"></div>
         </div>
 
         <!-- QR Modal -->
         <div id="qrModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4">
-            <div class="modal-content p-8 relative max-w-sm w-full">
-                <button id="closeModal" class="close-btn absolute top-4 right-4">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+            <div class="modal-content p-8 relative">
+                <button id="closeModal" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:rotate-90">
+                    <i class="fa-solid fa-times text-white"></i>
                 </button>
-                <h3 class="text-xl font-bold text-center mb-6 text-white">QR Code</h3>
-                <div id="enlargedQrContainer" class="flex items-center justify-center bg-white/5 rounded-2xl p-6" style="min-height:280px;"></div>
-                <button id="downloadSingleQrBtn" class="action-btn primary w-full mt-6">
+                <h3 class="text-2xl font-bold text-white mb-6 text-center">QR Code</h3>
+                <div id="enlargedQrContainer" class="flex justify-center items-center bg-white/5 rounded-2xl p-6 border border-white/10" style="min-height:280px;"></div>
+                <button id="downloadSingleQrBtn" class="btn-glow w-full mt-6 justify-center">
                     <i class="fa-solid fa-download"></i> Unduh QR Code
                 </button>
             </div>
@@ -857,72 +956,71 @@
 
         <!-- Description Modal -->
         <div id="descriptionModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
-            <div class="modal-content p-8 relative max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-                <button id="closeDescriptionModal" class="close-btn absolute top-4 right-4">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-                <h2 class="text-2xl font-bold mb-6 text-center text-white">Preview Konten</h2>
+            <div class="modal-content flex flex-col max-h-[85vh]">
+                <div class="p-6 border-b border-white/10 relative">
+                    <button id="closeDescriptionModal" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:rotate-90">
+                        <i class="fa-solid fa-times text-white"></i>
+                    </button>
+                    <h2 class="text-2xl font-bold text-center title-gradient">Preview Konten</h2>
+                </div>
                 
                 <div id="descriptionLoading" class="text-center py-12 hidden">
-                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-purple-500/10 border border-purple-500/20 mb-4">
-                        <svg class="animate-spin h-10 w-10 text-purple-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                    </div>
-                    <p class="text-gray-400 font-medium">Memuat dan mendekripsi...</p>
+                    <div class="loader mx-auto"></div>
+                    <p class="mt-6 text-white/50">Memuat dan mendekripsi...</p>
                 </div>
 
-                <div id="descriptionContent" class="overflow-y-auto w-full flex flex-col items-center p-2"></div>
-                <p id="descriptionMessage" class="text-center text-red-400 hidden mt-4 font-medium"></p>
+                <div id="descriptionContent" class="overflow-y-auto flex-1 p-6 flex flex-col items-center"></div>
+                <p id="descriptionMessage" class="text-center text-red-400 hidden p-4"></p>
                 
-                <button id="downloadBtn" class="hidden action-btn primary w-full mt-6">
-                    <i class="fa-solid fa-download"></i> Unduh Konten
-                </button>
+                <div class="p-6 border-t border-white/10">
+                    <button id="downloadBtn" class="hidden btn-glow w-full justify-center">
+                        <i class="fa-solid fa-download"></i> Unduh Konten
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Sidebar Toggle Button -->
-    <button id="sidebarToggle" aria-label="Toggle Menu">
-        <i class="fa-solid fa-bars"></i>
-    </button>
+    <!-- Sidebar Overlay -->
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+    <!-- Floating Action Button -->
+    <div class="fab-container">
+        <button id="sidebarToggle" class="fab" aria-label="Toggle Menu">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+    </div>
 
     <!-- Sidebar -->
     <div id="sidebar">
-        <button id="closeSidebar" class="close-btn absolute top-6 right-6">
-            <i class="fa-solid fa-xmark text-lg"></i>
+        <button id="closeSidebar" class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:rotate-90">
+            <i class="fa-solid fa-times text-white"></i>
         </button>
         
-        <div class="mb-8 mt-2">
-            <h2 class="text-2xl font-bold text-white mb-1">Menu</h2>
-            <p class="text-gray-400 text-sm">Kelola tautan Anda</p>
-        </div>
+        <h2 class="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+            <i class="fa-solid fa-compass text-indigo-400"></i> Menu
+        </h2>
         
-        <button id="downloadAllQrBtn" class="sidebar-btn gradient">
-            <i class="fa-solid fa-file-zipper text-lg"></i>
-            Unduh Semua QR
+        <button id="downloadAllQrBtn" class="btn-outline w-full mb-4 justify-center">
+            <i class="fa-solid fa-file-zipper"></i> Unduh Semua QR
         </button>
         
-        <a href="https://pamer-bakat.vercel.app/tambah_konten.html" target="_blank" class="sidebar-btn">
-            <i class="fa-solid fa-plus text-lg"></i>
-            Tambah Konten
+        <a href="https://pamer-bakat.vercel.app/tambah_konten.html" target="_blank" class="btn-glow w-full mb-8 justify-center text-center no-underline block">
+            <i class="fa-solid fa-plus"></i> Tambah Konten
         </a>
         
-        <div class="my-8 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-        
-        <div class="relative mb-6">
-            <input type="text" id="searchInput" placeholder="Cari tautan..." class="search-input">
-            <button id="clearSearchBtn" class="absolute top-1/2 right-4 transform -translate-y-1/2 text-gray-500 hover:text-gray-300 hidden transition-colors">
-                <i class="fa-solid fa-xmark"></i>
+        <div class="search-box mb-8">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Cari tautan...">
+            <button id="clearSearchBtn" class="absolute top-1/2 right-4 transform -translate-y-1/2 text-white/40 hover:text-white hidden">
+                <i class="fa-solid fa-times-circle"></i>
             </button>
         </div>
         
-        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Filter Nama</h3>
+        <h3 class="text-sm font-bold text-white/40 uppercase tracking-widest mb-4">Filter Nama</h3>
         <div id="nameTags" class="flex flex-wrap gap-2"></div>
     </div>
 
-    <!-- Login Script -->
     <script>
         (function(){
             const SECRET_TEXT = 'YQDYIpjYnF7PZtDYs6e8yZJmGqTuB4rgZQSaenc618nmy4x095';
@@ -944,7 +1042,7 @@
                 document.documentElement.classList.remove('lock-scroll');
                 document.body.classList.remove('lock-scroll');
                 if (pageContent) pageContent.classList.remove('blurred');
-                logoutBtn.style.display = 'inline-block';
+                logoutBtn.style.display = 'inline-flex';
                 localStorage.setItem('dekrip_logged_in', 'true');
             }
             
@@ -964,8 +1062,8 @@
                 if (!f) { msg.textContent = 'Tidak ada file terpilih.'; return; }
                 const name = f.name || '';
                 if (!name.toLowerCase().endsWith('.bat')) {
-                    msg.style.color = '#f5576c';
-                    msg.textContent = 'Harap unggah file .bat yang valid.';
+                    msg.style.color = '#f87171';
+                    msg.textContent = 'Harap unggah file yang benar.';
                     fileInput.value = '';
                     return;
                 }
@@ -977,16 +1075,16 @@
                     const cleaned = text.trim();
                     if (cleaned === SECRET_TEXT) {
                         unlockPage();
-                        msg.style.color = '#10b981';
+                        msg.style.color = '#34d399';
                         msg.textContent = 'Berhasil — akses diberikan.';
                     } else {
-                        msg.style.color = '#f5576c';
+                        msg.style.color = '#f87171';
                         msg.textContent = 'Isi file tidak cocok. Coba lagi.';
                         fileInput.value = '';
                     }
                 };
                 reader.onerror = function() {
-                    msg.style.color = '#f5576c';
+                    msg.style.color = '#f87171';
                     msg.textContent = 'Gagal membaca file.';
                     fileInput.value = '';
                 };
@@ -1005,7 +1103,6 @@
         })();
     </script>
 
-    <!-- Main Script -->
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
 
@@ -1013,10 +1110,9 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        const cardsContainer = document.getElementById('cards-container');
+        const cardsContainer = document.getElementById('cardsContainer');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const emptyState = document.getElementById('emptyState');
-        const totalLinksEl = document.getElementById('totalLinks');
         const statusPopup = document.getElementById('statusPopup');
         const searchInput = document.getElementById('searchInput');
         const clearSearchBtn = document.getElementById('clearSearchBtn');
@@ -1035,6 +1131,9 @@
         const sidebar = document.getElementById('sidebar');
         const sidebarToggle = document.getElementById('sidebarToggle');
         const closeSidebar = document.getElementById('closeSidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const totalLinksEl = document.getElementById('totalLinks');
+        const totalPeopleEl = document.getElementById('totalPeople');
 
         let lastClickTime = 0;
         let clickCount = 0;
@@ -1043,16 +1142,17 @@
         let allLinksData = [];
         let currentQrFilename = null;
 
-        // Sidebar Toggle
         function openSidebar(e) {
             e.stopPropagation();
             sidebar.classList.add('open');
-            sidebarToggle.classList.add('open');
+            sidebarOverlay.classList.add('show');
+            sidebarToggle.classList.add('active');
         }
 
         function closeSidebarFunc() {
             sidebar.classList.remove('open');
-            sidebarToggle.classList.remove('open');
+            sidebarOverlay.classList.remove('show');
+            sidebarToggle.classList.remove('active');
         }
 
         sidebarToggle.addEventListener('click', (e) => {
@@ -1064,24 +1164,16 @@
         });
         
         closeSidebar.addEventListener('click', closeSidebarFunc);
-
-        document.addEventListener('click', (e) => {
-            if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== sidebarToggle) {
-                closeSidebarFunc();
-            }
-        });
+        sidebarOverlay.addEventListener('click', closeSidebarFunc);
 
         function showStatus(message, type = 'error') {
             statusPopup.textContent = message;
-            statusPopup.className = 'status-popup show';
-            if (type === 'error') {
-                statusPopup.style.background = 'linear-gradient(135deg, #f5576c, #f093fb)';
-            } else {
-                statusPopup.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
-            }
-            setTimeout(() => {
-                statusPopup.classList.remove('show');
-            }, 3000);
+            statusPopup.style.background = type === 'error' 
+                ? 'linear-gradient(135deg, #ef4444, #dc2626)' 
+                : 'linear-gradient(135deg, #10b981, #059669)';
+            statusPopup.style.color = 'white';
+            statusPopup.classList.add('show');
+            setTimeout(() => statusPopup.classList.remove('show'), 3000);
         }
 
         async function generateQrCodeWithPadding(data, size = 256, padding = 4) {
@@ -1092,25 +1184,21 @@
                 width: size 
             });
 
-            const ctx = canvas.getContext('2d');
             const qrSize = canvas.width;
             const totalSize = qrSize + 2 * padding;
-
             const finalCanvas = document.createElement('canvas');
             finalCanvas.width = totalSize;
             finalCanvas.height = totalSize;
             const finalCtx = finalCanvas.getContext('2d');
-
             finalCtx.fillStyle = '#FFFFFF';
             finalCtx.fillRect(0, 0, totalSize, totalSize);
             finalCtx.drawImage(canvas, padding, padding, qrSize, qrSize);
-
             return finalCanvas;
         }
 
         function downloadQrCode(canvas, filename) {
             if (!canvas) {
-                showStatus('Gagal membuat QR Code untuk diunduh.', 'error');
+                showStatus('Gagal membuat QR Code.', 'error');
                 return;
             }
             const a = document.createElement('a');
@@ -1119,38 +1207,33 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            showStatus(`QR Code berhasil diunduh!`, 'success');
+            showStatus(`QR Code berhasil diunduh.`, 'success');
         }
 
         async function downloadAllQRCodes() {
             if (allLinksData.length === 0) {
-                showStatus('Tidak ada data tautan untuk diunduh.', 'error');
+                showStatus('Tidak ada data tautan.', 'error');
                 return;
             }
 
             const zip = new JSZip();
-            const promises = [];
             downloadAllQrBtn.disabled = true;
-            downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i> Memproses...';
-            showStatus('Mempersiapkan file ZIP QR Code...', 'success');
+            downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+            showStatus('Mempersiapkan file ZIP...', 'success');
 
-            for (const link of allLinksData) {
+            const promises = allLinksData.map(link => {
                 const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
                 let filename = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}.png`;
-                filename = filename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+                filename = filename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
 
-                const promise = generateQrCodeWithPadding(qrData, 512, 20)
-                    .then(canvas => {
-                        return new Promise(resolve => {
-                            canvas.toBlob(blob => {
-                                zip.file(filename, blob);
-                                resolve();
-                            }, 'image/png');
-                        });
-                    });
-                
-                promises.push(promise);
-            }
+                return generateQrCodeWithPadding(qrData, 512, 20)
+                    .then(canvas => new Promise(resolve => {
+                        canvas.toBlob(blob => {
+                            zip.file(filename, blob);
+                            resolve();
+                        }, 'image/png');
+                    }));
+            });
 
             await Promise.all(promises);
             
@@ -1164,12 +1247,9 @@
                     document.body.removeChild(a);
                     showStatus('Semua QR Code berhasil diunduh!', 'success');
                 })
-                .catch(error => {
-                    showStatus('Gagal membuat file ZIP.', 'error');
-                })
                 .finally(() => {
                     downloadAllQrBtn.disabled = false;
-                    downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-file-zipper text-lg"></i> Unduh Semua QR';
+                    downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-file-zipper"></i> Unduh Semua QR';
                 });
         }
 
@@ -1199,7 +1279,8 @@
             if (dataMatch) s = dataMatch[1];
             s = s.replace(/-/g, '+').replace(/_/g, '/');
             const pad = s.length % 4;
-            if (pad === 2) s += '=='; else if (pad === 3) s += '=';
+            if (pad === 2) s += '==';
+            else if (pad === 3) s += '=';
             return s;
         }
 
@@ -1211,18 +1292,15 @@
 
         function getMimeFromBase64Sample(b64) {
             try {
-                const cleaned = normalizeBase64(b64).slice(0,2000);
+                const cleaned = normalizeBase64(b64).slice(0, 2000);
                 if (!cleaned) return null;
                 const bin = atob(cleaned);
-                const c0 = bin.charCodeAt(0), c1 = bin.charCodeAt(1);
-                if (c0 === 0x89 && bin[1] === 'P' && bin[2] === 'N' && bin[3] === 'G') return 'image/png';
-                if (c0 === 0xFF && c1 === 0xD8) return 'image/jpeg';
-                if (bin.startsWith('GIF87a') || bin.startsWith('GIF89a')) return 'image/gif';
-                if (bin.trim().startsWith('<svg')) return 'image/svg+xml';
+                if (bin.charCodeAt(0) === 0x89 && bin[1] === 'P') return 'image/png';
+                if (bin.charCodeAt(0) === 0xFF && bin.charCodeAt(1) === 0xD8) return 'image/jpeg';
+                if (bin.startsWith('GIF8')) return 'image/gif';
                 if (bin.indexOf('ftyp') !== -1) return 'video/mp4';
-                if (bin.toLowerCase().indexOf('webm') !== -1) return 'video/webm';
-                const prefix = normalizeBase64(b64).slice(0,8);
-                if (prefix.startsWith('iVBOR') || prefix.startsWith('iVBORw0K')) return 'image/png';
+                const prefix = normalizeBase64(b64).slice(0, 8);
+                if (prefix.startsWith('iVBOR')) return 'image/png';
                 if (prefix.startsWith('/9j/')) return 'image/jpeg';
                 if (prefix.startsWith('R0lG')) return 'image/gif';
                 return null;
@@ -1233,82 +1311,53 @@
 
         function base64ToBlob(base64, mime) {
             const binary = atob(base64);
-            const len = binary.length;
-            const arr = new Uint8Array(len);
-            for (let i=0;i<len;i++) arr[i] = binary.charCodeAt(i);
-            return new Blob([arr], { type: mime || 'application/octet-stream'});
+            const arr = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+            return new Blob([arr], { type: mime || 'application/octet-stream' });
         }
 
-        function setPreviewFromBase64(rawBase64, mimeHint, useBlobIfLarge = true) {
+        function setPreviewFromBase64(rawBase64, mimeHint) {
             const cleaned = normalizeBase64(rawBase64);
-            if (!cleaned) { descriptionContent.innerHTML = '<p class="text-red-400">Data base64 kosong.</p>'; return; }
+            if (!cleaned) {
+                descriptionContent.innerHTML = '<p class="text-red-400">Data base64 kosong.</p>';
+                return { blob: null, mime: null };
+            }
 
             let mime = mimeHint || getMimeFromBase64Sample(cleaned);
-            if (!mime) {
-                if (cleaned.startsWith('iVBOR') || cleaned.startsWith('iVBORw0K')) mime = 'image/png';
-                else if (cleaned.startsWith('/9j/')) mime = 'image/jpeg';
-                else if (cleaned.startsWith('R0lG')) mime = 'image/gif';
-            }
-
             descriptionContent.innerHTML = '';
-            const threshold = 1024 * 300;
-            const approximateSize = Math.ceil((cleaned.length * 3) / 4);
             let blob = null;
 
-            if (useBlobIfLarge && approximateSize > threshold) {
-                try {
-                    blob = base64ToBlob(cleaned, mime);
-                    const objectUrl = URL.createObjectURL(blob);
-                    if (mime && mime.startsWith('image/')) {
-                        const img = document.createElement('img');
-                        img.src = objectUrl;
-                        img.className = 'media-preview shadow-2xl';
-                        img.onload = () => URL.revokeObjectURL(objectUrl);
-                        descriptionContent.appendChild(img);
-                    } else if (mime && mime.startsWith('video/')) {
-                        const video = document.createElement('video');
-                        video.src = objectUrl;
-                        video.controls = true;
-                        video.className = 'video-preview shadow-2xl';
-                        video.onloadeddata = () => URL.revokeObjectURL(objectUrl);
-                        descriptionContent.appendChild(video);
-                    } else {
-                        const a = document.createElement('a');
-                        a.href = objectUrl;
-                        a.download = 'file.bin';
-                        a.textContent = 'Unduh file (tipe tidak terdeteksi)';
-                        a.className = 'underline text-purple-400 font-semibold';
-                        descriptionContent.appendChild(a);
-                    }
-                } catch (err) {
-                    blob = null;
-                }
-            }
-
-            if (!blob) {
-                const dataMime = mime || 'application/octet-stream';
-                const dataUrl = `data:${dataMime};base64,${cleaned}`;
-                if (dataMime.startsWith('image/')) {
+            try {
+                blob = base64ToBlob(cleaned, mime);
+                const objectUrl = URL.createObjectURL(blob);
+                
+                if (mime && mime.startsWith('image/')) {
                     const img = document.createElement('img');
-                    img.src = dataUrl;
-                    img.className = 'media-preview shadow-2xl';
+                    img.src = objectUrl;
+                    img.className = 'media-preview border border-white/10 shadow-2xl';
+                    img.onload = () => URL.revokeObjectURL(objectUrl);
                     descriptionContent.appendChild(img);
-                } else if (dataMime.startsWith('video/')) {
+                } else if (mime && mime.startsWith('video/')) {
                     const video = document.createElement('video');
-                    video.src = dataUrl;
+                    video.src = objectUrl;
                     video.controls = true;
-                    video.className = 'video-preview shadow-2xl';
-                    video.setAttribute('playsinline', '');
+                    video.className = 'video-preview border border-white/10 shadow-2xl';
+                    video.onloadeddata = () => URL.revokeObjectURL(objectUrl);
                     descriptionContent.appendChild(video);
                 } else {
-                    const pre = document.createElement('pre');
-                    pre.textContent = cleaned.slice(0,2000) + (cleaned.length>2000? '\n\n... (terpotong) ...':'');
-                    pre.className = 'p-4 bg-white/5 rounded-xl text-sm max-h-96 overflow-auto w-full text-gray-300';
-                    descriptionContent.appendChild(pre);
+                    const a = document.createElement('a');
+                    a.href = objectUrl;
+                    a.download = 'file.bin';
+                    a.textContent = 'Unduh file';
+                    a.className = 'btn-glow';
+                    descriptionContent.appendChild(a);
                 }
+            } catch (err) {
+                blob = null;
+                descriptionContent.innerHTML = '<p class="text-red-400">Gagal memproses data.</p>';
             }
             
-            return { blob: blob, mime: mime };
+            return { blob, mime };
         }
 
         async function showDescriptionModal(url, shiftCode, personName, linkName) {
@@ -1319,7 +1368,7 @@
             downloadBtn.classList.add('hidden');
 
             try {
-                if (!url || !url.startsWith('http')) throw new Error('URL deskripsi tidak valid.');
+                if (!url || !url.startsWith('http')) throw new Error('URL tidak valid.');
                 const response = await fetch(url);
                 if (!response.ok) throw new Error(`Gagal memuat file. Status: ${response.status}`);
 
@@ -1327,15 +1376,12 @@
                 const decrypted = decryptCaesar(encryptedText, shiftCode);
                 const probableBase64 = decrypted.trim();
                 const mimeHint = getMimeFromBase64Sample(probableBase64);
-
-                const previewResult = setPreviewFromBase64(probableBase64, mimeHint, true);
-                const blob = previewResult.blob;
-                const mime = previewResult.mime;
+                const { blob, mime } = setPreviewFromBase64(probableBase64, mimeHint);
 
                 if (isBase64String(probableBase64)) {
                     const fileExt = mime ? mime.split('/')[1] : 'bin';
                     let baseFilename = `${personName || 'anonim'} - ${linkName || 'tanpa-nama'}`;
-                    baseFilename = baseFilename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+                    baseFilename = baseFilename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-');
                     currentDownloadFilename = `${baseFilename}.${fileExt}`;
                     currentDownloadBlob = blob;
                 } else {
@@ -1343,6 +1389,7 @@
                     currentDownloadFilename = `${personName || 'anonim'} - ${linkName || 'tanpa-nama'}.txt`;
                 }
                 
+                downloadBtn.innerHTML = '<i class="fa-solid fa-download"></i> Unduh Konten';
                 downloadBtn.classList.remove('hidden');
                 descriptionLoading.classList.add('hidden');
             } catch (error) {
@@ -1358,28 +1405,19 @@
             descriptionMessage.classList.add('hidden');
             descriptionLoading.classList.add('hidden');
             downloadBtn.classList.add('hidden');
-            if (currentDownloadBlob) {
-                URL.revokeObjectURL(URL.createObjectURL(currentDownloadBlob));
-                currentDownloadBlob = null;
-                currentDownloadFilename = null;
-            }
+            currentDownloadBlob = null;
+            currentDownloadFilename = null;
         }
 
         closeModalButton.addEventListener('click', () => qrModal.classList.add('hidden'));
-        qrModal.addEventListener('click', (e) => { 
-            if (e.target === qrModal) qrModal.classList.add('hidden'); 
-        });
+        qrModal.addEventListener('click', (e) => { if (e.target === qrModal) qrModal.classList.add('hidden'); });
         closeDescriptionModalButton.addEventListener('click', hideDescriptionModal);
-        descriptionModal.addEventListener('click', (e) => { 
-            if (e.target === descriptionModal) hideDescriptionModal(); 
-        });
+        descriptionModal.addEventListener('click', (e) => { if (e.target === descriptionModal) hideDescriptionModal(); });
 
         downloadSingleQrBtn.addEventListener('click', () => {
             const canvas = enlargedQrContainer.querySelector('canvas');
             if (canvas && currentQrFilename) {
                 downloadQrCode(canvas, currentQrFilename);
-            } else {
-                showStatus('QR Code tidak ditemukan.', 'error');
             }
         });
 
@@ -1399,8 +1437,7 @@
             const cards = cardsContainer.querySelectorAll('.link-card');
 
             cards.forEach(card => {
-                const cardText = card.textContent.toLowerCase();
-                card.style.display = cardText.includes(searchTerm) ? '' : 'none';
+                card.style.display = card.textContent.toLowerCase().includes(searchTerm) ? '' : 'none';
             });
 
             document.querySelectorAll('.name-tag').forEach(t => t.classList.remove('active'));
@@ -1409,7 +1446,6 @@
                     .find(t => t.textContent.toLowerCase() === searchTerm);
                 if (activeTag) activeTag.classList.add('active');
             }
-
             clearSearchBtn.classList.toggle('hidden', !searchTerm);
         }
         
@@ -1419,39 +1455,47 @@
             filterLinks();
         });
 
+        function getCategoryClass(category) {
+            const cat = (category || '').toLowerCase();
+            if (cat.includes('video')) return 'badge-video';
+            if (cat.includes('image') || cat.includes('gambar') || cat.includes('foto')) return 'badge-image';
+            if (cat.includes('audio') || cat.includes('musik')) return 'badge-audio';
+            if (cat.includes('dokumen') || cat.includes('document')) return 'badge-document';
+            return 'badge-default';
+        }
+
+        function getCategoryIcon(category) {
+            const cat = (category || '').toLowerCase();
+            if (cat.includes('video')) return 'fa-video';
+            if (cat.includes('image') || cat.includes('gambar') || cat.includes('foto')) return 'fa-image';
+            if (cat.includes('audio') || cat.includes('musik')) return 'fa-music';
+            if (cat.includes('dokumen') || cat.includes('document')) return 'fa-file-alt';
+            return 'fa-folder';
+        }
+
         async function handleEdit(e) {
             const cell = e.target;
             if (!cell.classList.contains('editable')) return;
 
             cell.contentEditable = 'false';
             cell.classList.remove('editable');
-            cell.removeEventListener('keydown', handleEnter);
-            cell.removeEventListener('blur', handleEdit);
 
             const newText = cell.textContent.trim();
             const card = cell.closest('.link-card');
             const linkId = card.dataset.id;
             const column = cell.dataset.column;
 
-            if (!linkId || !column) {
-                showStatus('Gagal menemukan ID atau kolom.', 'error');
-                return;
-            }
+            if (!linkId || !column) return;
 
-            const updates = {};
-            updates[column] = newText;
-
-            showStatus('Menyimpan perubahan...', 'success');
+            showStatus('Menyimpan...', 'success');
             
             try {
-                const { error } = await supabase.from('links').update(updates).eq('id', linkId);
+                const { error } = await supabase.from('links').update({ [column]: newText }).eq('id', linkId);
                 if (error) throw error;
-                showStatus('Perubahan berhasil disimpan!', 'success');
-                if (column === 'url' || column === 'shift_code') {
-                    fetchLinks();
-                }
+                showStatus('Tersimpan!', 'success');
+                if (column === 'url' || column === 'shift_code') fetchLinks();
             } catch (error) {
-                showStatus(`Gagal menyimpan: ${error.message}`, 'error');
+                showStatus(`Gagal: ${error.message}`, 'error');
             }
         }
         
@@ -1463,35 +1507,30 @@
         }
         
         async function handleDelete(e) {
-            const button = e.target.closest('button');
-            const card = button.closest('.link-card');
+            const card = e.target.closest('.link-card');
             const linkId = card.dataset.id;
             
-            if (!linkId) {
-                showStatus('Gagal menemukan ID tautan.', 'error');
-                return;
-            }
+            if (!linkId || !confirm('Hapus tautan ini?')) return;
             
-            if (confirm('Apakah Anda yakin ingin menghapus tautan ini?')) {
-                showStatus('Menghapus tautan...', 'success');
-                try {
-                    const { error } = await supabase.from('links').delete().eq('id', linkId);
-                    if (error) throw error;
-                    showStatus('Tautan berhasil dihapus!', 'success');
-                    card.style.transform = 'scale(0.8) rotateX(10deg)';
-                    card.style.opacity = '0';
-                    setTimeout(() => {
-                        card.remove();
-                        fetchLinks();
-                    }, 400);
-                } catch (error) {
-                    showStatus(`Gagal menghapus: ${error.message}`, 'error');
-                }
+            showStatus('Menghapus...', 'success');
+            try {
+                const { error } = await supabase.from('links').delete().eq('id', linkId);
+                if (error) throw error;
+                showStatus('Terhapus!', 'success');
+                card.style.transform = 'scale(0.8)';
+                card.style.opacity = '0';
+                setTimeout(() => {
+                    card.remove();
+                    fetchLinks();
+                }, 300);
+            } catch (error) {
+                showStatus(`Gagal: ${error.message}`, 'error');
             }
         }
 
         async function fetchLinks() {
-            loadingIndicator && loadingIndicator.classList.remove('hidden');
+            loadingIndicator.classList.remove('hidden');
+            cardsContainer.classList.add('hidden');
             emptyState.classList.add('hidden');
             cardsContainer.innerHTML = '';
             allLinksData = [];
@@ -1499,7 +1538,7 @@
 
             try {
                 const { data, error } = await supabase.from('links').select('*, category').order('created_at', { ascending: false });
-                loadingIndicator && loadingIndicator.classList.add('hidden');
+                loadingIndicator.classList.add('hidden');
                 
                 if (error) { 
                     showStatus(`Error: ${error.message}`); 
@@ -1508,23 +1547,23 @@
                 
                 if (!data || data.length === 0) { 
                     emptyState.classList.remove('hidden');
-                    totalLinksEl.textContent = '0 Tautan';
+                    totalLinksEl.textContent = '0';
+                    totalPeopleEl.textContent = '0';
                     return; 
                 }
 
                 allLinksData = data;
-                totalLinksEl.textContent = `${data.length} Tautan`;
+                cardsContainer.classList.remove('hidden');
 
-                const uniqueNames = [...new Set(data
-                    .map(link => link.person_name)
-                    .filter(Boolean)
-                )].sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
+                totalLinksEl.textContent = data.length;
+                const uniquePeople = [...new Set(data.map(link => link.person_name).filter(Boolean))];
+                totalPeopleEl.textContent = uniquePeople.length;
 
-                uniqueNames.forEach(name => {
+                const sortedNames = uniquePeople.sort((a, b) => a.localeCompare(b, 'id'));
+                sortedNames.forEach(name => {
                     const tag = document.createElement('span');
                     tag.className = 'name-tag';
                     tag.textContent = name;
-                    tag.title = `Filter "${name}"`;
                     tag.addEventListener('click', () => {
                         searchInput.value = name;
                         filterLinks();
@@ -1534,74 +1573,71 @@
                     nameTagsContainer.appendChild(tag);
                 });
 
-                if (uniqueNames.length === 0) {
-                    nameTagsContainer.innerHTML = '<span class="text-gray-500 text-sm">Belum ada nama</span>';
+                if (sortedNames.length === 0) {
+                    nameTagsContainer.innerHTML = '<span class="text-white/40 text-sm">Belum ada nama</span>';
                 }
 
                 data.forEach((link, index) => {
                     const card = document.createElement('div');
-                    card.className = 'link-card fade-in';
-                    card.style.animationDelay = `${index * 0.08}s`;
+                    card.className = 'link-card card-animated';
                     card.dataset.id = link.id;
+                    card.style.animationDelay = `${index * 0.08}s`;
 
-                    const formattedDate = link.created_at ? new Date(link.created_at).toLocaleString('id-ID', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
+                    const formattedDate = link.created_at ? new Date(link.created_at).toLocaleDateString('id-ID', {
+                        day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
                     }) : '-';
                     
                     const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
-                    const category = link.category || 'Umum';
-                    
-                    let qrFilenameBase = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}`;
-                    qrFilenameBase = qrFilenameBase.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+                    const category = link.category || 'Lainnya';
                     const qrCanvasId = `qr-${link.id}`;
+                    let qrFilenameBase = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}`.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-');
 
                     card.innerHTML = `
                         <div class="card-header">
                             <div class="flex items-start justify-between gap-4">
                                 <div class="flex-1 min-w-0">
-                                    <h3 class="text-lg font-bold text-white truncate mb-1" data-column="name">${link.name || 'Tanpa Judul'}</h3>
-                                    <p class="text-sm text-gray-400" data-column="person_name">
-                                        <i class="fa-solid fa-user-circle mr-2 text-purple-400"></i>${link.person_name || 'Anonim'}
+                                    <h3 class="text-lg font-bold text-white truncate cursor-pointer" data-column="name" title="Triple-click untuk edit">${link.name || 'Tanpa Judul'}</h3>
+                                    <p class="text-sm text-white/50 flex items-center gap-2 mt-1">
+                                        <i class="fa-solid fa-user text-indigo-400"></i>
+                                        <span class="cursor-pointer" data-column="person_name">${link.person_name || 'Anonim'}</span>
                                     </p>
                                 </div>
-                                <div class="qr-wrapper flex-shrink-0">
-                                    <canvas id="${qrCanvasId}" style="width:64px;height:64px;display:block;border-radius:8px;"></canvas>
+                                <div class="qr-glow cursor-pointer" title="Klik untuk memperbesar">
+                                    <canvas id="${qrCanvasId}" style="width:70px;height:70px;display:block;border-radius:8px;"></canvas>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="card-body">
-                            <div class="mb-5">
-                                <span class="category-badge">
-                                    <i class="fa-solid fa-tag"></i> ${category}
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="badge ${getCategoryClass(category)}">
+                                    <i class="fa-solid ${getCategoryIcon(category)}"></i>
+                                    <span data-column="category">${category}</span>
                                 </span>
                             </div>
                             
-                            <div class="info-row">
-                                <span class="info-label"><i class="fa-solid fa-link mr-2"></i>URL</span>
-                                <span class="info-value truncate" data-column="url">${link.url || '-'}</span>
+                            <div class="space-y-1">
+                                <div class="info-row">
+                                    <span class="info-label">URL</span>
+                                    <span class="info-value truncate cursor-pointer" data-column="url">${link.url || '-'}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Shift</span>
+                                    <span class="info-value font-mono cursor-pointer" data-column="shift_code">${link.shift_code || '-'}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Dibuat</span>
+                                    <span class="info-value">${formattedDate}</span>
+                                </div>
                             </div>
-                            
-                            <div class="info-row">
-                                <span class="info-label"><i class="fa-solid fa-key mr-2"></i>Shift</span>
-                                <span class="info-value font-mono font-semibold text-purple-400" data-column="shift_code">${link.shift_code || '-'}</span>
-                            </div>
-                            
-                            <div class="info-row">
-                                <span class="info-label"><i class="fa-regular fa-clock mr-2"></i>Dibuat</span>
-                                <span class="info-value text-gray-500">${formattedDate}</span>
-                            </div>
+                            <p class="hint-text mt-4"><i class="fa-solid fa-lightbulb"></i> Triple-click teks untuk edit</p>
                         </div>
                         
                         <div class="card-footer">
-                            <button class="view-description-btn action-btn primary flex-1">
+                            <button class="view-description-btn btn-glow flex-1 justify-center">
                                 <i class="fa-solid fa-eye"></i> Lihat
                             </button>
-                            <button class="delete-btn action-btn danger" style="padding: 12px 16px;">
+                            <button class="delete-btn btn-danger" title="Hapus">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </div>
@@ -1609,49 +1645,39 @@
 
                     cardsContainer.appendChild(card);
 
-                    // Generate QR Code
                     QRCode.toCanvas(document.getElementById(qrCanvasId), qrData, { 
                         errorCorrectionLevel: 'L', 
                         margin: 1, 
-                        width: 64,
-                        color: { dark: '#000000', light: '#ffffff' }
+                        width: 70,
+                        color: { dark: '#ffffff', light: 'transparent' }
                     });
 
-                    // QR Click to enlarge
-                    const qrWrapper = card.querySelector('.qr-wrapper');
-                    qrWrapper.addEventListener('click', () => {
+                    card.querySelector('.qr-glow').addEventListener('click', () => {
                         enlargedQrContainer.innerHTML = '';
                         generateQrCodeWithPadding(qrData, 256, 12).then(canvas => {
                             enlargedQrContainer.appendChild(canvas);
-                            canvas.style.borderRadius = '16px';
-                            canvas.style.display = 'block';
+                            canvas.style.borderRadius = '12px';
                             currentQrFilename = `${qrFilenameBase}.png`;
                             qrModal.classList.remove('hidden');
                         });
                     });
 
-                    // View button
-                    const viewBtn = card.querySelector('.view-description-btn');
-                    viewBtn.addEventListener('click', () => {
-                        const urlParam = encodeURIComponent(link.url || '');
-                        const shiftParam = encodeURIComponent(link.shift_code || '');
-                        const personParam = encodeURIComponent(link.person_name || '');
-                        const nameParam = encodeURIComponent(link.name || '');
-                        const targetUrl = `dekripsi.html?url=${urlParam}&shift=${shiftParam}&person=${personParam}&name=${nameParam}`;
-                        window.open(targetUrl, '_blank');
+                    card.querySelector('.view-description-btn').addEventListener('click', () => {
+                        const params = new URLSearchParams({
+                            url: link.url || '',
+                            shift: link.shift_code || '',
+                            person: link.person_name || '',
+                            name: link.name || ''
+                        });
+                        window.open(`dekripsi.html?${params}`, '_blank');
                     });
                     
-                    // Delete button
-                    const deleteBtn = card.querySelector('.delete-btn');
-                    deleteBtn.addEventListener('click', handleDelete);
+                    card.querySelector('.delete-btn').addEventListener('click', handleDelete);
 
-                    // Triple click to edit
-                    const editableCells = card.querySelectorAll('[data-column]');
-                    editableCells.forEach(cell => {
+                    card.querySelectorAll('[data-column]').forEach(cell => {
                         cell.addEventListener('click', (e) => {
-                            const now = new Date().getTime();
-                            const diff = now - lastClickTime;
-                            clickCount = (diff < 300 && clickCount < 3) ? clickCount + 1 : 1;
+                            const now = Date.now();
+                            clickCount = (now - lastClickTime < 300 && clickCount < 3) ? clickCount + 1 : 1;
                             lastClickTime = now;
 
                             if (clickCount === 3) {
@@ -1660,10 +1686,13 @@
                                 cell.classList.add('editable');
                                 cell.focus();
                                 
-                                cell.removeEventListener('blur', handleEdit);
-                                cell.removeEventListener('keydown', handleEnter);
-
-                                cell.addEventListener('blur', handleEdit);
+                                const range = document.createRange();
+                                range.selectNodeContents(cell);
+                                const selection = window.getSelection();
+                                selection.removeAllRanges();
+                                selection.addRange(range);
+                                
+                                cell.addEventListener('blur', handleEdit, { once: true });
                                 cell.addEventListener('keydown', handleEnter);
                             }
                         });
@@ -1671,13 +1700,12 @@
                 });
 
             } catch (err) {
-                loadingIndicator && loadingIndicator.classList.add('hidden');
-                showStatus(`Kesalahan: ${err.message}`, 'error');
+                loadingIndicator.classList.add('hidden');
+                showStatus(`Error: ${err.message}`, 'error');
             }
         }
 
         document.addEventListener('DOMContentLoaded', fetchLinks);
     </script>
-
 </body>
 </html>
