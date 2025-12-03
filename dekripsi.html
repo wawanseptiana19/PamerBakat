@@ -5,798 +5,137 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dekripsi & Preview — Dekripsi</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
     window.createClient = createClient;
   </script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <style>
-    * { box-sizing: border-box; }
-    
-    body { 
-      font-family: 'Poppins', sans-serif;
-      min-height: 100vh;
-      background: #0f0f1a;
-      overflow-x: hidden;
-      margin: 0;
-      padding: 0;
-    }
-    
-    /* Animated Background */
-    .bg-animated {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-      background: linear-gradient(125deg, #0f0f1a 0%, #1a1a2e 25%, #16213e 50%, #1a1a2e 75%, #0f0f1a 100%);
-      background-size: 400% 400%;
-      animation: gradientBG 15s ease infinite;
-    }
-    
-    .bg-animated::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    }
-    
-    @keyframes gradientBG {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    
-    /* Floating Orbs */
-    .orb {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.5;
-      z-index: -1;
-      animation: float 20s ease-in-out infinite;
-    }
-    
-    .orb-1 {
-      width: 400px;
-      height: 400px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      top: -100px;
-      right: -100px;
-      animation-delay: 0s;
-    }
-    
-    .orb-2 {
-      width: 300px;
-      height: 300px;
-      background: linear-gradient(135deg, #f093fb, #f5576c);
-      bottom: -50px;
-      left: -50px;
-      animation-delay: -5s;
-    }
-    
-    .orb-3 {
-      width: 250px;
-      height: 250px;
-      background: linear-gradient(135deg, #4facfe, #00f2fe);
-      top: 50%;
-      left: 50%;
-      animation-delay: -10s;
-    }
-    
-    @keyframes float {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      25% { transform: translate(50px, -50px) scale(1.1); }
-      50% { transform: translate(-30px, 30px) scale(0.9); }
-      75% { transform: translate(-50px, -30px) scale(1.05); }
-    }
-    
-    /* Glass Card */
-    .glass-card {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 24px;
-    }
-    
-    /* Content Card */
-    .content-card {
-      background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 24px;
-      overflow: hidden;
-      position: relative;
-    }
-    
-    .content-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #667eea);
-      background-size: 300% 100%;
-      animation: shimmer 3s linear infinite;
-    }
-    
-    @keyframes shimmer {
-      0% { background-position: 300% 0; }
-      100% { background-position: -300% 0; }
-    }
-    
-    /* Action Buttons */
-    .action-btn {
-      padding: 14px 28px;
-      border-radius: 14px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      cursor: pointer;
-      border: none;
-      position: relative;
-      overflow: hidden;
-      text-decoration: none;
-    }
-    
-    .action-btn::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .action-btn:hover::before {
-      opacity: 1;
-    }
-    
-    .action-btn.primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-    }
-    
-    .action-btn.primary:hover {
-      transform: translateY(-3px) scale(1.02);
-      box-shadow: 0 8px 30px rgba(102, 126, 234, 0.5);
-    }
-    
-    .action-btn.success {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: white;
-      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
-    }
-    
-    .action-btn.success:hover {
-      transform: translateY(-3px) scale(1.02);
-      box-shadow: 0 8px 30px rgba(16, 185, 129, 0.5);
-    }
-    
-    .action-btn.secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: #e2e8f0;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    
-    .action-btn.secondary:hover {
-      background: rgba(255, 255, 255, 0.15);
-      transform: translateY(-3px);
-    }
-    
-    /* Sidebar */
-    #sidebar {
-      position: fixed;
-      top: 0;
-      left: -380px;
-      width: 380px;
-      height: 100%;
-      background: linear-gradient(180deg, #1e1e30, #151525);
-      border-right: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 10px 0 50px rgba(0, 0, 0, 0.5);
-      transition: left 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 2000;
-      padding: 32px;
-      overflow-y: auto;
-    }
-    
-    #sidebar.open {
-      left: 0;
-    }
-    
-    /* Sidebar Toggle Button */
-    #sidebarToggle {
-      position: fixed;
-      bottom: 2rem;
-      left: 2rem;
-      z-index: 1500;
-      width: 64px;
-      height: 64px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      box-shadow: 
-        0 8px 32px rgba(102, 126, 234, 0.4),
-        0 0 0 4px rgba(102, 126, 234, 0.2);
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-    }
-    
-    #sidebarToggle::before {
-      content: '';
-      position: absolute;
-      inset: -4px;
-      background: linear-gradient(135deg, #667eea, #764ba2, #f093fb, #667eea);
-      border-radius: 24px;
-      z-index: -1;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      background-size: 300% 300%;
-      animation: shimmer 3s linear infinite;
-    }
-    
-    #sidebarToggle:hover {
-      transform: scale(1.1) rotate(-5deg);
-      box-shadow: 
-        0 12px 40px rgba(102, 126, 234, 0.5),
-        0 0 0 6px rgba(102, 126, 234, 0.3);
-    }
-    
-    #sidebarToggle:hover::before {
-      opacity: 1;
-    }
-    
-    #sidebarToggle:active {
-      transform: scale(0.95);
-    }
-    
-    #sidebarToggle i {
-      font-size: 1.5rem;
-      transition: transform 0.3s ease;
-    }
-    
-    #sidebarToggle:hover i {
-      transform: rotate(-90deg);
-    }
-    
-    #sidebarToggle.open {
-      left: 400px;
-      background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
-    }
-    
-    /* Close button style */
-    .close-btn {
-      width: 44px;
-      height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #94a3b8;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .close-btn:hover {
-      background: rgba(245, 87, 108, 0.1);
-      border-color: rgba(245, 87, 108, 0.3);
-      color: #f5576c;
-      transform: rotate(90deg);
-    }
-    
-    /* Locked Overlay */
-    #lockedOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 15, 26, 0.95);
-      z-index: 20000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-      backdrop-filter: blur(20px);
-    }
-    
-    #lockedBox {
-      background: linear-gradient(145deg, #1e1e30, #151525);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      width: 100%;
-      max-width: 440px;
-      border-radius: 28px;
-      padding: 48px 40px;
-      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
-      text-align: center;
-      animation: modalPop 0.5s ease;
-    }
-    
-    #lockedBox h2 { 
-      margin-bottom: 8px; 
-      font-size: 1.75rem; 
-      font-weight: 700;
-      background: linear-gradient(135deg, #f5576c, #f093fb);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    #lockedBox p { 
-      color: #94a3b8; 
-      font-size: 0.95rem; 
-    }
-    
-    @keyframes modalPop {
-      from {
-        opacity: 0;
-        transform: scale(0.8) translateY(50px);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-      }
-    }
-    
-    body.blurred .container {
-      filter: blur(10px) saturate(0.8);
-      transition: filter 0.3s ease;
-      pointer-events: none;
-      user-select: none;
-    }
-    
-    body.sidebar-open .container {
-      filter: blur(6px) saturate(0.95);
-      transition: filter 0.25s ease;
-      pointer-events: none;
-      user-select: none;
-    }
-    
-    /* Status Badge */
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 14px 24px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 14px;
-      color: #94a3b8;
-      font-size: 0.9rem;
-    }
-    
-    .status-badge.success {
-      background: rgba(16, 185, 129, 0.1);
-      border-color: rgba(16, 185, 129, 0.3);
-      color: #10b981;
-    }
-    
-    .status-badge.error {
-      background: rgba(245, 87, 108, 0.1);
-      border-color: rgba(245, 87, 108, 0.3);
-      color: #f5576c;
-    }
-    
-    /* Meta Info */
-    .meta-info {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      justify-content: center;
-    }
-    
-    .meta-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 18px;
-      background: rgba(102, 126, 234, 0.1);
-      border: 1px solid rgba(102, 126, 234, 0.2);
-      border-radius: 50px;
-      font-size: 0.85rem;
-      color: #a78bfa;
-    }
-    
-    /* Media Preview */
-    .media-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      width: 100%;
-    }
-    
-    .media-preview, .video-preview {
-      max-width: 100%;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-    }
-    
-    .media-label {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: #e2e8f0;
-      text-align: center;
-      margin-bottom: 16px;
-    }
-    
-    /* QR Section in Sidebar */
-    .qr-wrapper {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
-      padding: 20px;
-      display: inline-block;
-      cursor: pointer;
-      transition: all 0.4s ease;
-      position: relative;
-    }
-    
-    .qr-wrapper::before {
-      content: '\f00e';
-      font-family: 'Font Awesome 6 Free';
-      font-weight: 900;
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(102, 126, 234, 0.9);
-      color: white;
-      font-size: 2rem;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      border-radius: 20px;
-    }
-    
-    .qr-wrapper:hover::before {
-      opacity: 1;
-    }
-    
-    .qr-wrapper:hover {
-      transform: scale(1.05);
-    }
-    
-    #qrWrapper canvas {
-      display: block;
-      border-radius: 12px;
-    }
-    
-    /* Related Section */
-    .category-group {
-      margin-bottom: 20px;
-    }
-    
-    .category-heading {
-      font-weight: 600;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #a78bfa;
-      margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .related-sublist {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    
-    .related-sublist li {
-      padding: 14px 16px;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      color: #94a3b8;
-      font-size: 0.9rem;
-      margin-bottom: 8px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    
-    .related-sublist li:hover {
-      background: rgba(102, 126, 234, 0.1);
-      border-color: rgba(102, 126, 234, 0.3);
-      color: #e2e8f0;
-      transform: translateX(8px);
-    }
-    
-    /* Modal */
-    #imageModal {
-      display: none;
-      position: fixed;
-      z-index: 10000;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.95);
-      backdrop-filter: blur(10px);
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    
-    .modal-content {
-      max-width: 90%;
-      max-height: 85vh;
-      border-radius: 16px;
-      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
-    }
-    
-    .modal-close-btn {
-      position: absolute;
-      top: 24px;
-      right: 24px;
-      width: 50px;
-      height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-      font-size: 1.5rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .modal-close-btn:hover {
-      background: rgba(245, 87, 108, 0.2);
-      border-color: rgba(245, 87, 108, 0.4);
-      transform: rotate(90deg);
-    }
-    
-    .modal-download-btn {
-      position: absolute;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 14px 28px;
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: white;
-      border: none;
-      border-radius: 14px;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: 600;
-      box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4);
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .modal-download-btn:hover {
-      transform: translateX(-50%) translateY(-3px);
-      box-shadow: 0 12px 40px rgba(16, 185, 129, 0.5);
-    }
-    
-    /* Frames */
-    .frames-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 16px;
-      margin-top: 20px;
-    }
-    
-    .frame-img {
-      width: 100%;
-      height: auto;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: 2px solid transparent;
-    }
-    
-    .frame-img:hover {
-      transform: scale(1.05);
-      border-color: rgba(102, 126, 234, 0.5);
-      box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
-    }
-    
-    /* Scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    ::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.02);
-    }
-    
-    ::-webkit-scrollbar-thumb {
-      background: rgba(102, 126, 234, 0.3);
-      border-radius: 4px;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(102, 126, 234, 0.5);
-    }
-    
-    /* Animations */
-    .fade-in {
-      animation: fadeIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
-    
-    @keyframes fadeIn {
-      from { 
-        opacity: 0; 
-        transform: translateY(30px); 
-      }
-      to { 
-        opacity: 1; 
-        transform: translateY(0); 
-      }
-    }
-    
-    /* Responsive */
-    @media (max-width: 640px) {
-      #sidebar {
-        width: 100%;
-        left: -100%;
-      }
-      
-      #sidebarToggle {
-        bottom: 1.5rem;
-        left: 1.5rem;
-        width: 56px;
-        height: 56px;
-      }
-      
-      #sidebarToggle.open {
-        left: 1.5rem;
-      }
-      
-      .action-btn {
-        padding: 12px 20px;
-        font-size: 0.85rem;
-      }
-    }
+    body {font-family: 'Inter', sans-serif;background-color: #f7fafc;padding: 0;margin: 0;}
+    .container {width: 100%;min-height: 100vh;display: flex;flex-direction: column;justify-content: flex-start;padding: 1.5rem;}
+    #lockedOverlay {position: fixed;inset: 0;background: rgba(15, 23, 42, 0.75);z-index: 99999;display: none;align-items: center;justify-content: center;padding: 1rem;color: white;}
+    #lockedBox {background: rgba(255,255,255,0.06);border-radius: 12px;padding: 20px;width: 100%;max-width: 640px;text-align: center;box-shadow: 0 8px 30px rgba(2,6,23,0.6);backdrop-filter: blur(4px);}
+    body.blurred .container {filter: blur(6px) saturate(0.95);transition: filter 0.25s ease;pointer-events: none;user-select: none;}
+    .download-btn {display: inline-flex;align-items: center;justify-content: center;padding: 0.75rem 1.5rem;border-radius: 0.375rem;font-weight: 500;transition: all 0.2s ease-in-out;text-decoration: none;}
+    .download-btn.gray {background-color: #e5e7eb;color: #1f2937;}
+    .download-btn.green {background-color: #10B981;color: #ffffff;box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);}
+    .download-btn.green:hover {background-color: #059669;}
+    .media-wrap {display: flex;flex-direction: column;align-items: center;gap: 16px;width: 100%;}
+    .frame-btn {display: inline-flex;align-items: center;justify-content: center;padding: 0.75rem 1.5rem;border-radius: 0.375rem;font-weight: 500;transition: all 0.2s ease-in-out;text-decoration: none;background-color: #3b82f6;color: #ffffff;box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);}
+    .frame-btn:hover {background-color: #2563eb;}
+    .frames-container {display: grid;grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));gap: 1rem;margin-top: 1rem;width: 100%;}
+    .frame-img {width: 100%;height: auto;border-radius: 0.375rem;box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);cursor: pointer;}
+    #imageModal {display: none;position: fixed;z-index: 1000;left: 0;top: 0;width: 100%;height: 100%;overflow: auto;background-color: rgba(0,0,0,0.9);align-items: center;justify-content: center;padding: 20px;}
+    .modal-content {max-width: 90%;max-height: 90vh;border-radius: 8px;}
+    .close-btn {position: absolute;top: 20px;right: 35px;color: #f1f1f1;font-size: 40px;font-weight: bold;cursor: pointer;}
+    .close-btn:hover,.close-btn:focus {color: #bbb;text-decoration: none;}
+    .modal-download-btn {position: absolute;bottom: 20px;left: 50%;transform: translateX(-50%);background-color: #10B981;color: white;padding: 10px 20px;border: none;border-radius: 5px;cursor: pointer;font-size: 16px;}
+    .modal-download-btn:hover {background-color: #059669;}
+    #relatedSection {margin-top: 2rem;padding: 1rem;background-color: #ffffff;border-radius: 0.5rem;box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);}
+    .category-group {margin-bottom: 1rem;}
+    .category-heading {font-weight: 600;margin-bottom: 0.5rem;color: #374151;}
+    .related-sublist {list-style-type: none;padding: 0;}
+    .related-sublist li {padding: 0.75rem;border-bottom: 1px solid #e5e7eb;cursor: pointer;transition: background-color 0.2s;}
+    .related-sublist li:hover {background-color: #f3f4f6;}
+    .related-sublist li:last-child {border-bottom: none;}
+    #sidebar {position: fixed;top: 0;left: -300px;width: 300px;height: 100%;background-color: #ffffff;box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);transition: left 0.3s ease;z-index: 1000;padding: 1rem;overflow-y: auto;}
+    #sidebar.open {left: 0;}
+    #sidebarToggle {position: fixed;top: 1rem;left: 1rem;z-index: 1001;background-color: #3b82f6;color: white;padding: 0.5rem 1rem;border-radius: 0.375rem;cursor: pointer;font-size: 1.5rem;}
+    #qrWrapper canvas {width: 100%; height: auto;}
+    body.sidebar-open .container {filter: blur(6px) saturate(0.95);transition: filter 0.25s ease;pointer-events: none;user-select: none;}
   </style>
 </head>
-<body>
-  <!-- Animated Background -->
-  <div class="bg-animated"></div>
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-
-  <!-- Sidebar Toggle -->
-  <button id="sidebarToggle" aria-label="Toggle Menu">
-    <i class="fa-solid fa-bars"></i>
-  </button>
-
-  <!-- Sidebar -->
+<body class="bg-gray-100 min-h-screen py-8">
+  <button id="sidebarToggle">☰</button>
   <div id="sidebar">
-    <button id="closeSidebar" class="close-btn absolute top-6 right-6">
-      <i class="fa-solid fa-xmark text-lg"></i>
-    </button>
-    
-    <div id="qrSection" class="mt-16 text-center hidden">
-      <h2 class="text-xl font-bold text-white mb-2">QR Code Akses Cepat</h2>
-      <p class="text-sm text-gray-400 mb-6">QR ini berisi URL file enkripsi dan kode shift.</p>
-      <div id="qrWrapper" class="qr-wrapper">
+    <div id="qrSection" class="mt-12 text-center hidden">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">QR Code Akses Cepat</h2>
+      <p class="text-sm text-gray-600 mb-6">QR ini berisi URL file enkripsi dan kode shift.</p>
+      <div id="qrWrapper" class="inline-block bg-white p-8 rounded-xl shadow-lg cursor-pointer">
         <canvas id="qrCanvas"></canvas>
       </div>
       <div class="mt-6">
-        <button id="downloadQrBtn" class="action-btn success w-full">
-          <i class="fa-solid fa-download"></i>
+        <button id="downloadQrBtn" class="download-btn green">
           Unduh QR Code
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 ml-2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
         </button>
       </div>
     </div>
-    
-    <div id="relatedSection" class="hidden mt-8">
-      <h2 class="text-xl font-bold text-white mb-4">Konten Terkait</h2>
-      <div id="relatedList" class="text-sm"></div>
+    <div id="relatedSection" class="hidden">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">Konten Terkait</h2>
+      <div id="relatedList" class="text-sm text-gray-700"></div>
     </div>
   </div>
+  <div class="container">
+    <div class="p-6 md:p-10 rounded-xl">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">Hasil Dekripsi & Preview</h1>
+      <p class="text-sm text-gray-500 mb-6">Pratinjau konten Anda yang terdekripsi.</p>
 
-  <!-- Main Container -->
-  <div class="container px-4 sm:px-8 py-8 max-w-5xl mx-auto">
-    <!-- Header -->
-    <div class="glass-card p-8 mb-8 fade-in">
-      <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-2">
-        <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-          Hasil Dekripsi & Preview
-        </span>
-      </h1>
-      <p class="text-gray-400">Pratinjau konten Anda yang terdekripsi</p>
-    </div>
+      <div id="status" class="mb-6 text-sm text-gray-700 bg-gray-100 p-3 rounded-lg flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-gray-500">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        Memuat...
+      </div>
 
-    <!-- Status -->
-    <div id="status" class="status-badge mb-8 fade-in" style="animation-delay: 0.1s;">
-      <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-      <span>Memuat...</span>
-    </div>
-
-    <!-- Preview Content -->
-    <div class="content-card p-8 mb-8 fade-in" style="animation-delay: 0.2s;">
-      <div id="preview" class="flex flex-col items-center"></div>
+      <div id="preview" class="mb-8"></div>
       
-      <!-- Meta Info -->
-      <div id="meta" class="mt-8 meta-info hidden">
-        <div class="meta-item">
-          <i class="fa-solid fa-cube text-purple-400"></i>
-          <span id="fileSize">Ukuran: -</span>
+      <div class="flex justify-center gap-2 mt-4">
+        <a id="downloadOriginalBtn" class="download-btn gray hidden">
+          Unduh .pb
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 ml-2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+        </a>
+        <a id="downloadDecryptedBtn" class="download-btn green hidden">
+          Unduh Dekripsi
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 ml-2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+        </a>
+      </div>
+
+      <div id="meta" class="mt-6 flex items-center justify-center flex-wrap gap-4 text-sm text-gray-600 hidden">
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-blue-500">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+          </svg>
+          <span id="fileSize" class="font-semibold">Ukuran: -</span>
         </div>
-        <div class="meta-item">
-          <i class="fa-solid fa-file text-green-400"></i>
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-green-500">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c0 .621 0 1.125-.504 1.125-1.125V11.25m-9-9h1.5a3.375 3.375 0 0 1 3.375 3.375v1.5a1.125 1.125 0 0 0-1.125 1.125h-1.5a3.375 3.375 0 0 1-3.375-3.375V2.25Z" />
+          </svg>
           <span id="detectedMime">Tipe: -</span>
         </div>
       </div>
+
+      <div class="flex justify-center mt-4 hidden" id="videoActions">
+        <button id="showFramesBtn" class="frame-btn">Tampilkan Semua Frame</button>
+      </div>
+
+      <div id="framesPreview" class="mb-8 hidden">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Semua Frame Video</h2>
+        <div class="frames-container"></div>
+      </div>
     </div>
 
-    <!-- Download Buttons -->
-    <div class="flex flex-wrap justify-center gap-4 mb-8 fade-in" style="animation-delay: 0.3s;">
-      <a id="downloadOriginalBtn" class="action-btn secondary hidden">
-        <i class="fa-solid fa-file-code"></i>
-        Unduh .pb
-      </a>
-      <a id="downloadDecryptedBtn" class="action-btn success hidden">
-        <i class="fa-solid fa-download"></i>
-        Unduh Dekripsi
-      </a>
-    </div>
-
-    <!-- Video Actions -->
-    <div class="flex justify-center mb-8 hidden" id="videoActions">
-      <button id="showFramesBtn" class="action-btn primary">
-        <i class="fa-solid fa-images"></i>
-        Tampilkan Semua Frame
-      </button>
-    </div>
-
-    <!-- Frames Preview -->
-    <div id="framesPreview" class="content-card p-8 hidden fade-in">
-      <h2 class="text-2xl font-bold text-white mb-6">
-        <i class="fa-solid fa-film mr-3 text-purple-400"></i>
-        Semua Frame Video
-      </h2>
-      <div class="frames-container"></div>
-    </div>
-  </div>
-
-  <!-- Locked Overlay -->
   <div id="lockedOverlay" role="dialog" aria-modal="true">
     <div id="lockedBox" role="document">
-      <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center">
-        <i class="fa-solid fa-lock text-3xl text-white"></i>
-      </div>
       <h2>Akses Terkunci</h2>
       <p>Login terlebih dahulu untuk melihat konten ini.</p>
     </div>
   </div>
 
-  <!-- Image Modal -->
   <div id="imageModal">
-    <button class="modal-close-btn" id="modalCloseBtn">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
+    <span class="close-btn">&times;</span>
     <img class="modal-content" id="modalImage">
-    <a id="modalDownloadBtn" class="modal-download-btn" download>
-      <i class="fa-solid fa-download"></i>
-      Download
-    </a>
+    <a id="modalDownloadBtn" class="modal-download-btn" download>Download</a>
   </div>
 
   <script>
@@ -867,7 +206,7 @@
 
     function createLabel(text) {
       const h = document.createElement('div');
-      h.className = 'media-label';
+      h.className = 'text-sm text-gray-700 font-semibold mb-2';
       h.textContent = text || '';
       return h;
     }
@@ -930,7 +269,7 @@
           sublist.className = 'related-sublist';
           groupedByCategory[category].forEach(item => {
             const li = document.createElement('li');
-            li.innerHTML = `<i class="fa-solid fa-arrow-right mr-2 text-purple-400"></i> ${item.person_name || 'Anonim'} - ${item.name || 'Tanpa Judul'}`;
+            li.textContent = `${item.person_name || 'Anonim'} - ${item.name || 'Tanpa Judul'} (${item.category || 'Tidak Ada Kategori'})`;
             li.dataset.url = item.url;
             li.dataset.shift = item.shift_code;
             li.dataset.person = item.person_name;
@@ -946,7 +285,7 @@
         });
         relatedSection.classList.remove('hidden');
       } catch (err) {
-        relatedList.innerHTML = '<p class="text-red-400">Gagal memuat konten terkait.</p>';
+        relatedList.innerHTML = '<p class="text-red-500">Gagal memuat konten terkait.</p>';
         relatedSection.classList.remove('hidden');
       }
     }
@@ -987,29 +326,22 @@
       let decryptedContent = '';
 
       if (!url) {
-        statusEl.innerHTML = `<i class="fa-solid fa-circle-exclamation text-red-400"></i> <span>Parameter url tidak ditemukan.</span>`;
-        statusEl.classList.add('error');
+        statusEl.textContent = 'Parameter url tidak ditemukan. Pastikan ?url= di query string.';
         return;
       }
 
-      statusEl.innerHTML = `
-        <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <span>Memuat file...</span>`;
+      statusEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-gray-500 animate-spin">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg> Memuat file...`;
 
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`Gagal memuat file: ${res.status}`);
         const encryptedText = await res.text();
 
-        statusEl.innerHTML = `
-          <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <span>Mendekripsi...</span>`;
+        statusEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-gray-500 animate-spin">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg> Mendekripsi...`;
 
         decryptedContent = decryptCaesar(encryptedText, shift);
         const probableBase64 = decryptedContent.trim();
@@ -1031,9 +363,9 @@
             videoEl = document.createElement('video');
             videoEl.controls = true;
             videoEl.playsInline = true;
-            videoEl.className = 'video-preview';
+            videoEl.className = 'rounded-lg shadow-md';
             videoEl.style.maxWidth = '100%';
-            videoEl.style.width = '80%';
+            videoEl.style.width = '50%';
             videoEl.src = objectUrl;
             videoEl.loop = true;
             previewEl.appendChild(createLabel(`${person} - ${name}`));
@@ -1046,12 +378,7 @@
             showFramesBtn.addEventListener('click', async () => {
               if (framesContainer.innerHTML) return;
               framesPreview.classList.remove('hidden');
-              statusEl.innerHTML = `
-                <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Mengekstrak frame...</span>`;
+              statusEl.textContent = 'Mengekstrak frame... Ini mungkin memakan waktu.';
               videoEl.pause();
 
               const canvas = document.createElement('canvas');
@@ -1075,9 +402,7 @@
                 framesContainer.appendChild(img);
               }
 
-              statusEl.innerHTML = `<i class="fa-solid fa-circle-check text-green-400"></i> <span>Ekstraksi frame selesai.</span>`;
-              statusEl.classList.add('success');
-              
+              statusEl.textContent = 'Ekstraksi frame selesai.';
               const frameImages = document.querySelectorAll('.frame-img');
               frameImages.forEach((img, index) => {
                 img.addEventListener('click', () => {
@@ -1094,9 +419,9 @@
             imageEl = document.createElement('img');
             imageEl.src = objectUrl;
             imageEl.alt = `${person} - ${name}`;
-            imageEl.className = 'media-preview';
+            imageEl.className = 'rounded-lg shadow-md';
             imageEl.style.maxWidth = '100%';
-            imageEl.style.width = '80%';
+            imageEl.style.width = '50%';
             previewEl.appendChild(createLabel(`${person} - ${name}`));
             const wrap = document.createElement('div');
             wrap.className = 'media-wrap w-full';
@@ -1107,7 +432,7 @@
             previewEl.innerHTML = '';
             previewEl.appendChild(createLabel(`${person} - ${name}`));
             const pre = document.createElement('pre');
-            pre.className = 'mt-3 p-4 bg-white/5 rounded-xl text-sm max-h-64 overflow-auto text-gray-300';
+            pre.className = 'mt-3 p-4 bg-gray-50 rounded-lg text-sm max-h-64 overflow-auto';
             pre.textContent = `[Preview base64 (dipotong)]\n${cleaned.slice(0, 1500)}${cleaned.length > 1500 ? '\n\n... (terpotong) ...' : ''}`;
             previewEl.appendChild(pre);
           }
@@ -1119,13 +444,14 @@
           previewEl.innerHTML = '';
           previewEl.appendChild(createLabel(`${person} - ${name}`));
           const pre = document.createElement('pre');
-          pre.className = 'mt-3 p-4 bg-white/5 rounded-xl text-sm whitespace-pre-wrap text-gray-300 w-full';
+          pre.className = 'mt-3 p-4 bg-gray-50 rounded-lg text-sm whitespace-pre-wrap';
           pre.textContent = decryptedContent;
           previewEl.appendChild(pre);
         }
 
-        statusEl.innerHTML = `<i class="fa-solid fa-circle-check text-green-400"></i> <span>Selesai.</span>`;
-        statusEl.classList.add('success');
+        statusEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-green-500">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg> Selesai.`;
 
         const blobPB = new Blob([encryptedText], { type: 'application/octet-stream' });
         const tmpUrlPB = URL.createObjectURL(blobPB);
@@ -1176,8 +502,9 @@
         });
 
       } catch (err) {
-        statusEl.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> <span>Gagal: ${err.message}</span>`;
-        statusEl.classList.add('error');
+        statusEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-red-500">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.731 0 2.813-1.874 1.948-3.374L13.949 3.374c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg> Gagal memuat/mendekripsi: ${err.message}`;
       }
     }
 
@@ -1195,9 +522,7 @@
     const modal = document.getElementById('imageModal');
     const modalImage = document.getElementById('modalImage');
     const modalDownloadBtn = document.getElementById('modalDownloadBtn');
-    const modalCloseBtn = document.getElementById('modalCloseBtn');
-    
-    modalCloseBtn.addEventListener('click', () => modal.style.display = 'none');
+    document.querySelector('.close-btn').addEventListener('click', () => modal.style.display = 'none');
     modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
 
     (function initAccessCheck() {
@@ -1215,37 +540,18 @@
       });
     })();
 
-    // Sidebar Toggle
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
-    const closeSidebar = document.getElementById('closeSidebar');
-
-    function openSidebar(e) {
-      e.stopPropagation();
+    sidebarToggle.addEventListener('click', () => {
       sidebar.classList.add('open');
-      sidebarToggle.classList.add('open');
       document.body.classList.add('sidebar-open');
-    }
-
-    function closeSidebarFunc() {
-      sidebar.classList.remove('open');
-      sidebarToggle.classList.remove('open');
-      document.body.classList.remove('sidebar-open');
-    }
-
-    sidebarToggle.addEventListener('click', (e) => {
-      if (sidebar.classList.contains('open')) {
-        closeSidebarFunc();
-      } else {
-        openSidebar(e);
-      }
+      sidebarToggle.style.display = 'none';
     });
-
-    closeSidebar.addEventListener('click', closeSidebarFunc);
-
     document.addEventListener('click', (e) => {
-      if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== sidebarToggle) {
-        closeSidebarFunc();
+      if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+        document.body.classList.remove('sidebar-open');
+        sidebarToggle.style.display = 'block';
       }
     });
   </script>
