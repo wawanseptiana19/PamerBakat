@@ -1,958 +1,1550 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Daftar Tautan Supabase — Dekripsi & Preview Media</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Personal Hub</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #f3f4f6; font-family: 'Inter', sans-serif; }
-        th, td { padding: 12px 24px; }
-        .modal-overlay { background-color: rgba(0,0,0,0.75); }
-        .media-preview { max-width: 100%; height: auto; }
-        .video-preview { max-width: 100%; height: auto; }
-        .editable { outline: 2px solid #3b82f6; background-color: #eff6ff; }
-        .status-popup {
-            position: fixed;
-            top: 1rem;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 0.75rem 1.5rem;
-            border-radius: 9999px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-            opacity: 0;
+        * { font-family: 'Inter', sans-serif; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.5); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(139, 92, 246, 0.8); }
+
+        /* ==================== ANIMATIONS ==================== */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(3deg); }
+            50% { transform: translateY(-15px) rotate(-3deg); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+            50% { box-shadow: 0 0 50px rgba(139, 92, 246, 0.8), 0 0 100px rgba(139, 92, 246, 0.4); }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.8) rotate(-5deg); }
+            to { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+        @keyframes ripple {
+            to { transform: scale(4); opacity: 0; }
+        }
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100%) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        @keyframes particle-float {
+            0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0.5; }
+            25% { transform: translateY(-20px) translateX(10px) rotate(90deg); opacity: 1; }
+            50% { transform: translateY(-40px) translateX(-10px) rotate(180deg); opacity: 0.5; }
+            75% { transform: translateY(-20px) translateX(15px) rotate(270deg); opacity: 1; }
+        }
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        @keyframes blink {
+            50% { border-color: transparent; }
+        }
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.1); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.1); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        @keyframes glow-pulse {
+            0%, 100% { filter: brightness(1) drop-shadow(0 0 5px currentColor); }
+            50% { filter: brightness(1.2) drop-shadow(0 0 20px currentColor); }
+        }
+        @keyframes orbit {
+            from { transform: rotate(0deg) translateX(100px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(100px) rotate(-360deg); }
+        }
+        @keyframes morphing {
+            0%, 100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+            25% { border-radius: 58% 42% 75% 25% / 76% 46% 54% 24%; }
+            50% { border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%; }
+            75% { border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%; }
+        }
+        @keyframes wave {
+            0% { transform: translateX(0) translateZ(0) scaleY(1); }
+            50% { transform: translateX(-25%) translateZ(0) scaleY(0.5); }
+            100% { transform: translateX(-50%) translateZ(0) scaleY(1); }
+        }
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes tilt {
+            0%, 100% { transform: perspective(1000px) rotateY(0deg) rotateX(0deg); }
+            25% { transform: perspective(1000px) rotateY(5deg) rotateX(5deg); }
+            75% { transform: perspective(1000px) rotateY(-5deg) rotateX(-5deg); }
+        }
+        
+        /* Animation Classes */
+        .float-animation { animation: float 4s ease-in-out infinite; }
+        .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+        .slide-up { animation: slideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .slide-down { animation: slideDown 0.5s ease-out forwards; }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        .scale-in { animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .bounce-animation { animation: bounce 1s ease-in-out infinite; }
+        .wiggle-animation { animation: wiggle 0.5s ease-in-out; }
+        .heartbeat { animation: heartbeat 1s ease-in-out infinite; }
+        .shake { animation: shake 0.5s ease-in-out; }
+        .glow-pulse { animation: glow-pulse 2s ease-in-out infinite; }
+        .morphing { animation: morphing 8s ease-in-out infinite; }
+        .spin-slow { animation: spin-slow 20s linear infinite; }
+        .tilt-animation { animation: tilt 6s ease-in-out infinite; }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-dark {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        .btn-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+        .btn-card:hover {
+            transform: translateY(-12px) scale(1.03) rotateX(5deg);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .btn-card:active {
+            transform: translateY(-5px) scale(0.98);
+        }
+
+        .toast {
+            animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #667eea 75%, #764ba2 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientFlow 3s ease infinite;
+        }
+
+        .pattern-bg {
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 40% 80%, rgba(120, 200, 255, 0.2) 0%, transparent 40%);
+        }
+
+        /* Ripple Effect */
+        .ripple-container {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
             pointer-events: none;
         }
-        .status-popup.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-        .icon-wrapper {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .qr-cell {
-            min-width: 120px;
-            width: 15%;
-        }
-        #loginOverlay {
-          position: fixed;
-          inset: 0;
-          background: rgba(15, 23, 42, 0.65);
-          z-index: 20000;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 1rem;
-          backdrop-filter: none;
-        }
-        #loginBox {
-          background: white;
-          width: 100%;
-          max-width: 520px;
-          border-radius: 12px;
-          padding: 20px;
-          box-shadow: 0 10px 30px rgba(2,6,23,0.4);
-          text-align: center;
-        }
-        #loginBox h2 { margin-bottom: 8px; font-size: 1.25rem; color:#0f172a; }
-        #loginBox p { margin-bottom: 12px; color:#334155; font-size:0.95rem; }
-        #loginFileInput { display: block; margin: 8px auto 14px auto; }
-        #loginMsg { color: #b91c1c; min-height: 1.25rem; margin-bottom: 8px; font-size:0.92rem; }
-        #logoutBtn {
-          display: inline-block;
-          margin-top: 8px;
-          background: transparent;
-          border: 1px solid #e5e7eb;
-          padding: 8px 12px;
-          border-radius: 8px;
-          cursor: pointer;
-        }
-        body.lock-scroll { overflow: hidden; }
-        #pageContent.blurred {
-          filter: blur(6px) saturate(0.95);
-          transition: filter 0.25s ease;
-          pointer-events: none;
-          user-select: none;
-        }
-        #pageContent {
-          transition: filter 0.25s ease;
-        }
-        #nameTags {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-        .name-tag {
-            padding: 0.25rem 0.75rem;
-            background: #dbeafe;
-            color: #1e40af;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .name-tag:hover {
-            background: #bfdbfe;
-        }
-        .name-tag.active {
-            background: #1e40af;
-            color: white;
-        }
-        #sidebar {
+
+        /* Confetti */
+        .confetti {
             position: fixed;
-            top: 0;
-            right: -300px;
-            width: 300px;
-            height: 100%;
-            background: white;
-            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-            transition: right 0.3s ease;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            animation: confetti-fall 3s linear forwards;
             z-index: 1000;
-            padding: 1rem;
-            overflow-y: auto;
+            pointer-events: none;
         }
-        #sidebar.open {
+
+        /* Floating Particles */
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            animation: particle-float 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        /* Magnetic Button Effect */
+        .magnetic-btn {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* 3D Card Effect */
+        .card-3d {
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+        .card-3d-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        /* Hover Shine Effect */
+        .shine-effect {
+            position: relative;
+            overflow: hidden;
+        }
+        .shine-effect::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .shine-effect:hover::before {
+            left: 100%;
+        }
+
+        /* Glowing Border */
+        .glow-border {
+            position: relative;
+        }
+        .glow-border::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            padding: 2px;
+            background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #ff006e);
+            background-size: 300% 300%;
+            animation: gradientFlow 3s ease infinite;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .glow-border:hover::after {
+            opacity: 1;
+        }
+
+        /* Wave Background */
+        .wave-bg {
+            position: relative;
+            overflow: hidden;
+        }
+        .wave-bg::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
             right: 0;
+            height: 50px;
+            background: linear-gradient(to right, rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.3), rgba(139, 92, 246, 0.3));
+            animation: wave 3s ease-in-out infinite;
         }
-#sidebarToggle {
-        position: fixed;
-        bottom: 1rem;
-        right: 1rem;
-        z-index: 1200; /* Ditingkatkan untuk menghindari overlapping */
-        background: white;
-        border: 2px solid #e5e7eb;
-        padding: 0.5rem; /* Diperbesar dari 0.5rem menjadi 1rem */
-        border-radius: 0.5rem;
-        cursor: pointer;
-        touch-action: manipulation; /* Optimasi untuk touch devices */
-    }
+
+        /* Neon Text */
+        .neon-text {
+            text-shadow: 
+                0 0 5px currentColor,
+                0 0 10px currentColor,
+                0 0 20px currentColor,
+                0 0 40px currentColor;
+        }
+
+        /* Interactive Cursor Trail */
+        .cursor-trail {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transition: transform 0.1s, opacity 0.3s;
+        }
+
+        /* Loader Animation */
+        .loader-dots span {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #8b5cf6;
+            margin: 0 4px;
+            animation: bounce 1.4s ease-in-out infinite;
+        }
+        .loader-dots span:nth-child(1) { animation-delay: 0s; }
+        .loader-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loader-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        /* Typewriter Effect */
+        .typewriter {
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 3px solid #8b5cf6;
+            animation: typing 3s steps(40) forwards, blink 0.75s step-end infinite;
+        }
+
+        /* Morph Background */
+        .morph-bg {
+            position: absolute;
+            filter: blur(60px);
+            opacity: 0.5;
+        }
+
+        /* Category Filter Animation */
+        .cat-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .cat-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+        }
+        .cat-btn:hover::before {
+            transform: translateX(100%);
+        }
+
+        /* Icon Bounce on Hover */
+        .icon-bounce:hover .icon {
+            animation: bounce 0.5s ease;
+        }
+
+        /* Stagger Animation for Grid */
+        .stagger-item {
+            opacity: 0;
+        }
+        .stagger-item.visible {
+            animation: slideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Success Checkmark */
+        @keyframes checkmark {
+            0% { stroke-dashoffset: 100; }
+            100% { stroke-dashoffset: 0; }
+        }
+        .checkmark-path {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: checkmark 0.5s ease forwards;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            transition: opacity 0.3s, backdrop-filter 0.3s;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+        }
+        .tooltip::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-5px);
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            font-size: 12px;
+            border-radius: 8px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+        }
+        .tooltip:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
+        }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-<body class="bg-gray-100 p-0">
+<body class="bg-slate-950 min-h-screen pattern-bg overflow-x-hidden">
 
-  <div id="loginOverlay" role="dialog" aria-modal="true" aria-label="Login file .bat">
-    <div id="loginBox" role="document">
-      <h2>Masuk ke halaman</h2>
-      <p>Unggah file Anda. Akses akan diberikan.</p>
-      <input id="loginFileInput" type="file" accept=".bat,text/plain" />
-      <div id="loginMsg" aria-live="polite"></div>
-      <button id="logoutBtn" style="display:none;">Keluar (Reset akses)</button>
-    </div>
-  </div>
+    <!-- Cursor Trail -->
+    <div id="cursorTrail" class="cursor-trail bg-purple-500 hidden md:block"></div>
 
-  <div id="pageContent">
-  <div class="px-4 sm:px-6 py-6">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white shadow-md rounded-lg p-6 mb-6">
-      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-0">Daftar Tautan</h1>
+    <!-- Floating Particles Background -->
+    <div id="particles" class="fixed inset-0 pointer-events-none z-0"></div>
+
+    <!-- Morphing Background Shapes -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div class="morph-bg morphing w-96 h-96 bg-purple-600/30 top-20 -left-48"></div>
+        <div class="morph-bg morphing w-80 h-80 bg-pink-600/30 top-1/2 -right-40" style="animation-delay: -2s;"></div>
+        <div class="morph-bg morphing w-72 h-72 bg-blue-600/30 bottom-20 left-1/3" style="animation-delay: -4s;"></div>
     </div>
 
-    <div class="px-0">
-      <div id="statusMessage" class="hidden text-center p-4 rounded-lg mb-4 text-sm" role="alert"></div>
-      <div id="statusPopup" class="status-popup text-center text-sm font-semibold text-white"></div>
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-[100] flex flex-col gap-3"></div>
 
-      <div id="loadingIndicator" class="text-center py-10 text-gray-500">
-        <svg class="animate-spin h-8 w-8 text-gray-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <p class="mt-2">Memuat data...</p>
-      </div>
+    <!-- Confetti Container -->
+    <div id="confettiContainer" class="fixed inset-0 pointer-events-none z-[99]"></div>
 
-      <div class="rounded-lg border border-gray-200 overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider qr-cell">QR Code</th>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Nama</th>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Judul</th>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Kategori</th>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">URL</th>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Kode Shift</th>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Dibuat Pada</th>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Hapus</th>
-            </tr>
-          </thead>
-          <tbody id="links-table-body" class="bg-white divide-y divide-gray-200">
-          </tbody>
-        </table>
-      </div>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-slate-950 flex items-center justify-center z-[90]">
+        <div class="text-center">
+            <div class="relative w-24 h-24 mx-auto mb-6">
+                <div class="absolute inset-0 border-4 border-purple-500/30 rounded-full"></div>
+                <div class="absolute inset-0 border-4 border-transparent border-t-purple-500 rounded-full animate-spin"></div>
+                <div class="absolute inset-3 border-4 border-transparent border-t-pink-500 rounded-full animate-spin" style="animation-direction: reverse; animation-duration: 0.8s;"></div>
+                <div class="absolute inset-6 border-4 border-transparent border-t-blue-500 rounded-full animate-spin" style="animation-duration: 1.5s;"></div>
+            </div>
+            <div class="loader-dots mb-4">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <p class="text-purple-300 text-lg font-medium">Memuat data...</p>
+        </div>
     </div>
-  </div>
 
-  <div id="qrModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
-    <div class="bg-white p-4 rounded-lg shadow-lg relative">
-      <button id="closeModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 focus:outline-none">✕</button>
-      <div id="enlargedQrContainer" style="width:280px;height:300px;"></div>
-      <button id="downloadSingleQrBtn" 
-              class="mt-3 w-full bg-indigo-500 text-white p-2 rounded-md hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2">
-          <i class="fa-solid fa-download"></i> Unduh
-      </button>
-    </div>
-  </div>
-
-  <div id="descriptionModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0 transition-opacity duration-300 ease-in-out modal-overlay">
-    <div class="bg-white p-6 rounded-xl shadow-2xl relative max-w-xl mx-auto w-full max-h-[90vh] overflow-hidden flex flex-col transform scale-100 transition-transform duration-300">
-      <button id="closeDescriptionModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 focus:outline-none transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-      <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">Preview</h2>
-      <div id="descriptionLoading" class="text-center py-8 text-gray-500 hidden">
-        <svg class="animate-spin h-8 w-8 text-gray-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <p class="mt-4 text-sm">Memuat dan mendekripsi...</p>
-      </div>
-
-      <div id="descriptionContent" class="overflow-y-auto w-full flex flex-col items-center p-2"></div>
-      <p id="descriptionMessage" class="text-center text-red-500 hidden mt-3"></p>
-      
-      <button id="downloadBtn" class="hidden mt-6 px-6 py-3 rounded-lg shadow-md transition-all duration-300 text-center font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg">Unduh Konten</button>
-    </div>
-  </div>
-  </div>
-
-<button id="sidebarToggle" class="p-4"> <!-- Diperbesar kelas padding dari p-2 ke p-4 -->
-    <i class="fa-solid fa-bars text-gray-700 w-8 h-8"></i> <!-- Diperbesar dari w-5 h-5 ke w-8 h-8 -->
-</button>
-  <div id="sidebar">
-    <button id="closeSidebar" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
-      <i class="fa-solid fa-times"></i>
-    </button>
-    <h2 class="text-lg font-semibold mb-4">Menu</h2>
-    <button id="downloadAllQrBtn" 
-            class="mb-4 p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors icon-wrapper flex items-center gap-2 text-sm font-semibold text-gray-700 w-full justify-center" 
-            title="Unduh Semua QR Code">
-        <i class="fa-solid fa-file-zipper w-5 h-5"></i>
-        Unduh Semua QR
-    </button>
-    <a href="https://pamer-bakat.vercel.app/tambah_konten.html" target="_blank" title="Pengaturan" class="mb-4 p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors icon-wrapper flex items-center gap-2 text-sm font-semibold text-gray-700 w-full justify-center">
-        <i class="fa-solid fa-plus text-gray-700 w-5 h-5"></i>
-        Tambah Konten
-    </a>
-    <div class="relative mb-4">
-      <input type="text" id="searchInput" placeholder="Cari..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-8">
-      <button id="clearSearchBtn" class="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none hidden">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-    <h3 class="text-md font-semibold text-gray-800 mb-2">Filter Nama</h3>
-    <div id="nameTags"></div>
-  </div>
-
-  <script>
-    (function(){
-      const SECRET_TEXT = 'YQDYIpjYnF7PZtDYs6e8yZJmGqTuB4rgZQSaenc618nmy4x095';
-      const overlay = document.getElementById('loginOverlay');
-      const fileInput = document.getElementById('loginFileInput');
-      const msg = document.getElementById('loginMsg');
-      const logoutBtn = document.getElementById('logoutBtn');
-      const pageContent = document.getElementById('pageContent');
-
-      function lockPage() {
-        overlay.style.display = 'flex';
-        document.documentElement.classList.add('lock-scroll');
-        document.body.classList.add('lock-scroll');
-        if (pageContent) pageContent.classList.add('blurred');
-      }
-      function unlockPage() {
-        overlay.style.display = 'none';
-        document.documentElement.classList.remove('lock-scroll');
-        document.body.classList.remove('lock-scroll');
-        if (pageContent) pageContent.classList.remove('blurred');
-        logoutBtn.style.display = 'inline-block';
-        localStorage.setItem('dekrip_logged_in', 'true');
-      }
-      function resetAccess() {
-        fileInput.value = '';
-        msg.textContent = '';
-        logoutBtn.style.display = 'none';
-        localStorage.removeItem('dekrip_logged_in');
-        lockPage();
-      }
-
-      lockPage();
-
-      fileInput.addEventListener('change', (ev) => {
-        msg.textContent = '';
-        const f = ev.target.files && ev.target.files[0];
-        if (!f) { msg.textContent = 'Tidak ada file terpilih.'; return; }
-        const name = f.name || '';
-        if (!name.toLowerCase().endsWith('.bat')) {
-          msg.style.color = '#b91c1c';
-          msg.textContent = 'Harap unggah file.';
-          fileInput.value = '';
-          return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          let text = String(e.target.result || '');
-          if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-          const cleaned = text.trim();
-          if (cleaned === SECRET_TEXT) {
-            unlockPage();
-            msg.style.color = '#059669';
-            msg.textContent = 'Berhasil — akses diberikan.';
-          } else {
-            msg.style.color = '#b91c1c';
-            msg.textContent = 'Isi file tidak cocok. Coba lagi.';
-            fileInput.value = '';
-          }
-        };
-        reader.onerror = function() {
-          msg.style.color = '#b91c1c';
-          msg.textContent = 'Gagal membaca file.';
-          fileInput.value = '';
-        };
-        reader.readAsText(f);
-      });
-
-      logoutBtn.addEventListener('click', () => {
-        if (confirm('Apakah Anda yakin ingin menghapus akses dan keluar?')) resetAccess();
-      });
-
-      overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-          msg.textContent = 'Silakan unggah yang benar untuk masuk.';
-        }
-      });
-    })();
-  </script>
-
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
-
-    const supabaseUrl = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const linksTableBody = document.getElementById('links-table-body');
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    const statusMessage = document.getElementById('statusMessage');
-    const statusPopup = document.getElementById('statusPopup');
-    const searchInput = document.getElementById('searchInput');
-    const clearSearchBtn = document.getElementById('clearSearchBtn');
-    const qrModal = document.getElementById('qrModal');
-    const closeModalButton = document.getElementById('closeModal');
-    const descriptionModal = document.getElementById('descriptionModal');
-    const closeDescriptionModalButton = document.getElementById('closeDescriptionModal');
-    const descriptionContent = document.getElementById('descriptionContent');
-    const descriptionMessage = document.getElementById('descriptionMessage');
-    const descriptionLoading = document.getElementById('descriptionLoading');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const downloadSingleQrBtn = document.getElementById('downloadSingleQrBtn');
-    const enlargedQrContainer = document.getElementById('enlargedQrContainer');
-    const downloadAllQrBtn = document.getElementById('downloadAllQrBtn');
-    const nameTagsContainer = document.getElementById('nameTags');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const closeSidebar = document.getElementById('closeSidebar');
-    const pageContent = document.getElementById('pageContent');
-
-    let lastClickTime = 0;
-    let clickCount = 0;
-    let currentDownloadBlob = null;
-    let currentDownloadFilename = null;
-    let allLinksData = [];
-    let currentQrDataUrl = null;
-    let currentQrFilename = null;
-
-function openSidebar(e) {
-        e.stopPropagation(); // Tambahan untuk mencegah konflik event bubbling
-        sidebar.classList.add('open');
-        sidebarToggle.style.display = 'none';
-        pageContent.classList.add('blurred');
-    }
-
-    function closeSidebarFunc() {
-      sidebar.classList.remove('open');
-      sidebarToggle.style.display = 'block';
-      pageContent.classList.remove('blurred');
-    }
-
-    sidebarToggle.addEventListener('click', openSidebar);
-
-    closeSidebar.addEventListener('click', closeSidebarFunc);
-
-    document.addEventListener('click', (e) => {
-      if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== sidebarToggle) {
-        closeSidebarFunc();
-      }
-    });
-
-    function showStatus(message, type = 'error') {
-      statusPopup.textContent = message;
-      if (type === 'error') {
-        statusPopup.classList.add('bg-red-500', 'text-white');
-        statusPopup.classList.remove('bg-green-500');
-      } else {
-        statusPopup.classList.add('bg-green-500', 'text-white');
-        statusPopup.classList.remove('bg-red-500');
-      }
-      statusPopup.classList.add('show');
-      setTimeout(() => {
-        statusPopup.classList.remove('show');
-      }, 3000);
-    }
-
-    async function generateQrCodeWithPadding(data, size = 256, padding = 4) {
-        const canvas = document.createElement('canvas');
-        await QRCode.toCanvas(canvas, data, { 
-            errorCorrectionLevel: 'H',
-            margin: 0, 
-            width: size 
-        });
-
-        const ctx = canvas.getContext('2d');
-        const qrSize = canvas.width;
-        const totalSize = qrSize + 2 * padding;
-
-        const finalCanvas = document.createElement('canvas');
-        finalCanvas.width = totalSize;
-        finalCanvas.height = totalSize;
-        const finalCtx = finalCanvas.getContext('2d');
-
-        finalCtx.fillStyle = '#FFFFFF';
-        finalCtx.fillRect(0, 0, totalSize, totalSize);
-        finalCtx.drawImage(canvas, padding, padding, qrSize, qrSize);
-
-        return finalCanvas;
-    }
-
-    function downloadQrCode(canvas, filename) {
-        if (!canvas) {
-            showStatus('Gagal membuat QR Code untuk diunduh.', 'error');
-            return;
-        }
-
-        const a = document.createElement('a');
-        a.href = canvas.toDataURL('image/png');
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        showStatus(`QR Code '${filename}' berhasil diunduh.`, 'success');
-    }
-
-    async function downloadAllQRCodes() {
-        if (allLinksData.length === 0) {
-            showStatus('Tidak ada data tautan untuk diunduh.', 'error');
-            return;
-        }
-
-        const zip = new JSZip();
-        const promises = [];
-        downloadAllQrBtn.disabled = true;
-        downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
-        showStatus('Mempersiapkan file ZIP QR Code...', 'success');
-
-        for (const link of allLinksData) {
-            const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
-            let filename = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}.png`;
-            filename = filename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
-
-            const promise = generateQrCodeWithPadding(qrData, 512, 20)
-                .then(canvas => {
-                    return new Promise(resolve => {
-                        canvas.toBlob(blob => {
-                            zip.file(filename, blob);
-                            resolve();
-                        }, 'image/png');
-                    });
-                });
-            
-            promises.push(promise);
-        }
-
-        await Promise.all(promises);
-        
-        zip.generateAsync({ type: 'blob' })
-            .then(content => {
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(content);
-                a.download = 'Semua_QR_Codes.zip';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                showStatus('Semua QR Code berhasil dikemas dan diunduh!', 'success');
-            })
-            .catch(error => {
-                showStatus('Gagal membuat file ZIP.', 'error');
-            })
-            .finally(() => {
-                downloadAllQrBtn.disabled = false;
-                downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-file-zipper w-5 h-5"></i> Unduh Semua QR';
-            });
-    }
-
-    downloadAllQrBtn.addEventListener('click', downloadAllQRCodes);
-
-    function decryptCaesar(text, shift) {
-      if (typeof text !== 'string') return text;
-      const s = Number(shift);
-      if (isNaN(s)) return text;
-      let result = '';
-      for (let i = 0; i < text.length; i++) {
-        let code = text.charCodeAt(i);
-        if (code >= 65 && code <= 90) {
-          code = ((code - 65 - s + 260) % 26) + 65;
-        } else if (code >= 97 && code <= 122) {
-          code = ((code - 97 - s + 260) % 26) + 97;
-        }
-        result += String.fromCharCode(code);
-      }
-      return result;
-    }
-
-    function normalizeBase64(b64) {
-      if (!b64 || typeof b64 !== 'string') return '';
-      let s = b64.replace(/\s+/g, '');
-      const dataMatch = s.match(/^data:.*;base64,(.*)$/i);
-      if (dataMatch) s = dataMatch[1];
-      s = s.replace(/-/g, '+').replace(/_/g, '/');
-      const pad = s.length % 4;
-      if (pad === 2) s += '=='; else if (pad === 3) s += '=';
-      return s;
-    }
-
-    function isBase64String(s) {
-      if (!s || typeof s !== 'string') return false;
-      const cleaned = normalizeBase64(s);
-      return cleaned.length % 4 === 0 && /^[A-Za-z0-9+/=]+$/.test(cleaned);
-    }
-
-    function getMimeFromBase64Sample(b64) {
-      try {
-        const cleaned = normalizeBase64(b64).slice(0,2000);
-        if (!cleaned) return null;
-        const bin = atob(cleaned);
-        const c0 = bin.charCodeAt(0), c1 = bin.charCodeAt(1);
-        if (c0 === 0x89 && bin[1] === 'P' && bin[2] === 'N' && bin[3] === 'G') return 'image/png';
-        if (c0 === 0xFF && c1 === 0xD8) return 'image/jpeg';
-        if (bin.startsWith('GIF87a') || bin.startsWith('GIF89a')) return 'image/gif';
-        if (bin.trim().startsWith('<svg')) return 'image/svg+xml';
-        if (bin.indexOf('ftyp') !== -1) return 'video/mp4';
-        if (bin.toLowerCase().indexOf('webm') !== -1) return 'video/webm';
-        const prefix = normalizeBase64(b64).slice(0,8);
-        if (prefix.startsWith('iVBOR') || prefix.startsWith('iVBORw0K')) return 'image/png';
-        if (prefix.startsWith('/9j/')) return 'image/jpeg';
-        if (prefix.startsWith('R0lG')) return 'image/gif';
-        return null;
-      } catch (e) {
-        return null;
-      }
-    }
-
-    function base64ToBlob(base64, mime) {
-      const binary = atob(base64);
-      const len = binary.length;
-      const arr = new Uint8Array(len);
-      for (let i=0;i<len;i++) arr[i] = binary.charCodeAt(i);
-      return new Blob([arr], { type: mime || 'application/octet-stream'});
-    }
-
-    function setPreviewFromBase64(rawBase64, mimeHint, useBlobIfLarge = true) {
-      const cleaned = normalizeBase64(rawBase64);
-      if (!cleaned) { descriptionContent.innerHTML = '<p class="text-red-500">Data base64 kosong.</p>'; return; }
-
-      let mime = mimeHint || getMimeFromBase64Sample(cleaned);
-      if (!mime) {
-        if (cleaned.startsWith('iVBOR') || cleaned.startsWith('iVBORw0K')) mime = 'image/png';
-        else if (cleaned.startsWith('/9j/')) mime = 'image/jpeg';
-        else if (cleaned.startsWith('R0lG')) mime = 'image/gif';
-      }
-
-      descriptionContent.innerHTML = '';
-      const threshold = 1024 * 300;
-      const approximateSize = Math.ceil((cleaned.length * 3) / 4);
-      let blob = null;
-
-      if (useBlobIfLarge && approximateSize > threshold) {
-        try {
-          blob = base64ToBlob(cleaned, mime);
-          const objectUrl = URL.createObjectURL(blob);
-          if (mime && mime.startsWith('image/')) {
-            const img = document.createElement('img');
-            img.src = objectUrl;
-            img.className = 'media-preview rounded-md border border-gray-200';
-            img.onload = () => URL.revokeObjectURL(objectUrl);
-            descriptionContent.appendChild(img);
-          } else if (mime && mime.startsWith('video/')) {
-            const video = document.createElement('video');
-            video.src = objectUrl;
-            video.controls = true;
-            video.className = 'video-preview rounded-md border border-gray-200';
-            video.onloadeddata = () => URL.revokeObjectURL(objectUrl);
-            descriptionContent.appendChild(video);
-          } else {
-            const a = document.createElement('a');
-            a.href = objectUrl;
-            a.download = 'file.bin';
-            a.textContent = 'Unduh file (tipe media tidak terdeteksi)';
-            a.className = 'underline text-blue-600';
-            descriptionContent.appendChild(a);
-            const pre = document.createElement('pre');
-            pre.textContent = cleaned.slice(0,1000) + (cleaned.length>1000? '\n\n... (terpotong) ...':'');
-            pre.className = 'mt-3 p-3 bg-gray-50 rounded-md max-h-64 overflow-auto text-sm';
-            descriptionContent.appendChild(pre);
-          }
-        } catch (err) {
-          blob = null;
-        }
-      }
-
-      if (!blob) {
-        const dataMime = mime || 'application/octet-stream';
-        const dataUrl = `data:${dataMime};base64,${cleaned}`;
-        if (dataMime.startsWith('image/')) {
-          const img = document.createElement('img');
-          img.src = dataUrl;
-          img.className = 'media-preview rounded-md border border-gray-200';
-          descriptionContent.appendChild(img);
-        } else if (dataMime.startsWith('video/')) {
-          const video = document.createElement('video');
-          video.src = dataUrl;
-          video.controls = true;
-          video.className = 'video-preview rounded-md border border-gray-200';
-          video.setAttribute('playsinline', '');
-          descriptionContent.appendChild(video);
-        } else {
-          const pre = document.createElement('pre');
-          pre.textContent = cleaned.slice(0,2000) + (cleaned.length>2000? '\n\n... (terpotong) ...':'');
-          pre.className = 'p-4 bg-gray-50 rounded-md text-sm max-h-96 overflow-auto w-full';
-          descriptionContent.appendChild(pre);
-        }
-      }
-      
-      return { blob: blob, mime: mime };
-    }
-
-    async function showDescriptionModal(url, shiftCode, personName, linkName) {
-      descriptionModal.classList.remove('hidden');
-      descriptionContent.innerHTML = '';
-      descriptionMessage.classList.add('hidden');
-      descriptionLoading.classList.remove('hidden');
-      downloadBtn.classList.add('hidden');
-
-      try {
-        if (!url || !url.startsWith('http')) throw new Error('URL deskripsi tidak valid.');
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`Gagal memuat file dari URL. Status: ${response.status}`);
-
-        const encryptedText = await response.text();
-        const decrypted = decryptCaesar(encryptedText, shiftCode);
-        const probableBase64 = decrypted.trim();
-        const mimeHint = getMimeFromBase64Sample(probableBase64);
-
-        const previewResult = setPreviewFromBase64(probableBase64, mimeHint, true);
-        const blob = previewResult.blob;
-        const mime = previewResult.mime;
-
-        if (isBase64String(probableBase64)) {
-          const fileExt = mime ? mime.split('/')[1] : 'bin';
-          let baseFilename = `${personName || 'anonim'} - ${linkName || 'tanpa-nama'}`;
-          baseFilename = baseFilename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
-          currentDownloadFilename = `${baseFilename}.${fileExt}`;
-          currentDownloadBlob = blob;
-        } else {
-          currentDownloadBlob = new Blob([decrypted], { type: 'text/plain' });
-          currentDownloadFilename = `${personName || 'anonim'} - ${linkName || 'tanpa-nama'}.txt`;
-        }
-        
-        downloadBtn.textContent = 'Unduh Konten';
-        downloadBtn.classList.remove('hidden');
-        descriptionLoading.classList.add('hidden');
-      } catch (error) {
-        descriptionMessage.textContent = `Gagal memuat atau mendekripsi deskripsi: ${error.message}`;
-        descriptionLoading.classList.add('hidden');
-        descriptionMessage.classList.remove('hidden');
-      }
-    }
-
-    function hideDescriptionModal() {
-      descriptionModal.classList.add('hidden');
-      descriptionContent.innerHTML = '';
-      descriptionMessage.classList.add('hidden');
-      descriptionLoading.classList.add('hidden');
-      downloadBtn.classList.add('hidden');
-      if (currentDownloadBlob) {
-        URL.revokeObjectURL(URL.createObjectURL(currentDownloadBlob));
-        currentDownloadBlob = null;
-        currentDownloadFilename = null;
-      }
-    }
-
-    closeModalButton.addEventListener('click', () => qrModal.classList.add('hidden'));
-    qrModal.addEventListener('click', (e) => { 
-        if (e.target === qrModal) qrModal.classList.add('hidden'); 
-    });
-    closeDescriptionModalButton.addEventListener('click', hideDescriptionModal);
-    descriptionModal.addEventListener('click', (e) => { 
-        if (e.target === descriptionModal) hideDescriptionModal(); 
-    });
-
-    downloadSingleQrBtn.addEventListener('click', () => {
-        const canvas = enlargedQrContainer.querySelector('canvas');
-        if (canvas && currentQrFilename) {
-            downloadQrCode(canvas, currentQrFilename);
-        } else {
-            showStatus('QR Code tidak ditemukan atau nama file hilang.', 'error');
-        }
-    });
-
-    downloadBtn.addEventListener('click', () => {
-      if (currentDownloadBlob) {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(currentDownloadBlob);
-        a.download = currentDownloadFilename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
-    });
-
-    function filterLinks() {
-      const searchTerm = searchInput.value.toLowerCase().trim();
-      const rows = linksTableBody.querySelectorAll('tr');
-
-      rows.forEach(row => {
-        const rowText = row.textContent.toLowerCase();
-        row.style.display = rowText.includes(searchTerm) ? '' : 'none';
-      });
-
-      document.querySelectorAll('.name-tag').forEach(t => t.classList.remove('active'));
-      if (searchTerm) {
-        const activeTag = Array.from(document.querySelectorAll('.name-tag'))
-          .find(t => t.textContent.toLowerCase() === searchTerm);
-        if (activeTag) activeTag.classList.add('active');
-      }
-
-      clearSearchBtn.classList.toggle('hidden', !searchTerm);
-    }
-    searchInput.addEventListener('input', filterLinks);
-    clearSearchBtn.addEventListener('click', () => {
-      searchInput.value = '';
-      filterLinks();
-    });
-
-    async function handleEdit(e) {
-        const cell = e.target;
-        if (!cell.classList.contains('editable')) return;
-
-        cell.contentEditable = 'false';
-        cell.classList.remove('editable');
-        cell.removeEventListener('keydown', handleEnter);
-        cell.removeEventListener('blur', handleEdit);
-
-        const newText = cell.textContent.trim();
-        const row = cell.closest('tr');
-        const linkId = row.dataset.id;
-        const column = cell.dataset.column;
-
-        if (!linkId || !column) {
-            showStatus('Gagal menemukan ID atau kolom untuk memperbarui.', 'error');
-            return;
-        }
-
-        const updates = {};
-        updates[column] = newText;
-
-        showStatus('Menyimpan perubahan...', 'success');
-        
-        try {
-            const { error } = await supabase.from('links').update(updates).eq('id', linkId);
-            if (error) throw error;
-            showStatus('Perubahan berhasil disimpan!', 'success');
-            if (column === 'url' || column === 'shift_code') {
-                fetchLinks();
-            }
-        } catch (error) {
-            showStatus(`Gagal menyimpan perubahan: ${error.message}`, 'error');
-        }
-    }
-    
-    function handleEnter(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            e.target.blur();
-        }
-    }
-    
-    async function handleDelete(e) {
-        const button = e.target.closest('button');
-        const row = button.closest('tr');
-        const linkId = row.dataset.id;
-        
-        if (!linkId) {
-            showStatus('Gagal menemukan ID tautan untuk dihapus.', 'error');
-            return;
-        }
-        
-        if (confirm('Apakah Anda yakin ingin menghapus tautan ini?')) {
-            showStatus('Menghapus tautan...', 'success');
-            try {
-                const { error } = await supabase.from('links').delete().eq('id', linkId);
-                if (error) throw error;
-                showStatus('Tautan berhasil dihapus!', 'success');
-                row.remove();
-                fetchLinks();
-            } catch (error) {
-                showStatus(`Gagal menghapus tautan: ${error.message}`, 'error');
-            }
-        }
-    }
-
-    async function fetchLinks() {
-      loadingIndicator && loadingIndicator.classList.remove('hidden');
-      linksTableBody.querySelectorAll('tr').forEach(row => row.remove());
-      allLinksData = [];
-      nameTagsContainer.innerHTML = '';
-
-      try {
-        const { data, error } = await supabase.from('links').select('*, category').order('created_at', { ascending: false });
-        loadingIndicator && loadingIndicator.classList.add('hidden');
-        if (error) { showStatus(`Error fetching data: ${error.message}`); return; }
-        if (!data || data.length === 0) { return; }
-
-        allLinksData = data;
-
-        const uniqueNames = [...new Set(data
-            .map(link => link.person_name)
-            .filter(Boolean)
-        )].sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
-
-        uniqueNames.forEach(name => {
-          const tag = document.createElement('span');
-          tag.className = 'name-tag';
-          tag.textContent = name;
-          tag.title = `Klik untuk filter "${name}"`;
-          tag.addEventListener('click', () => {
-            searchInput.value = name;
-            filterLinks();
-            document.querySelectorAll('.name-tag').forEach(t => t.classList.remove('active'));
-            tag.classList.add('active');
-          });
-          nameTagsContainer.appendChild(tag);
-        });
-
-        if (uniqueNames.length === 0) {
-          nameTagsContainer.innerHTML = '<span class="text-gray-500">Belum ada nama orang terdaftar</span>';
-        }
-
-        data.forEach(link => {
-          const row = document.createElement('tr');
-          row.classList.add('hover:bg-gray-50');
-          row.dataset.id = link.id;
-
-          const formattedDate = link.created_at ? new Date(link.created_at).toLocaleString() : '-';
-          const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
-          const category = link.category || 'Belum Dikategorikan';
-          
-          let qrFilenameBase = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}`;
-          qrFilenameBase = qrFilenameBase.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
-          const smallQrId = `qr-${link.id}`;
-
-          row.innerHTML = `
-            <td class="px-6 py-4 text-sm text-gray-500 flex justify-center cursor-pointer qr-cell">
-              <canvas id="${smallQrId}" style="width:64px;height:64px;"></canvas>
-            </td>
-            <td class="px-6 py-4 text-sm text-gray-500" data-column="person_name">${link.person_name || '-'}</td>
-            <td class="px-6 py-4 text-sm text-gray-500" data-column="name">${link.name || '-'}</td>
-            <td class="px-6 py-4 text-sm text-gray-500" data-column="category">${category}</td>
-            <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs" data-column="url">${link.url || '-'}</td>
-            <td class="px-6 py-4 text-sm text-gray-500" data-column="shift_code">${link.shift_code || '-'}</td>
-            <td class="px-6 py-4 text-sm text-gray-500">${formattedDate}</td>
-            <td class="px-6 py-4 text-sm text-gray-500"><button class="view-description-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition-colors">Lihat</button></td>
-            <td class="px-6 py-4 text-sm text-gray-500">
-                <button class="delete-btn text-red-500 hover:text-red-700 transition-colors">
-                    <i class="fa-solid fa-trash-can"></i>
+    <!-- Navbar -->
+    <nav class="glass-dark sticky top-0 z-50 px-6 py-4 slide-down">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3 group cursor-pointer" onclick="location.reload()">
+                <div class="w-11 h-11 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center pulse-glow group-hover:scale-110 transition-transform">
+                    <span class="text-xl">🚀</span>
+                </div>
+                <h1 class="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">MyHub</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="relative group">
+                    <input type="text" id="searchInput" placeholder="Cari link..." 
+                        class="w-48 md:w-64 px-4 py-2.5 pl-11 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:bg-white/10 focus:w-72 transition-all duration-300">
+                    <svg class="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-purple-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+                <button id="syncBtn" onclick="syncData()" class="magnetic-btn p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white transition-all hover:scale-110 hover:border-purple-500/50 tooltip" data-tip="Sync Data">
+                    <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
                 </button>
-            </td>
-          `;
+                <button onclick="document.getElementById('configModal').classList.remove('hidden')" class="magnetic-btn p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white transition-all hover:scale-110 hover:border-green-500/50 tooltip" data-tip="Pengaturan">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
 
-          linksTableBody.appendChild(row);
+    <!-- Header -->
+    <header class="text-center py-16 px-4 relative">
+        <div class="float-animation inline-block cursor-pointer" onclick="triggerConfetti()">
+            <div class="w-40 h-40 mx-auto bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 rounded-3xl flex items-center justify-center mb-8 shadow-2xl shadow-purple-500/40 hover:shadow-purple-500/60 transition-shadow morphing">
+                <span class="text-7xl hover:scale-125 transition-transform duration-300">👨‍💻</span>
+            </div>
+        </div>
+        <h1 class="text-5xl md:text-7xl font-extrabold mb-4">
+            <span class="gradient-text">Personal Hub</span>
+        </h1>
+        <p class="text-slate-400 text-lg max-w-md mx-auto fade-in" style="animation-delay: 0.3s;">
+            Kelola semua link dan halaman penting Anda dalam satu tempat yang elegan ✨
+        </p>
+        
+        <!-- Stats -->
+        <div class="flex justify-center gap-8 mt-10">
+            <div class="text-center group cursor-pointer" onclick="filterByCategory('all')">
+                <div class="w-20 h-20 mx-auto bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-purple-500/30 transition-all border border-purple-500/20">
+                    <p id="totalButtons" class="text-4xl font-bold text-white">0</p>
+                </div>
+                <p class="text-slate-500 text-sm group-hover:text-purple-400 transition-colors">Total Link</p>
+            </div>
+            <div class="w-px bg-gradient-to-b from-transparent via-slate-700 to-transparent"></div>
+            <div class="text-center group">
+                <div class="w-20 h-20 mx-auto bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-all border border-green-500/20">
+                    <p id="syncStatus" class="text-4xl font-bold text-green-400 heartbeat">●</p>
+                </div>
+                <p class="text-slate-500 text-sm">Status Sync</p>
+            </div>
+        </div>
+    </header>
 
-          QRCode.toCanvas(document.getElementById(smallQrId), qrData, { 
-              errorCorrectionLevel: 'L', 
-              margin: 1, 
-              width: 64,
-              color: { dark: '#000000', light: '#ffffff' }
-          });
+    <!-- Add Button -->
+    <div class="flex justify-center mb-12 px-4">
+        <button onclick="openModal()" class="magnetic-btn group relative overflow-hidden bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 background-size-200 hover:from-purple-500 hover:via-pink-500 hover:to-purple-500 text-white px-10 py-5 rounded-2xl font-semibold shadow-xl shadow-purple-500/30 transform hover:scale-105 hover:shadow-purple-500/50 transition-all duration-300 flex items-center gap-3 glow-border" style="background-size: 200% auto; animation: gradientFlow 3s ease infinite;">
+            <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+            <svg class="w-6 h-6 relative z-10 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span class="relative z-10 text-lg">Tambah Link Baru</span>
+            <span class="relative z-10 text-2xl group-hover:animate-bounce">🎉</span>
+        </button>
+    </div>
 
-          const qrCanvasSmall = row.querySelector(`#${smallQrId}`);
-          qrCanvasSmall.addEventListener('click', () => {
-            enlargedQrContainer.innerHTML = '';
-            generateQrCodeWithPadding(qrData, 256, 12).then(canvas => {
-                enlargedQrContainer.appendChild(canvas);
-                canvas.style.borderRadius = '0.375rem';
-                canvas.style.display = 'block';
-                currentQrFilename = `${qrFilenameBase}.png`;
-                qrModal.classList.remove('hidden');
-            });
-          });
+    <!-- Category Filter -->
+    <div class="max-w-6xl mx-auto px-4 mb-8">
+        <div class="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" id="categoryFilter">
+            <button onclick="filterByCategory('all')" data-cat="all" class="cat-btn px-5 py-2.5 bg-purple-500 text-white rounded-full text-sm font-medium whitespace-nowrap transition-all hover:shadow-lg hover:shadow-purple-500/30 transform hover:scale-105">
+                ✨ Semua
+            </button>
+            <button onclick="filterByCategory('website')" data-cat="website" class="cat-btn px-5 py-2.5 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white rounded-full text-sm font-medium whitespace-nowrap transition-all transform hover:scale-105">
+                🌐 Website
+            </button>
+            <button onclick="filterByCategory('social')" data-cat="social" class="cat-btn px-5 py-2.5 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white rounded-full text-sm font-medium whitespace-nowrap transition-all transform hover:scale-105">
+                📱 Sosial Media
+            </button>
+            <button onclick="filterByCategory('project')" data-cat="project" class="cat-btn px-5 py-2.5 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white rounded-full text-sm font-medium whitespace-nowrap transition-all transform hover:scale-105">
+                📁 Project
+            </button>
+            <button onclick="filterByCategory('other')" data-cat="other" class="cat-btn px-5 py-2.5 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white rounded-full text-sm font-medium whitespace-nowrap transition-all transform hover:scale-105">
+                📌 Lainnya
+            </button>
+        </div>
+    </div>
 
-          const viewBtn = row.querySelector('.view-description-btn');
-          if (viewBtn) {
-            viewBtn.addEventListener('click', () => {
-              const urlParam = encodeURIComponent(link.url || '');
-              const shiftParam = encodeURIComponent(link.shift_code || '');
-              const personParam = encodeURIComponent(link.person_name || '');
-              const nameParam = encodeURIComponent(link.name || '');
-              const targetUrl = `dekripsi.html?url=${urlParam}&shift=${shiftParam}&person=${personParam}&name=${nameParam}`;
-              window.open(targetUrl, '_blank');
-            });
-          }
-          
-          const deleteBtn = row.querySelector('.delete-btn');
-          deleteBtn.addEventListener('click', handleDelete);
+    <!-- Buttons Container -->
+    <div id="buttonContainer" class="max-w-6xl mx-auto px-4 pb-20 relative z-10">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="buttonGrid">
+            <!-- Buttons will be rendered here -->
+        </div>
+        
+        <!-- Empty State -->
+        <div id="emptyMessage" class="text-center py-20 hidden">
+            <div class="w-32 h-32 mx-auto bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-3xl flex items-center justify-center mb-6 morphing">
+                <span class="text-6xl bounce-animation">📭</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-3">Belum Ada Link</h3>
+            <p class="text-slate-500 mb-8 max-w-sm mx-auto">Mulai dengan menambahkan link pertama Anda dan jadikan halaman ini lebih berwarna!</p>
+            <button onclick="openModal()" class="magnetic-btn px-8 py-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-400 rounded-2xl font-medium hover:from-purple-500/30 hover:to-pink-500/30 transition-all border border-purple-500/30 hover:border-purple-500/50 hover:scale-105">
+                ✨ Tambah Link Pertama
+            </button>
+        </div>
+    </div>
 
-          const editableCells = row.querySelectorAll('td[data-column]');
-          editableCells.forEach(cell => {
-              cell.addEventListener('click', (e) => {
-                  const now = new Date().getTime();
-                  const diff = now - lastClickTime;
-                  clickCount = (diff < 300 && clickCount < 3) ? clickCount + 1 : 1;
-                  lastClickTime = now;
+    <!-- Footer -->
+    <footer class="glass-dark py-8 mt-auto relative z-10">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <p class="text-slate-500 text-sm flex items-center justify-center gap-2 flex-wrap">
+                <span class="inline-flex items-center gap-1">💾 Data tersimpan di</span>
+                <span class="text-purple-400 font-medium hover:text-purple-300 transition-colors cursor-pointer">Supabase</span>
+                <span>&</span>
+                <span class="text-blue-400 font-medium hover:text-blue-300 transition-colors cursor-pointer">LocalStorage</span>
+                <span class="text-lg bounce-animation" style="animation-delay: 0.5s;">🔒</span>
+            </p>
+            <p class="text-slate-600 text-xs mt-2">Tekan <kbd class="px-2 py-1 bg-slate-800 rounded text-slate-400">Ctrl</kbd> + <kbd class="px-2 py-1 bg-slate-800 rounded text-slate-400">N</kbd> untuk menambah link baru</p>
+        </div>
+    </footer>
 
-                  if (clickCount === 3) {
-                      e.preventDefault();
-                      cell.contentEditable = 'true';
-                      cell.classList.add('editable');
-                      cell.focus();
-                      
-                      cell.removeEventListener('blur', handleEdit);
-                      cell.removeEventListener('keydown', handleEnter);
+    <!-- Modal Add/Edit -->
+    <div id="modal" class="modal-overlay fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden p-4" onclick="if(event.target === this) closeModal()">
+        <div class="glass-dark rounded-3xl p-8 w-full max-w-lg shadow-2xl scale-in max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-8">
+                <h2 id="modalTitle" class="text-2xl font-bold text-white flex items-center gap-3">
+                    <span class="text-3xl">✨</span> Tambah Link Baru
+                </h2>
+                <button onclick="closeModal()" class="p-2 hover:bg-white/10 rounded-xl transition-all hover:rotate-90 duration-300">
+                    <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-6">
+                <div class="group">
+                    <label class="block text-slate-300 mb-2 font-medium text-sm group-focus-within:text-purple-400 transition-colors">Nama Link</label>
+                    <input type="text" id="buttonName" placeholder="Contoh: Portfolio Saya" 
+                        class="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:bg-white/10 focus:shadow-lg focus:shadow-purple-500/10 transition-all">
+                </div>
+                
+                <div class="group">
+                    <label class="block text-slate-300 mb-2 font-medium text-sm group-focus-within:text-purple-400 transition-colors">URL Tujuan</label>
+                    <input type="text" id="buttonUrl" placeholder="contoh.html atau https://example.com" 
+                        class="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:bg-white/10 focus:shadow-lg focus:shadow-purple-500/10 transition-all">
+                </div>
 
-                      cell.addEventListener('blur', handleEdit);
-                      cell.addEventListener('keydown', handleEnter);
-                  }
-              });
-          });
+                <div class="group">
+                    <label class="block text-slate-300 mb-2 font-medium text-sm">Kategori</label>
+                    <select id="buttonCategory" class="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl text-white focus:outline-none focus:border-purple-500 focus:bg-white/10 transition-all cursor-pointer">
+                        <option value="website" class="bg-slate-800">🌐 Website</option>
+                        <option value="social" class="bg-slate-800">📱 Sosial Media</option>
+                        <option value="project" class="bg-slate-800">📁 Project</option>
+                        <option value="other" class="bg-slate-800">📌 Lainnya</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-slate-300 mb-3 font-medium text-sm">Warna Tema</label>
+                    <div class="grid grid-cols-6 gap-3" id="colorPicker">
+                        <button type="button" onclick="selectColor('from-violet-600 to-purple-600')" data-color="from-violet-600 to-purple-600" class="color-btn aspect-square rounded-2xl bg-gradient-to-br from-violet-600 to-purple-600 hover:scale-110 hover:rotate-12 transition-all ring-offset-2 ring-offset-slate-800"></button>
+                        <button type="button" onclick="selectColor('from-pink-500 to-rose-500')" data-color="from-pink-500 to-rose-500" class="color-btn aspect-square rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 hover:scale-110 hover:rotate-12 transition-all ring-offset-2 ring-offset-slate-800"></button>
+                        <button type="button" onclick="selectColor('from-blue-500 to-cyan-500')" data-color="from-blue-500 to-cyan-500" class="color-btn aspect-square rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 hover:scale-110 hover:rotate-12 transition-all ring-offset-2 ring-offset-slate-800"></button>
+                        <button type="button" onclick="selectColor('from-emerald-500 to-teal-500')" data-color="from-emerald-500 to-teal-500" class="color-btn aspect-square rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 hover:scale-110 hover:rotate-12 transition-all ring-offset-2 ring-offset-slate-800"></button>
+                        <button type="button" onclick="selectColor('from-orange-500 to-amber-500')" data-color="from-orange-500 to-amber-500" class="color-btn aspect-square rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 hover:scale-110 hover:rotate-12 transition-all ring-offset-2 ring-offset-slate-800"></button>
+                        <button type="button" onclick="selectColor('from-red-500 to-pink-600')" data-color="from-red-500 to-pink-600" class="color-btn aspect-square rounded-2xl bg-gradient-to-br from-red-500 to-pink-600 hover:scale-110 hover:rotate-12 transition-all ring-offset-2 ring-offset-slate-800"></button>
+                        <button type="button" onclick="selectColor('from-indigo-500 to-blue-600')" data-color="from-indigo-500 to-blue-600" class="color-btn aspect-square rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 hover:scale-110 hover:rotate-12 transition-all ring-offset-2 ring-offset-slate-800"></button>
+                        <button type="button" onclick="selectColor('from-fuchsia-500 to-purple-600')" data-color="from-fuchsia-500 to-purple-600" class="color-btn aspect-square rounded-2xl bg-gradient-to-br from-fuchsia-500 to-purple-600 hover:scale-110 hover:rotate-12 transition-all ring-offset-2 ring-offset-slate-800"></button>
+                        <button type="button" onclick="selectColor('from-cyan-500 to-blue-500')" data-color="from-cyan-500 to-blue-500" class="color-btn aspect-square rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-500 hover:scale-110 hover:rotate-12 transition-all ring-offset-2 ring-offset-slate-800"></button>
+                        <button type="button" onclick="selectColor('from-lime-500 to-green-500')" data-color="from-lime-500 to-green-500" class="color-btn aspect-square rounded-2xl bg-gradient-to-br from-lime-500 to-green-500 hover:scale-110 hover:rotate-12 transition-all ring-offset-2 ring-offset-slate-800"></button>
+                        <button type="button" onclick="selectColor('from-yellow-500 to-orange-500')" data-color="from-yellow-500 to-orange-500" class="color-btn aspect-square rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-500 hover:scale-110 hover:rotate-12 transition-all ring-offset-2 ring-offset-slate-800"></button>
+                        <button type="button" onclick="selectColor('from-slate-500 to-slate-700')" data-color="from-slate-500 to-slate-700" class="color-btn aspect-square rounded-2xl bg-gradient-to-br from-slate-500 to-slate-700 hover:scale-110 hover:rotate-12 transition-all ring-offset-2 ring-offset-slate-800"></button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 mb-2 font-medium text-sm">Icon (Emoji)</label>
+                    <div class="flex gap-3">
+                        <input type="text" id="buttonIcon" placeholder="🔗" maxlength="2"
+                            class="w-20 px-5 py-4 bg-white/5 border border-white/10 rounded-2xl text-white text-center text-2xl placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:bg-white/10 transition-all">
+                        <div class="flex-1 flex gap-2 flex-wrap items-center bg-white/5 rounded-2xl p-2 border border-white/10">
+                            <button type="button" onclick="setIcon('🔗')" class="text-2xl hover:scale-150 hover:rotate-12 transition-all p-1">🔗</button>
+                            <button type="button" onclick="setIcon('🌐')" class="text-2xl hover:scale-150 hover:rotate-12 transition-all p-1">🌐</button>
+                            <button type="button" onclick="setIcon('📁')" class="text-2xl hover:scale-150 hover:rotate-12 transition-all p-1">📁</button>
+                            <button type="button" onclick="setIcon('🚀')" class="text-2xl hover:scale-150 hover:rotate-12 transition-all p-1">🚀</button>
+                            <button type="button" onclick="setIcon('💼')" class="text-2xl hover:scale-150 hover:rotate-12 transition-all p-1">💼</button>
+                            <button type="button" onclick="setIcon('📱')" class="text-2xl hover:scale-150 hover:rotate-12 transition-all p-1">📱</button>
+                            <button type="button" onclick="setIcon('🎨')" class="text-2xl hover:scale-150 hover:rotate-12 transition-all p-1">🎨</button>
+                            <button type="button" onclick="setIcon('📧')" class="text-2xl hover:scale-150 hover:rotate-12 transition-all p-1">📧</button>
+                            <button type="button" onclick="setIcon('🎮')" class="text-2xl hover:scale-150 hover:rotate-12 transition-all p-1">🎮</button>
+                            <button type="button" onclick="setIcon('📺')" class="text-2xl hover:scale-150 hover:rotate-12 transition-all p-1">📺</button>
+                            <button type="button" onclick="setIcon('💡')" class="text-2xl hover:scale-150 hover:rotate-12 transition-all p-1">💡</button>
+                            <button type="button" onclick="setIcon('⭐')" class="text-2xl hover:scale-150 hover:rotate-12 transition-all p-1">⭐</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-4 mt-10">
+                <button onclick="closeModal()" class="ripple-container flex-1 px-6 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-semibold transition-all border border-white/10 hover:border-white/20 hover:scale-105">
+                    Batal
+                </button>
+                <button onclick="saveButton()" id="saveBtn" class="ripple-container flex-1 px-6 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-2xl font-semibold transition-all shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 hover:scale-105 flex items-center justify-center gap-2">
+                    <span>💾</span> Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal-overlay fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden p-4" onclick="if(event.target === this) closeDeleteModal()">
+        <div class="glass-dark rounded-3xl p-8 w-full max-w-sm shadow-2xl scale-in">
+            <div class="text-center">
+                <div class="w-24 h-24 mx-auto bg-red-500/10 rounded-3xl flex items-center justify-center mb-6 shake">
+                    <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-3">Hapus Link? 🗑️</h3>
+                <p class="text-slate-400 mb-8">Link ini akan dihapus secara permanen. Aksi ini tidak dapat dibatalkan.</p>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="closeDeleteModal()" class="ripple-container flex-1 px-6 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-semibold transition-all border border-white/10 hover:scale-105">
+                    Batal
+                </button>
+                <button onclick="confirmDelete()" class="ripple-container flex-1 px-6 py-4 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-400 hover:to-pink-500 text-white rounded-2xl font-semibold transition-all shadow-lg shadow-red-500/25 hover:scale-105">
+                    🗑️ Hapus
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase Config Modal -->
+    <div id="configModal" class="modal-overlay fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden p-4 overflow-y-auto" onclick="if(event.target === this) closeConfigModal()">
+        <div class="min-h-full flex items-center justify-center py-8">
+        <div class="glass-dark rounded-3xl p-6 md:p-8 w-full max-w-lg shadow-2xl scale-in">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-14 h-14 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl flex items-center justify-center spin-slow">
+                    <span class="text-3xl">⚙️</span>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-white">Konfigurasi Supabase</h2>
+                    <p class="text-slate-400 text-sm">Hubungkan ke database cloud Anda</p>
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="group">
+                    <label class="block text-slate-300 mb-2 font-medium text-sm group-focus-within:text-green-400 transition-colors">Supabase URL</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="supabaseUrl" placeholder="https://xxxxx.supabase.co" 
+                            class="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-green-500 focus:bg-white/10 transition-all font-mono text-sm">
+                        <button onclick="openQRScanner('supabaseUrl')" class="magnetic-btn px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white rounded-xl transition-all flex items-center gap-2 hover:scale-105" title="Scan QR Code">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="group">
+                    <label class="block text-slate-300 mb-2 font-medium text-sm group-focus-within:text-green-400 transition-colors">Anon Key</label>
+                    <div class="flex gap-2">
+                        <div class="flex-1 relative">
+                            <input type="password" id="supabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." 
+                                class="w-full px-4 py-3 pr-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-green-500 focus:bg-white/10 transition-all font-mono text-sm">
+                            <button onclick="toggleKeyVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-all hover:scale-110">
+                                <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <button onclick="openQRScanner('supabaseKey')" class="magnetic-btn px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white rounded-xl transition-all flex items-center gap-2 hover:scale-105" title="Scan QR Code">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-2xl p-5 mt-6 border border-slate-700/50 hover:border-green-500/30 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center bounce-animation">
+                            <span class="text-xl">🗃️</span>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-semibold">Tabel yang Diperlukan</h3>
+                            <p class="text-slate-400 text-xs">Jalankan SQL ini di Supabase SQL Editor</p>
+                        </div>
+                    </div>
+                    
+                    <div class="relative group">
+                        <pre id="sqlCode" class="text-xs text-green-400 bg-black/50 p-4 rounded-xl overflow-x-auto border border-green-500/20 leading-relaxed group-hover:border-green-500/40 transition-colors">-- Tabel untuk menyimpan tombol/link
+CREATE TABLE buttons (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    color TEXT DEFAULT 'from-violet-600 to-purple-600',
+    icon TEXT DEFAULT '🔗',
+    category TEXT DEFAULT 'website',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index untuk performa query
+CREATE INDEX idx_buttons_category ON buttons(category);
+CREATE INDEX idx_buttons_created ON buttons(created_at);
+
+-- Enable Row Level Security (Opsional)
+-- ALTER TABLE buttons ENABLE ROW LEVEL SECURITY;</pre>
+                        <button onclick="copySQLCode()" class="absolute top-3 right-3 px-3 py-1.5 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 hover:scale-105">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            <span id="copyBtnText">Salin</span>
+                        </button>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-amber-500/10 rounded-xl border border-amber-500/20">
+                        <p class="text-amber-400 text-xs flex items-start gap-2">
+                            <span class="text-sm bounce-animation">💡</span>
+                            <span>Pastikan untuk mengaktifkan akses publik pada tabel di <strong>Authentication → Policies</strong></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-4 mt-8">
+                <button onclick="closeConfigModal()" class="ripple-container flex-1 px-6 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-semibold transition-all border border-white/10 hover:scale-105">
+                    Nanti
+                </button>
+                <button onclick="saveConfig()" class="ripple-container flex-1 px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white rounded-2xl font-semibold transition-all shadow-lg shadow-green-500/25 hover:shadow-green-500/40 hover:scale-105 flex items-center justify-center gap-2">
+                    <span>🔗</span> Hubungkan
+                </button>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- QR Scanner Modal -->
+    <div id="qrScannerModal" class="modal-overlay fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[60] hidden p-4" onclick="if(event.target === this) closeQRScanner()">
+        <div class="glass-dark rounded-3xl p-6 w-full max-w-md shadow-2xl scale-in">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center pulse-glow">
+                        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h2M4 12h2m10 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Scan QR Code</h3>
+                        <p class="text-slate-400 text-xs" id="scannerTargetLabel">Scanning...</p>
+                    </div>
+                </div>
+                <button onclick="closeQRScanner()" class="p-2 hover:bg-white/10 rounded-xl transition-all hover:rotate-90 duration-300">
+                    <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="qrReader" class="w-full rounded-2xl overflow-hidden bg-black/50 aspect-square border-2 border-blue-500/30"></div>
+            
+            <div class="mt-4 text-center">
+                <p class="text-slate-400 text-sm mb-3">📷 Arahkan kamera ke QR Code</p>
+                <button onclick="switchCamera()" class="magnetic-btn px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm transition-all flex items-center gap-2 mx-auto hover:scale-105">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Ganti Kamera
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== CONFIGURATION ====================
+        let SUPABASE_URL = localStorage.getItem('supabase_url') || '';
+        let SUPABASE_KEY = localStorage.getItem('supabase_key') || '';
+        let supabase = null;
+
+        // ==================== STATE ====================
+        let buttons = [];
+        let editingId = null;
+        let selectedColor = 'from-violet-600 to-purple-600';
+        let deleteId = null;
+        let currentFilter = 'all';
+
+        // ==================== CURSOR TRAIL ====================
+        const cursorTrail = document.getElementById('cursorTrail');
+        let mouseX = 0, mouseY = 0;
+        let trailX = 0, trailY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
         });
 
-      } catch (err) {
-        loadingIndicator && loadingIndicator.classList.add('hidden');
-        showStatus(`Terjadi kesalahan tak terduga: ${err.message}`, 'error');
-      }
-    }
+        function animateCursor() {
+            trailX += (mouseX - trailX) * 0.15;
+            trailY += (mouseY - trailY) * 0.15;
+            cursorTrail.style.left = trailX - 10 + 'px';
+            cursorTrail.style.top = trailY - 10 + 'px';
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
 
-    document.addEventListener('DOMContentLoaded', fetchLinks);
-  </script>
+        // ==================== FLOATING PARTICLES ====================
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const colors = ['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b'];
+            
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.animationDelay = Math.random() * 4 + 's';
+                particle.style.animationDuration = (4 + Math.random() * 4) + 's';
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
 
+        // ==================== CONFETTI ====================
+        function triggerConfetti() {
+            const container = document.getElementById('confettiContainer');
+            const colors = ['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    container.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 4000);
+                }, i * 30);
+            }
+        }
+
+        // ==================== RIPPLE EFFECT ====================
+        document.querySelectorAll('.ripple-container').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = e.clientX - rect.left - size/2 + 'px';
+                ripple.style.top = e.clientY - rect.top - size/2 + 'px';
+                ripple.className = 'ripple';
+                
+                this.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+
+        // ==================== MAGNETIC BUTTON EFFECT ====================
+        document.querySelectorAll('.magnetic-btn').forEach(btn => {
+            btn.addEventListener('mousemove', function(e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                this.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px) scale(1.05)`;
+            });
+            
+            btn.addEventListener('mouseleave', function() {
+                this.style.transform = 'translate(0, 0) scale(1)';
+            });
+        });
+
+        // ==================== INITIALIZATION ====================
+        async function init() {
+            buttons = JSON.parse(localStorage.getItem('myButtons')) || [];
+            
+            if (SUPABASE_URL && SUPABASE_KEY) {
+                try {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    await loadFromSupabase();
+                    updateSyncStatus(true);
+                } catch (error) {
+                    console.error('Supabase init error:', error);
+                    updateSyncStatus(false);
+                }
+            } else {
+                setTimeout(() => {
+                    document.getElementById('configModal').classList.remove('hidden');
+                }, 1500);
+            }
+            
+            renderButtons();
+            hideLoading();
+        }
+
+        function hideLoading() {
+            setTimeout(() => {
+                const overlay = document.getElementById('loadingOverlay');
+                overlay.style.opacity = '0';
+                overlay.style.transition = 'opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+                setTimeout(() => overlay.classList.add('hidden'), 800);
+            }, 800);
+        }
+
+        // ==================== SUPABASE FUNCTIONS ====================
+        async function loadFromSupabase() {
+            if (!supabase) return;
+            
+            try {
+                const { data, error } = await supabase
+                    .from('buttons')
+                    .select('*')
+                    .order('created_at', { ascending: true });
+                
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    buttons = data;
+                    saveToLocalStorage();
+                }
+            } catch (error) {
+                console.error('Load error:', error);
+                showToast('Gagal memuat dari Supabase', 'error');
+            }
+        }
+
+        async function saveToSupabase(button) {
+            if (!supabase) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('buttons')
+                    .upsert(button, { onConflict: 'id' });
+                
+                if (error) throw error;
+                updateSyncStatus(true);
+            } catch (error) {
+                console.error('Save error:', error);
+                updateSyncStatus(false);
+                showToast('Gagal menyimpan ke Supabase', 'error');
+            }
+        }
+
+        async function deleteFromSupabase(id) {
+            if (!supabase) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('buttons')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) throw error;
+                updateSyncStatus(true);
+            } catch (error) {
+                console.error('Delete error:', error);
+                updateSyncStatus(false);
+            }
+        }
+
+        async function syncData() {
+            const syncBtn = document.getElementById('syncBtn');
+            const svg = syncBtn.querySelector('svg');
+            svg.classList.add('animate-spin');
+            
+            if (!supabase) {
+                document.getElementById('configModal').classList.remove('hidden');
+                svg.classList.remove('animate-spin');
+                return;
+            }
+            
+            try {
+                await loadFromSupabase();
+                renderButtons();
+                showToast('Data berhasil disinkronkan! 🎉', 'success');
+                updateSyncStatus(true);
+                triggerConfetti();
+            } catch (error) {
+                showToast('Gagal sinkronisasi', 'error');
+                updateSyncStatus(false);
+            }
+            
+            svg.classList.remove('animate-spin');
+        }
+
+        function updateSyncStatus(connected) {
+            const status = document.getElementById('syncStatus');
+            if (connected) {
+                status.className = 'text-4xl font-bold text-green-400 heartbeat';
+                status.textContent = '●';
+            } else {
+                status.className = 'text-4xl font-bold text-red-400 shake';
+                status.textContent = '●';
+            }
+        }
+
+        // ==================== LOCAL STORAGE ====================
+        function saveToLocalStorage() {
+            localStorage.setItem('myButtons', JSON.stringify(buttons));
+            animateCounter();
+        }
+
+        function animateCounter() {
+            const counter = document.getElementById('totalButtons');
+            const target = buttons.length;
+            const current = parseInt(counter.textContent) || 0;
+            
+            if (current !== target) {
+                const step = current < target ? 1 : -1;
+                let count = current;
+                
+                const interval = setInterval(() => {
+                    count += step;
+                    counter.textContent = count;
+                    counter.classList.add('scale-125');
+                    setTimeout(() => counter.classList.remove('scale-125'), 100);
+                    
+                    if (count === target) clearInterval(interval);
+                }, 50);
+            }
+        }
+
+        // ==================== UI FUNCTIONS ====================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            const colors = {
+                success: 'from-green-500 to-emerald-500',
+                error: 'from-red-500 to-pink-500',
+                info: 'from-blue-500 to-cyan-500'
+            };
+            
+            const icons = {
+                success: '✅',
+                error: '❌',
+                info: 'ℹ️'
+            };
+            
+            toast.className = `toast px-6 py-4 bg-gradient-to-r ${colors[type]} text-white rounded-2xl shadow-2xl flex items-center gap-3 min-w-[300px] cursor-pointer hover:scale-105 transition-transform`;
+            toast.innerHTML = `
+                <span class="text-2xl bounce-animation">${icons[type]}</span>
+                <span class="font-medium flex-1">${message}</span>
+                <button class="hover:bg-white/20 rounded-lg p-1 transition-colors">✕</button>
+            `;
+            
+            toast.onclick = () => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100px) scale(0.8)';
+                setTimeout(() => toast.remove(), 300);
+            };
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateX(100px) scale(0.8)';
+                    toast.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                    setTimeout(() => toast.remove(), 400);
+                }
+            }, 4000);
+        }
+
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        function selectColor(color) {
+            selectedColor = color;
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.classList.remove('ring-4', 'ring-white', 'scale-110');
+                if (btn.dataset.color === color) {
+                    btn.classList.add('ring-4', 'ring-white', 'scale-110');
+                }
+            });
+        }
+
+        function setIcon(icon) {
+            const input = document.getElementById('buttonIcon');
+            input.value = icon;
+            input.classList.add('scale-125');
+            setTimeout(() => input.classList.remove('scale-125'), 200);
+        }
+
+        function openModal(id = null) {
+            editingId = id;
+            const modal = document.getElementById('modal');
+            const title = document.getElementById('modalTitle');
+            
+            if (id) {
+                const btn = buttons.find(b => b.id === id);
+                document.getElementById('buttonName').value = btn.name;
+                document.getElementById('buttonUrl').value = btn.url;
+                document.getElementById('buttonIcon').value = btn.icon || '';
+                document.getElementById('buttonCategory').value = btn.category || 'website';
+                selectColor(btn.color);
+                title.innerHTML = '<span class="text-3xl">✏️</span> Edit Link';
+            } else {
+                document.getElementById('buttonName').value = '';
+                document.getElementById('buttonUrl').value = '';
+                document.getElementById('buttonIcon').value = '🔗';
+                document.getElementById('buttonCategory').value = 'website';
+                selectColor('from-violet-600 to-purple-600');
+                title.innerHTML = '<span class="text-3xl">✨</span> Tambah Link Baru';
+            }
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => document.getElementById('buttonName').focus(), 300);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            const content = modal.querySelector('.glass-dark');
+            content.style.transform = 'scale(0.9) rotate(-5deg)';
+            content.style.opacity = '0';
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                content.style.transform = '';
+                content.style.opacity = '';
+            }, 300);
+            editingId = null;
+        }
+
+        function openDeleteModal(id) {
+            deleteId = id;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            const content = modal.querySelector('.glass-dark');
+            content.style.transform = 'scale(0.9)';
+            content.style.opacity = '0';
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                content.style.transform = '';
+                content.style.opacity = '';
+            }, 300);
+            deleteId = null;
+        }
+
+        function closeConfigModal() {
+            document.getElementById('configModal').classList.add('hidden');
+        }
+
+        async function saveConfig() {
+            const url = document.getElementById('supabaseUrl').value.trim();
+            const key = document.getElementById('supabaseKey').value.trim();
+            
+            if (!url || !key) {
+                showToast('URL dan Key harus diisi!', 'error');
+                return;
+            }
+            
+            localStorage.setItem('supabase_url', url);
+            localStorage.setItem('supabase_key', key);
+            
+            SUPABASE_URL = url;
+            SUPABASE_KEY = key;
+            
+            try {
+                supabase = window.supabase.createClient(url, key);
+                
+                for (const btn of buttons) {
+                    await saveToSupabase(btn);
+                }
+                
+                await loadFromSupabase();
+                renderButtons();
+                showToast('Berhasil terhubung ke Supabase! 🚀', 'success');
+                updateSyncStatus(true);
+                closeConfigModal();
+                triggerConfetti();
+            } catch (error) {
+                showToast('Gagal terhubung: ' + error.message, 'error');
+                updateSyncStatus(false);
+            }
+        }
+
+        async function confirmDelete() {
+            if (deleteId) {
+                await deleteFromSupabase(deleteId);
+                buttons = buttons.filter(b => b.id !== deleteId);
+                saveToLocalStorage();
+                renderButtons();
+                closeDeleteModal();
+                showToast('Link berhasil dihapus! 🗑️', 'success');
+            }
+        }
+
+        async function saveButton() {
+            const name = document.getElementById('buttonName').value.trim();
+            const url = document.getElementById('buttonUrl').value.trim();
+            const icon = document.getElementById('buttonIcon').value.trim();
+            const category = document.getElementById('buttonCategory').value;
+
+            if (!name || !url) {
+                showToast('Nama dan URL harus diisi!', 'error');
+                document.getElementById('buttonName').classList.add('shake');
+                setTimeout(() => document.getElementById('buttonName').classList.remove('shake'), 500);
+                return;
+            }
+
+            let button;
+            
+            if (editingId) {
+                const index = buttons.findIndex(b => b.id === editingId);
+                button = { ...buttons[index], name, url, color: selectedColor, icon, category };
+                buttons[index] = button;
+            } else {
+                button = {
+                    id: generateId(),
+                    name,
+                    url,
+                    color: selectedColor,
+                    icon: icon || '🔗',
+                    category,
+                    created_at: new Date().toISOString()
+                };
+                buttons.push(button);
+            }
+
+            await saveToSupabase(button);
+            saveToLocalStorage();
+            renderButtons();
+            closeModal();
+            showToast(editingId ? 'Link berhasil diupdate! ✨' : 'Link baru ditambahkan! 🎉', 'success');
+            
+            if (!editingId) triggerConfetti();
+        }
+
+        function filterByCategory(category) {
+            currentFilter = category;
+            
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                if (btn.dataset.cat === category) {
+                    btn.className = 'cat-btn px-5 py-2.5 bg-purple-500 text-white rounded-full text-sm font-medium whitespace-nowrap transition-all shadow-lg shadow-purple-500/30 transform scale-105';
+                } else {
+                    btn.className = 'cat-btn px-5 py-2.5 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white rounded-full text-sm font-medium whitespace-nowrap transition-all transform hover:scale-105';
+                }
+            });
+            
+            renderButtons();
+        }
+
+        function renderButtons() {
+            const grid = document.getElementById('buttonGrid');
+            const emptyMsg = document.getElementById('emptyMessage');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            let filteredButtons = buttons;
+            
+            if (currentFilter !== 'all') {
+                filteredButtons = filteredButtons.filter(b => b.category === currentFilter);
+            }
+            
+            if (searchTerm) {
+                filteredButtons = filteredButtons.filter(b => 
+                    b.name.toLowerCase().includes(searchTerm) || 
+                    b.url.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            if (filteredButtons.length === 0) {
+                grid.innerHTML = '';
+                emptyMsg.classList.remove('hidden');
+                return;
+            }
+
+            emptyMsg.classList.add('hidden');
+            document.getElementById('totalButtons').textContent = buttons.length;
+
+            grid.innerHTML = filteredButtons.map((btn, index) => `
+                <div class="group relative stagger-item" style="animation-delay: ${index * 0.08}s" onmouseenter="this.classList.add('visible')">
+                    <a href="${btn.url}" target="_blank" rel="noopener noreferrer" 
+                       class="btn-card shine-effect glow-border block bg-gradient-to-br ${btn.color} p-6 pb-18 rounded-3xl shadow-lg hover:shadow-2xl relative overflow-hidden min-h-[200px]"
+                       onclick="createClickRipple(event)">
+                        
+                        <!-- Animated Background -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                        
+                        <!-- Floating Particles inside card -->
+                        <div class="absolute top-4 right-4 w-2 h-2 bg-white/30 rounded-full bounce-animation" style="animation-delay: 0s;"></div>
+                        <div class="absolute top-8 right-8 w-1 h-1 bg-white/20 rounded-full bounce-animation" style="animation-delay: 0.3s;"></div>
+                        <div class="absolute bottom-16 left-4 w-1.5 h-1.5 bg-white/25 rounded-full bounce-animation" style="animation-delay: 0.6s;"></div>
+                        
+                        <div class="relative z-10">
+                            <div class="flex items-start gap-4">
+                                <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 backdrop-blur-sm">
+                                    <span class="text-3xl group-hover:animate-bounce">${btn.icon || '🔗'}</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-white font-bold text-lg truncate mb-1 group-hover:text-white/90">${btn.name}</h3>
+                                    <p class="text-white/50 text-sm truncate group-hover:text-white/70 transition-colors">${btn.url}</p>
+                                </div>
+                            </div>
+                            <div class="mt-5 flex items-center gap-2">
+                                <span class="text-xs text-white/60 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-sm group-hover:bg-white/20 transition-colors">${getCategoryLabel(btn.category)}</span>
+                                <div class="flex-1"></div>
+                                <svg class="w-5 h-5 text-white/40 group-hover:text-white/80 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+                    
+                    <!-- Action buttons - Bottom Right -->
+                    <div class="absolute bottom-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-4 group-hover:translate-y-0 z-20">
+                        <button onclick="event.preventDefault(); event.stopPropagation(); openModal('${btn.id}')" 
+                            class="magnetic-btn w-10 h-10 bg-white/95 hover:bg-white text-slate-700 rounded-xl flex items-center justify-center shadow-xl transition-all hover:scale-110 hover:rotate-6" title="Edit">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                        </button>
+                        <button onclick="event.preventDefault(); event.stopPropagation(); openDeleteModal('${btn.id}')" 
+                            class="magnetic-btn w-10 h-10 bg-gradient-to-br from-red-500 to-pink-600 hover:from-red-400 hover:to-pink-500 text-white rounded-xl flex items-center justify-center shadow-xl transition-all hover:scale-110 hover:-rotate-6" title="Hapus">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Trigger stagger animation
+            setTimeout(() => {
+                document.querySelectorAll('.stagger-item').forEach((item, i) => {
+                    setTimeout(() => item.classList.add('visible'), i * 80);
+                });
+            }, 100);
+        }
+
+        function createClickRipple(e) {
+            const card = e.currentTarget;
+            const ripple = document.createElement('div');
+            const rect = card.getBoundingClientRect();
+            
+            ripple.style.cssText = `
+                position: absolute;
+                width: 20px;
+                height: 20px;
+                background: rgba(255,255,255,0.5);
+                border-radius: 50%;
+                transform: scale(0);
+                animation: ripple 0.6s ease-out;
+                left: ${e.clientX - rect.left}px;
+                top: ${e.clientY - rect.top}px;
+                pointer-events: none;
+            `;
+            
+            card.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
+        }
+
+        function getCategoryLabel(cat) {
+            const labels = {
+                website: '🌐 Website',
+                social: '📱 Sosial',
+                project: '📁 Project',
+                other: '📌 Lainnya'
+            };
+            return labels[cat] || labels.other;
+        }
+
+        // ==================== EVENT LISTENERS ====================
+        document.getElementById('searchInput').addEventListener('input', renderButtons);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                closeDeleteModal();
+                closeConfigModal();
+                closeQRScanner();
+            }
+            if (e.key === 'n' && e.ctrlKey) {
+                e.preventDefault();
+                openModal();
+            }
+        });
+
+        // ==================== QR SCANNER FUNCTIONS ====================
+        let html5QrCode = null;
+        let currentScanTarget = null;
+        let useFrontCamera = false;
+
+        function openQRScanner(targetInputId) {
+            currentScanTarget = targetInputId;
+            const modal = document.getElementById('qrScannerModal');
+            const label = document.getElementById('scannerTargetLabel');
+            
+            label.textContent = targetInputId === 'supabaseUrl' ? '📍 Untuk: Supabase URL' : '🔑 Untuk: Anon Key';
+            modal.classList.remove('hidden');
+            
+            startScanner();
+        }
+
+        function startScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().catch(err => console.log(err));
+            }
+            
+            html5QrCode = new Html5Qrcode("qrReader");
+            
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            };
+            
+            const cameraFacing = useFrontCamera ? "user" : "environment";
+            
+            html5QrCode.start(
+                { facingMode: cameraFacing },
+                config,
+                (decodedText) => {
+                    if (currentScanTarget) {
+                        document.getElementById(currentScanTarget).value = decodedText;
+                        showToast('QR Code berhasil di-scan! 📷', 'success');
+                        closeQRScanner();
+                        triggerConfetti();
+                    }
+                },
+                () => {}
+            ).catch((err) => {
+                console.error('Camera error:', err);
+                showToast('Tidak dapat mengakses kamera', 'error');
+            });
+        }
+
+        function switchCamera() {
+            useFrontCamera = !useFrontCamera;
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => startScanner()).catch(() => startScanner());
+            }
+        }
+
+        function closeQRScanner() {
+            const modal = document.getElementById('qrScannerModal');
+            
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => html5QrCode = null).catch(() => html5QrCode = null);
+            }
+            
+            modal.classList.add('hidden');
+            currentScanTarget = null;
+        }
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function copySQLCode() {
+            const sqlCode = document.getElementById('sqlCode').textContent;
+            navigator.clipboard.writeText(sqlCode).then(() => {
+                const copyBtn = document.getElementById('copyBtnText');
+                copyBtn.textContent = '✓ Tersalin!';
+                showToast('Kode SQL berhasil disalin! 📋', 'success');
+                setTimeout(() => copyBtn.textContent = 'Salin', 2000);
+            }).catch(() => showToast('Gagal menyalin kode', 'error'));
+        }
+
+        function toggleKeyVisibility() {
+            const keyInput = document.getElementById('supabaseKey');
+            const eyeIcon = document.getElementById('eyeIcon');
+            
+            if (keyInput.type === 'password') {
+                keyInput.type = 'text';
+                eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>`;
+            } else {
+                keyInput.type = 'password';
+                eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>`;
+            }
+        }
+
+        // Initialize
+        init();
+    </script>
 </body>
 </html>
