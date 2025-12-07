@@ -46,21 +46,6 @@
     #sidebarToggle {position: fixed;top: 1rem;left: 1rem;z-index: 1001;background-color: #3b82f6;color: white;padding: 0.5rem 1rem;border-radius: 0.375rem;cursor: pointer;font-size: 1.5rem;}
     #qrWrapper canvas {width: 100%; height: auto;}
     body.sidebar-open .container {filter: blur(6px) saturate(0.95);transition: filter 0.25s ease;pointer-events: none;user-select: none;}
-    
-    /* Related Images Preview Styles */
-    #relatedImagesSection {margin-top: 2rem;padding: 1.5rem;background-color: #ffffff;border-radius: 0.75rem;box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);}
-    .related-images-grid {display: grid;grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));gap: 1rem;margin-top: 1rem;}
-    .related-image-card {position: relative;border-radius: 0.5rem;overflow: hidden;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);cursor: pointer;transition: transform 0.2s ease, box-shadow 0.2s ease;aspect-ratio: 1;background-color: #f3f4f6;}
-    .related-image-card:hover {transform: translateY(-4px);box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);}
-    .related-image-card img {width: 100%;height: 100%;object-fit: cover;}
-    .related-image-card .overlay {position: absolute;bottom: 0;left: 0;right: 0;background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);padding: 0.75rem 0.5rem 0.5rem;color: white;}
-    .related-image-card .overlay .title {font-size: 0.75rem;font-weight: 600;line-height: 1.2;display: -webkit-box;-webkit-line-clamp: 2;-webkit-box-orient: vertical;overflow: hidden;}
-    .related-image-card .overlay .category {font-size: 0.65rem;opacity: 0.8;margin-top: 2px;}
-    .related-image-card .loading-spinner {position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);width: 24px;height: 24px;border: 3px solid #e5e7eb;border-top-color: #3b82f6;border-radius: 50%;animation: spin 1s linear infinite;}
-    @keyframes spin {to {transform: translate(-50%, -50%) rotate(360deg);}}
-    .category-images-group {margin-bottom: 1.5rem;}
-    .category-images-group:last-child {margin-bottom: 0;}
-    .category-images-heading {font-weight: 600;font-size: 1rem;color: #374151;margin-bottom: 0.75rem;padding-bottom: 0.5rem;border-bottom: 2px solid #e5e7eb;}
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen py-8">
@@ -128,18 +113,6 @@
           </svg>
           <span id="detectedMime">Tipe: -</span>
         </div>
-      </div>
-
-      <!-- Related Images Preview Section -->
-      <div id="relatedImagesSection" class="hidden">
-        <h2 class="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-blue-500">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-          </svg>
-          Preview Konten Terkait
-        </h2>
-        <p class="text-sm text-gray-500 mb-4">Klik gambar untuk membuka konten terkait.</p>
-        <div id="relatedImagesContainer"></div>
       </div>
 
       <div class="flex justify-center mt-4 hidden" id="videoActions">
@@ -254,142 +227,6 @@
       return localStorage.getItem('dekrip_logged_in') === 'true';
     }
 
-    async function fetchAndDecryptImage(url, shift) {
-      try {
-        const res = await fetch(url);
-        if (!res.ok) return null;
-        const encryptedText = await res.text();
-        const decryptedContent = decryptCaesar(encryptedText, shift);
-        const cleaned = normalizeBase64(decryptedContent.trim());
-        const looksLikeBase64 = cleaned && /^[A-Za-z0-9+/=]+$/.test(cleaned);
-        if (!looksLikeBase64) return null;
-        const mime = detectMimeFromBase64(cleaned);
-        if (!mime || !mime.startsWith('image/')) return null;
-        const blob = base64ToBlob(cleaned, mime);
-        return URL.createObjectURL(blob);
-      } catch (e) {
-        return null;
-      }
-    }
-
-    async function fetchRelatedImages(person) {
-      const relatedImagesSection = document.getElementById('relatedImagesSection');
-      const relatedImagesContainer = document.getElementById('relatedImagesContainer');
-      relatedImagesContainer.innerHTML = '';
-      
-      if (!person) {
-        relatedImagesSection.classList.add('hidden');
-        return;
-      }
-
-      const supabaseUrl = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
-      const supabase = window.createClient(supabaseUrl, supabaseKey);
-      const currentUrl = q('url');
-      const currentShift = q('shift');
-
-      try {
-        const { data, error } = await supabase.from('links').select('id, person_name, name, category, url, shift_code').ilike('person_name', person);
-        if (error) throw error;
-        if (!data || data.length < 1) {
-          relatedImagesSection.classList.add('hidden');
-          return;
-        }
-
-        // Filter out current item and group by category
-        const filteredData = data.filter(item => !(item.url === currentUrl && item.shift_code === currentShift));
-        
-        if (filteredData.length === 0) {
-          relatedImagesSection.classList.add('hidden');
-          return;
-        }
-
-        const groupedByCategory = {};
-        filteredData.forEach(item => {
-          const cat = item.category || 'Belum Dikategorikan';
-          if (!groupedByCategory[cat]) groupedByCategory[cat] = [];
-          groupedByCategory[cat].push(item);
-        });
-
-        // Show section
-        relatedImagesSection.classList.remove('hidden');
-
-        // Create category groups
-        Object.keys(groupedByCategory).sort().forEach(category => {
-          const categoryGroup = document.createElement('div');
-          categoryGroup.className = 'category-images-group';
-
-          const heading = document.createElement('h3');
-          heading.className = 'category-images-heading';
-          heading.textContent = category;
-          categoryGroup.appendChild(heading);
-
-          const grid = document.createElement('div');
-          grid.className = 'related-images-grid';
-
-          groupedByCategory[category].forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'related-image-card';
-            card.dataset.url = item.url;
-            card.dataset.shift = item.shift_code;
-            card.dataset.person = item.person_name;
-            card.dataset.name = item.name;
-
-            // Add loading spinner
-            const spinner = document.createElement('div');
-            spinner.className = 'loading-spinner';
-            card.appendChild(spinner);
-
-            // Add overlay with info
-            const overlay = document.createElement('div');
-            overlay.className = 'overlay';
-            overlay.innerHTML = `
-              <div class="title">${item.name || 'Tanpa Judul'}</div>
-              <div class="category">${item.person_name || 'Anonim'}</div>
-            `;
-            card.appendChild(overlay);
-
-            // Click handler
-            card.addEventListener('click', () => {
-              const targetUrl = `index.html?url=${encodeURIComponent(item.url)}&shift=${encodeURIComponent(item.shift_code)}&person=${encodeURIComponent(item.person_name)}&name=${encodeURIComponent(item.name)}`;
-              window.location.href = targetUrl;
-            });
-
-            grid.appendChild(card);
-
-            // Fetch and decrypt image asynchronously
-            fetchAndDecryptImage(item.url, item.shift_code).then(objectUrl => {
-              spinner.remove();
-              if (objectUrl) {
-                const img = document.createElement('img');
-                img.src = objectUrl;
-                img.alt = item.name || 'Preview';
-                img.loading = 'lazy';
-                card.insertBefore(img, overlay);
-              } else {
-                // Show placeholder for non-image or failed content
-                const placeholder = document.createElement('div');
-                placeholder.className = 'flex items-center justify-center w-full h-full bg-gray-200';
-                placeholder.innerHTML = `
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-gray-400">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                  </svg>
-                `;
-                card.insertBefore(placeholder, overlay);
-              }
-            });
-          });
-
-          categoryGroup.appendChild(grid);
-          relatedImagesContainer.appendChild(categoryGroup);
-        });
-
-      } catch (err) {
-        console.error('Failed to fetch related images:', err);
-        relatedImagesSection.classList.add('hidden');
-      }
-    }
-
     async function fetchRelatedLinks(person) {
       const relatedSection = document.getElementById('relatedSection');
       const relatedList = document.getElementById('relatedList');
@@ -438,7 +275,7 @@
             li.dataset.person = item.person_name;
             li.dataset.name = item.name;
             li.addEventListener('click', () => {
-              const targetUrl = `index.html?url=${encodeURIComponent(item.url)}&shift=${encodeURIComponent(item.shift_code)}&person=${encodeURIComponent(item.person_name)}&name=${encodeURIComponent(item.name)}`;
+              const targetUrl = `dekripsi.html?url=${encodeURIComponent(item.url)}&shift=${encodeURIComponent(item.shift_code)}&person=${encodeURIComponent(item.person_name)}&name=${encodeURIComponent(item.name)}`;
               window.location.href = targetUrl
             });
             sublist.appendChild(li);
@@ -680,7 +517,6 @@
       const name = q('name') || '';
       await loadAndDecrypt(url, shift, person, name);
       await fetchRelatedLinks(person);
-      await fetchRelatedImages(person);
     }
 
     const modal = document.getElementById('imageModal');
