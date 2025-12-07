@@ -32,8 +32,13 @@
     .modal-content {max-width: 90%;max-height: 90vh;border-radius: 8px;}
     .close-btn {position: absolute;top: 20px;right: 35px;color: #f1f1f1;font-size: 40px;font-weight: bold;cursor: pointer;}
     .close-btn:hover,.close-btn:focus {color: #bbb;text-decoration: none;}
-    .modal-download-btn {position: absolute;bottom: 20px;left: 50%;transform: translateX(-50%);background-color: #10B981;color: white;padding: 10px 20px;border: none;border-radius: 5px;cursor: pointer;font-size: 16px;}
+    .modal-download-btn {position: absolute;bottom: 20px;left: 50%;transform: translateX(-50%);background-color: #10B981;color: white;padding: 10px 20px;border: none;border-radius: 5px;cursor: pointer;font-size: 16px;display: flex;align-items: center;gap: 8px;}
     .modal-download-btn:hover {background-color: #059669;}
+    .modal-actions {position: absolute;bottom: 20px;left: 50%;transform: translateX(-50%);display: flex;gap: 12px;flex-wrap: wrap;justify-content: center;}
+    .modal-action-btn {background-color: #10B981;color: white;padding: 10px 20px;border: none;border-radius: 5px;cursor: pointer;font-size: 16px;display: flex;align-items: center;gap: 8px;text-decoration: none;transition: background-color 0.2s;}
+    .modal-action-btn:hover {background-color: #059669;}
+    .modal-action-btn.blue {background-color: #3b82f6;}
+    .modal-action-btn.blue:hover {background-color: #2563eb;}
     #relatedSection {margin-top: 2rem;padding: 1rem;background-color: #ffffff;border-radius: 0.5rem;box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);}
     .category-group {margin-bottom: 1rem;}
     .category-heading {font-weight: 600;margin-bottom: 0.5rem;color: #374151;}
@@ -50,16 +55,17 @@
     /* Related Images Preview Styles */
     #relatedImagesSection {margin-top: 2rem;padding: 1.5rem;background-color: #ffffff;border-radius: 0.75rem;box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);}
     .related-images-grid {display: grid;grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));gap: 1rem;margin-top: 1rem;}
-    .related-image-card {position: relative;border-radius: 0.5rem;overflow: hidden;box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);cursor: pointer;transition: transform 0.2s, box-shadow 0.2s;aspect-ratio: 1/1;}
-    .related-image-card:hover {transform: translateY(-4px);box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);}
+    .related-image-card {position: relative;border-radius: 0.5rem;overflow: hidden;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);cursor: pointer;transition: transform 0.2s ease, box-shadow 0.2s ease;aspect-ratio: 1;background-color: #f3f4f6;}
+    .related-image-card:hover {transform: translateY(-4px);box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);}
     .related-image-card img {width: 100%;height: 100%;object-fit: cover;}
-    .related-image-card .overlay {position: absolute;bottom: 0;left: 0;right: 0;background: linear-gradient(transparent, rgba(0,0,0,0.8));padding: 0.75rem 0.5rem 0.5rem;color: white;}
-    .related-image-card .overlay .title {font-size: 0.75rem;font-weight: 600;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;}
-    .related-image-card .overlay .category {font-size: 0.65rem;opacity: 0.8;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;}
-    .related-image-card .loading-placeholder {width: 100%;height: 100%;display: flex;align-items: center;justify-content: center;background-color: #e5e7eb;}
-    .related-image-card .loading-placeholder svg {width: 32px;height: 32px;color: #9ca3af;animation: pulse 1.5s infinite;}
-    .related-image-card .error-placeholder {width: 100%;height: 100%;display: flex;align-items: center;justify-content: center;background-color: #fee2e2;color: #dc2626;}
-    @keyframes pulse {0%, 100% {opacity: 1;}50% {opacity: 0.5;}}
+    .related-image-card .overlay {position: absolute;bottom: 0;left: 0;right: 0;background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);padding: 0.75rem 0.5rem 0.5rem;color: white;}
+    .related-image-card .overlay .title {font-size: 0.75rem;font-weight: 600;line-height: 1.2;display: -webkit-box;-webkit-line-clamp: 2;-webkit-box-orient: vertical;overflow: hidden;}
+    .related-image-card .overlay .category {font-size: 0.65rem;opacity: 0.8;margin-top: 2px;}
+    .related-image-card .loading-spinner {position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);width: 24px;height: 24px;border: 3px solid #e5e7eb;border-top-color: #3b82f6;border-radius: 50%;animation: spin 1s linear infinite;}
+    @keyframes spin {to {transform: translate(-50%, -50%) rotate(360deg);}}
+    .category-images-group {margin-bottom: 1.5rem;}
+    .category-images-group:last-child {margin-bottom: 0;}
+    .category-images-heading {font-weight: 600;font-size: 1rem;color: #374151;margin-bottom: 0.75rem;padding-bottom: 0.5rem;border-bottom: 2px solid #e5e7eb;}
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen py-8">
@@ -132,19 +138,13 @@
       <!-- Related Images Preview Section -->
       <div id="relatedImagesSection" class="hidden">
         <h2 class="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-purple-500">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-blue-500">
             <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
           </svg>
-          Galeri Terkait
+          Preview Konten Terkait
         </h2>
-        <p class="text-sm text-gray-500 mb-4">Preview gambar lain dari person yang sama</p>
-        <div id="relatedImagesGrid" class="related-images-grid"></div>
-        <div id="relatedImagesLoading" class="text-center py-4 text-gray-500 text-sm hidden">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 animate-spin inline-block mr-2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-          </svg>
-          Memuat preview gambar...
-        </div>
+        <p class="text-sm text-gray-500 mb-4">Klik gambar untuk membuka konten terkait.</p>
+        <div id="relatedImagesContainer"></div>
       </div>
 
       <div class="flex justify-center mt-4 hidden" id="videoActions">
@@ -167,7 +167,20 @@
   <div id="imageModal">
     <span class="close-btn">&times;</span>
     <img class="modal-content" id="modalImage">
-    <a id="modalDownloadBtn" class="modal-download-btn" download>Download</a>
+    <div class="modal-actions">
+      <a id="modalDownloadBtn" class="modal-action-btn" download>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+        </svg>
+        Download
+      </a>
+      <a id="modalOpenBtn" class="modal-action-btn blue hidden" href="#">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+        </svg>
+        Buka Halaman
+      </a>
+    </div>
   </div>
 
   <script>
@@ -259,166 +272,162 @@
       return localStorage.getItem('dekrip_logged_in') === 'true';
     }
 
-    // Decrypt and get image URL from encrypted content
-    async function decryptAndGetImageUrl(url, shift) {
+    async function fetchAndDecryptImage(url, shift) {
       try {
         const res = await fetch(url);
-        if (!res.ok) throw new Error('Fetch failed');
+        if (!res.ok) return null;
         const encryptedText = await res.text();
         const decryptedContent = decryptCaesar(encryptedText, shift);
-        const probableBase64 = decryptedContent.trim();
-        const cleaned = normalizeBase64(probableBase64);
+        const cleaned = normalizeBase64(decryptedContent.trim());
         const looksLikeBase64 = cleaned && /^[A-Za-z0-9+/=]+$/.test(cleaned);
-        
-        if (looksLikeBase64) {
-          const detectedMime = detectMimeFromBase64(cleaned);
-          if (detectedMime && detectedMime.startsWith('image/')) {
-            const blob = base64ToBlob(cleaned, detectedMime);
-            return URL.createObjectURL(blob);
-          }
-        }
-        return null;
+        if (!looksLikeBase64) return null;
+        const mime = detectMimeFromBase64(cleaned);
+        if (!mime || !mime.startsWith('image/')) return null;
+        const blob = base64ToBlob(cleaned, mime);
+        return URL.createObjectURL(blob);
       } catch (e) {
-        console.error('Error decrypting image:', e);
         return null;
       }
     }
 
-    // Fetch and display related images
     async function fetchRelatedImages(person) {
       const relatedImagesSection = document.getElementById('relatedImagesSection');
-      const relatedImagesGrid = document.getElementById('relatedImagesGrid');
-      const relatedImagesLoading = document.getElementById('relatedImagesLoading');
-      
-      relatedImagesGrid.innerHTML = '';
+      const relatedImagesContainer = document.getElementById('relatedImagesContainer');
+      relatedImagesContainer.innerHTML = '';
       
       if (!person) {
         relatedImagesSection.classList.add('hidden');
         return;
       }
-      
+
       const supabaseUrl = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
       const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
       const supabase = window.createClient(supabaseUrl, supabaseKey);
-      
       const currentUrl = q('url');
       const currentShift = q('shift');
-      
+
       try {
-        const { data, error } = await supabase
-          .from('links')
-          .select('id, person_name, name, category, url, shift_code')
-          .ilike('person_name', person);
-        
+        const { data, error } = await supabase.from('links').select('id, person_name, name, category, url, shift_code').ilike('person_name', person);
         if (error) throw error;
         if (!data || data.length < 1) {
           relatedImagesSection.classList.add('hidden');
           return;
         }
+
+        // Filter out current item and group by category
+        const filteredData = data.filter(item => !(item.url === currentUrl && item.shift_code === currentShift));
         
-        // Filter out current item and only keep potential images
-        const otherItems = data.filter(item => 
-          !(item.url === currentUrl && item.shift_code === currentShift)
-        );
-        
-        if (otherItems.length === 0) {
+        if (filteredData.length === 0) {
           relatedImagesSection.classList.add('hidden');
           return;
         }
-        
-        relatedImagesSection.classList.remove('hidden');
-        relatedImagesLoading.classList.remove('hidden');
-        
-        // Create placeholder cards first
-        otherItems.forEach(item => {
-          const card = document.createElement('div');
-          card.className = 'related-image-card';
-          card.dataset.url = item.url;
-          card.dataset.shift = item.shift_code;
-          card.dataset.person = item.person_name;
-          card.dataset.name = item.name;
-          card.innerHTML = `
-            <div class="loading-placeholder">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-              </svg>
-            </div>
-            <div class="overlay">
-              <div class="title">${item.name || 'Tanpa Judul'}</div>
-              <div class="category">${item.category || 'Tidak Ada Kategori'}</div>
-            </div>
-          `;
-          relatedImagesGrid.appendChild(card);
+
+        const groupedByCategory = {};
+        filteredData.forEach(item => {
+          const cat = item.category || 'Belum Dikategorikan';
+          if (!groupedByCategory[cat]) groupedByCategory[cat] = [];
+          groupedByCategory[cat].push(item);
         });
-        
-        // Now decrypt each image
-        let imagesLoaded = 0;
-        let imagesWithContent = 0;
-        
-        for (const item of otherItems) {
-          const card = relatedImagesGrid.querySelector(`[data-url="${item.url}"][data-shift="${item.shift_code}"]`);
-          if (!card) continue;
-          
-          try {
-            const imageUrl = await decryptAndGetImageUrl(item.url, item.shift_code);
-            
-            if (imageUrl) {
-              const img = document.createElement('img');
-              img.src = imageUrl;
-              img.alt = item.name || 'Preview';
-              img.onload = () => {
-                const placeholder = card.querySelector('.loading-placeholder');
-                if (placeholder) placeholder.remove();
-                card.insertBefore(img, card.firstChild);
-              };
-              img.onerror = () => {
-                card.querySelector('.loading-placeholder').innerHTML = `
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-gray-400">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+
+        // Show section
+        relatedImagesSection.classList.remove('hidden');
+
+        // Create category groups
+        Object.keys(groupedByCategory).sort().forEach(category => {
+          const categoryGroup = document.createElement('div');
+          categoryGroup.className = 'category-images-group';
+
+          const heading = document.createElement('h3');
+          heading.className = 'category-images-heading';
+          heading.textContent = category;
+          categoryGroup.appendChild(heading);
+
+          const grid = document.createElement('div');
+          grid.className = 'related-images-grid';
+
+          groupedByCategory[category].forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'related-image-card';
+            card.dataset.url = item.url;
+            card.dataset.shift = item.shift_code;
+            card.dataset.person = item.person_name;
+            card.dataset.name = item.name;
+
+            // Add loading spinner
+            const spinner = document.createElement('div');
+            spinner.className = 'loading-spinner';
+            card.appendChild(spinner);
+
+            // Add overlay with info
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay';
+            overlay.innerHTML = `
+              <div class="title">${item.name || 'Tanpa Judul'}</div>
+              <div class="category">${item.person_name || 'Anonim'}</div>
+            `;
+            card.appendChild(overlay);
+
+            grid.appendChild(card);
+
+            // Fetch and decrypt image asynchronously
+            fetchAndDecryptImage(item.url, item.shift_code).then(objectUrl => {
+              spinner.remove();
+              
+              // Store data for modal
+              card.dataset.imageUrl = objectUrl || '';
+              card.dataset.isImage = objectUrl ? 'true' : 'false';
+              
+              if (objectUrl) {
+                const img = document.createElement('img');
+                img.src = objectUrl;
+                img.alt = item.name || 'Preview';
+                img.loading = 'lazy';
+                card.insertBefore(img, overlay);
+              } else {
+                // Show placeholder for non-image or failed content
+                const placeholder = document.createElement('div');
+                placeholder.className = 'flex items-center justify-center w-full h-full bg-gray-200';
+                placeholder.innerHTML = `
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-gray-400">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                   </svg>
                 `;
-              };
-              imagesWithContent++;
+                card.insertBefore(placeholder, overlay);
+              }
               
-              // Add click handler to navigate
+              // Click handler - show modal with preview
               card.addEventListener('click', () => {
                 const targetUrl = `index.html?url=${encodeURIComponent(item.url)}&shift=${encodeURIComponent(item.shift_code)}&person=${encodeURIComponent(item.person_name)}&name=${encodeURIComponent(item.name)}`;
-                window.location.href = targetUrl;
+                const modalOpenBtn = document.getElementById('modalOpenBtn');
+                const modal = document.getElementById('imageModal');
+                const modalImage = document.getElementById('modalImage');
+                const modalDownloadBtn = document.getElementById('modalDownloadBtn');
+                
+                if (card.dataset.isImage === 'true' && card.dataset.imageUrl) {
+                  // Show image in modal
+                  modal.style.display = 'flex';
+                  modalImage.src = card.dataset.imageUrl;
+                  modalDownloadBtn.href = card.dataset.imageUrl;
+                  modalDownloadBtn.download = item.name || 'image';
+                  modalDownloadBtn.classList.remove('hidden');
+                  
+                  // Show "Buka Halaman" button
+                  modalOpenBtn.href = targetUrl;
+                  modalOpenBtn.classList.remove('hidden');
+                } else {
+                  // For non-image content, navigate directly
+                  window.location.href = targetUrl;
+                }
               });
-            } else {
-              // Not an image, show video icon or other indicator
-              card.querySelector('.loading-placeholder').innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-gray-400">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
-                </svg>
-              `;
-              
-              // Still add click handler for videos
-              card.addEventListener('click', () => {
-                const targetUrl = `index.html?url=${encodeURIComponent(item.url)}&shift=${encodeURIComponent(item.shift_code)}&person=${encodeURIComponent(item.person_name)}&name=${encodeURIComponent(item.name)}`;
-                window.location.href = targetUrl;
-              });
-            }
-          } catch (e) {
-            card.querySelector('.loading-placeholder').innerHTML = `
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-red-400">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-              </svg>
-            `;
-          }
-          
-          imagesLoaded++;
-        }
-        
-        relatedImagesLoading.classList.add('hidden');
-        
-        // Hide section if no valid content was found
-        if (imagesLoaded === 0) {
-          relatedImagesSection.classList.add('hidden');
-        }
-        
+            });
+          });
+
+          categoryGroup.appendChild(grid);
+          relatedImagesContainer.appendChild(categoryGroup);
+        });
+
       } catch (err) {
-        console.error('Error fetching related images:', err);
+        console.error('Failed to fetch related images:', err);
         relatedImagesSection.classList.add('hidden');
       }
     }
@@ -719,8 +728,15 @@
     const modal = document.getElementById('imageModal');
     const modalImage = document.getElementById('modalImage');
     const modalDownloadBtn = document.getElementById('modalDownloadBtn');
-    document.querySelector('.close-btn').addEventListener('click', () => modal.style.display = 'none');
-    modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+    const modalOpenBtn = document.getElementById('modalOpenBtn');
+    
+    function closeModal() {
+      modal.style.display = 'none';
+      modalOpenBtn.classList.add('hidden');
+    }
+    
+    document.querySelector('.close-btn').addEventListener('click', closeModal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
     (function initAccessCheck() {
       if (isLoggedIn()) {
