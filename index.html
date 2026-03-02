@@ -9,7 +9,6 @@
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <style>
         body { background-color: #f3f4f6; font-family: 'Inter', sans-serif; }
-        th, td { padding: 12px 24px; }
         .modal-overlay { background-color: rgba(0,0,0,0.75); }
         .media-preview { max-width: 100%; height: auto; }
         .video-preview { max-width: 100%; height: auto; }
@@ -36,43 +35,127 @@
           align-items: center;
           justify-content: center;
         }
-        .qr-cell {
-            min-width: 120px;
-            width: 15%;
-        }
+
+        /* LOGIN OVERLAY */
         #loginOverlay {
           position: fixed;
           inset: 0;
-          background: rgba(15, 23, 42, 0.65);
+          background: linear-gradient(135deg, rgba(15,23,42,0.8), rgba(30,58,138,0.75));
           z-index: 20000;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 1rem;
-          backdrop-filter: none;
+          backdrop-filter: blur(8px);
         }
         #loginBox {
           background: white;
           width: 100%;
-          max-width: 520px;
-          border-radius: 12px;
-          padding: 20px;
-          box-shadow: 0 10px 30px rgba(2,6,23,0.4);
+          max-width: 420px;
+          border-radius: 1.25rem;
+          padding: 2.5rem 2rem 2rem;
+          box-shadow: 0 25px 60px rgba(0,0,0,0.3);
           text-align: center;
         }
-        #loginBox h2 { margin-bottom: 8px; font-size: 1.25rem; color:#0f172a; }
-        #loginBox p { margin-bottom: 12px; color:#334155; font-size:0.95rem; }
-        #loginFileInput { display: block; margin: 8px auto 14px auto; }
-        #loginMsg { color: #b91c1c; min-height: 1.25rem; margin-bottom: 8px; font-size:0.92rem; }
-        #logoutBtn {
-          display: inline-block;
-          margin-top: 8px;
-          background: transparent;
-          border: 1px solid #e5e7eb;
-          padding: 8px 12px;
-          border-radius: 8px;
-          cursor: pointer;
+        #loginBox .login-icon {
+          width: 56px;
+          height: 56px;
+          background: linear-gradient(135deg, #3b82f6, #6366f1);
+          border-radius: 1rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 1.25rem;
         }
+        #loginBox .login-icon i {
+          font-size: 1.5rem;
+          color: white;
+        }
+        #loginBox h2 {
+          margin-bottom: 0.35rem;
+          font-size: 1.4rem;
+          font-weight: 800;
+          color: #0f172a;
+        }
+        #loginBox p {
+          margin-bottom: 1.5rem;
+          color: #64748b;
+          font-size: 0.88rem;
+          line-height: 1.5;
+        }
+        #loginBox .file-upload-area {
+          border: 2px dashed #cbd5e1;
+          border-radius: 0.75rem;
+          padding: 1.5rem 1rem;
+          cursor: pointer;
+          transition: all 0.2s;
+          background: #f8fafc;
+          margin-bottom: 1rem;
+        }
+        #loginBox .file-upload-area:hover {
+          border-color: #3b82f6;
+          background: #eff6ff;
+        }
+        #loginBox .file-upload-area.dragover {
+          border-color: #3b82f6;
+          background: #dbeafe;
+        }
+        #loginBox .file-upload-area i {
+          font-size: 1.75rem;
+          color: #94a3b8;
+          margin-bottom: 0.5rem;
+        }
+        #loginBox .file-upload-area p {
+          margin: 0;
+          font-size: 0.82rem;
+          color: #64748b;
+        }
+        #loginBox .file-upload-area .file-name {
+          margin-top: 0.5rem;
+          font-size: 0.8rem;
+          color: #3b82f6;
+          font-weight: 600;
+        }
+        #loginFileInput { display: none; }
+        #loginMsg {
+          min-height: 1.25rem;
+          margin-bottom: 0.5rem;
+          font-size: 0.85rem;
+          font-weight: 500;
+          border-radius: 0.5rem;
+          padding: 0;
+          transition: all 0.3s;
+        }
+        #loginMsg.has-msg {
+          padding: 0.6rem 1rem;
+        }
+        #loginMsg.error {
+          background: #fef2f2;
+          color: #b91c1c;
+        }
+        #loginMsg.success {
+          background: #f0fdf4;
+          color: #15803d;
+        }
+        #logoutBtn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          margin-top: 0.75rem;
+          background: transparent;
+          border: 1px solid #e2e8f0;
+          padding: 0.5rem 1rem;
+          border-radius: 0.5rem;
+          cursor: pointer;
+          font-size: 0.8rem;
+          color: #64748b;
+          transition: all 0.2s;
+        }
+        #logoutBtn:hover {
+          background: #f1f5f9;
+          color: #334155;
+        }
+
         body.lock-scroll { overflow: hidden; }
         #pageContent.blurred {
           filter: blur(6px) saturate(0.95);
@@ -91,20 +174,39 @@
             margin-bottom: 1rem;
         }
         .name-tag {
-            padding: 0.25rem 0.75rem;
-            background: #dbeafe;
-            color: #1e40af;
-            border-radius: 9999px;
-            font-size: 0.75rem;
+            padding: 0.4rem 0.9rem;
+            background: white;
+            color: #334155;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 0.78rem;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
         }
         .name-tag:hover {
-            background: #bfdbfe;
+            border-color: #3b82f6;
+            color: #1e40af;
+            background: #eff6ff;
         }
         .name-tag.active {
-            background: #1e40af;
+            background: #3b82f6;
             color: white;
+            border-color: #3b82f6;
+            box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+        }
+        .name-tag .tag-count {
+            font-size: 0.65rem;
+            background: rgba(0,0,0,0.08);
+            padding: 0.1rem 0.35rem;
+            border-radius: 0.25rem;
+            font-weight: 700;
+        }
+        .name-tag.active .tag-count {
+            background: rgba(255,255,255,0.25);
         }
         #sidebar {
             position: fixed;
@@ -122,30 +224,289 @@
         #sidebar.open {
             right: 0;
         }
-#sidebarToggle {
-        position: fixed;
-        bottom: 1rem;
-        right: 1rem;
-        z-index: 1200; /* Ditingkatkan untuk menghindari overlapping */
-        background: white;
-        border: 2px solid #e5e7eb;
-        padding: 0.5rem; /* Diperbesar dari 0.5rem menjadi 1rem */
-        border-radius: 0.5rem;
-        cursor: pointer;
-        touch-action: manipulation; /* Optimasi untuk touch devices */
-    }
+        #sidebarToggle {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 1200;
+            background: white;
+            border: 2px solid #e5e7eb;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        /* CARD GRID */
+        #links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.25rem;
+        }
+        .link-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+            border: 1px solid #e5e7eb;
+            position: relative;
+        }
+        .link-card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .link-card-qr {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.25rem 1.25rem 0.75rem;
+            cursor: pointer;
+        }
+        .link-card-qr canvas {
+            border-radius: 0.5rem;
+            border: 1px solid #f3f4f6;
+        }
+        .link-card-body {
+            padding: 0 1.25rem 1rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .link-card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1.3;
+            word-break: break-word;
+            text-align: center;
+        }
+        .link-card-person {
+            font-size: 0.82rem;
+            color: #64748b;
+            font-weight: 500;
+            text-align: center;
+        }
+        .link-card-category {
+            display: inline-block;
+            font-size: 0.7rem;
+            padding: 0.15rem 0.6rem;
+            background: #f1f5f9;
+            color: #475569;
+            border-radius: 9999px;
+            font-weight: 600;
+            width: fit-content;
+            margin-top: 0.15rem;
+        }
+        .link-card-meta {
+            font-size: 0.72rem;
+            color: #94a3b8;
+            margin-top: 0.25rem;
+            text-align: center;
+        }
+        .link-card-actions {
+            display: flex;
+            border-top: 1px solid #f1f5f9;
+        }
+        .link-card-actions button {
+            flex: 1;
+            padding: 0.7rem 0;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+            border: none;
+            background: transparent;
+        }
+        .link-card-actions .card-btn-view {
+            color: #3b82f6;
+        }
+        .link-card-actions .card-btn-view:hover {
+            background: #eff6ff;
+        }
+        .link-card-actions .card-btn-delete {
+            color: #ef4444;
+        }
+        .link-card-actions .card-btn-delete:hover {
+            background: #fef2f2;
+        }
+        .link-card-actions > *:not(:last-child) {
+            border-right: 1px solid #f1f5f9;
+        }
+
+        /* INFO BUTTON */
+        .card-info-btn {
+            position: absolute;
+            top: 0.6rem;
+            right: 0.6rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            border: 1.5px solid #e2e8f0;
+            color: #64748b;
+            font-size: 0.8rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            z-index: 5;
+            line-height: 1;
+        }
+        .card-info-btn:hover {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+            transform: scale(1.1);
+        }
+
+        /* INFO POPUP MODAL */
+        #infoPopupOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 9000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            backdrop-filter: blur(2px);
+        }
+        #infoPopupOverlay.show {
+            display: flex;
+        }
+        #infoPopupBox {
+            background: white;
+            width: 100%;
+            max-width: 480px;
+            border-radius: 1rem;
+            padding: 1.75rem 1.5rem 1.5rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            position: relative;
+            animation: popIn 0.2s ease;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.92); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        #infoPopupBox .info-close-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            border: none;
+            color: #64748b;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+        #infoPopupBox .info-close-btn:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        #infoPopupBox h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .info-row {
+            margin-bottom: 0.85rem;
+        }
+        .info-row-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+        .info-row-value {
+            font-size: 0.85rem;
+            color: #334155;
+            word-break: break-all;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            min-height: 2rem;
+            line-height: 1.5;
+            cursor: default;
+            transition: all 0.15s;
+        }
+        .info-row-value.editable {
+            outline: 2px solid #3b82f6;
+            background: #eff6ff;
+            border-color: #3b82f6;
+        }
+        .info-row-value.url-value {
+            color: #3b82f6;
+            font-size: 0.78rem;
+        }
+        .info-row-value.shift-value {
+            color: #7c3aed;
+            font-family: monospace;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .info-hint {
+            text-align: center;
+            font-size: 0.68rem;
+            color: #cbd5e1;
+            margin-top: 0.75rem;
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body class="bg-gray-100 p-0">
 
+  <!-- LOGIN -->
   <div id="loginOverlay" role="dialog" aria-modal="true" aria-label="Login file .bat">
     <div id="loginBox" role="document">
-      <h2>Masuk ke halaman</h2>
-      <p>Unggah file Anda. Akses akan diberikan.</p>
+      <div class="login-icon">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h2>Masuk ke Halaman</h2>
+      <p>Unggah file akses Anda untuk melanjutkan</p>
+      <div class="file-upload-area" id="fileUploadArea">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+        <p>Klik atau seret file ke sini</p>
+        <div class="file-name" id="fileNameDisplay" style="display:none;"></div>
+      </div>
       <input id="loginFileInput" type="file" accept=".bat,text/plain" />
       <div id="loginMsg" aria-live="polite"></div>
-      <button id="logoutBtn" style="display:none;">Keluar (Reset akses)</button>
+      <button id="logoutBtn" style="display:none;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar</button>
+    </div>
+  </div>
+
+  <!-- INFO POPUP -->
+  <div id="infoPopupOverlay">
+    <div id="infoPopupBox">
+      <button class="info-close-btn" id="infoCloseBtn">✕</button>
+      <h3 id="infoPopupTitle">Detail</h3>
+      <div class="info-row">
+        <div class="info-row-label">URL</div>
+        <div class="info-row-value url-value" id="infoUrlValue" data-column="url"></div>
+      </div>
+      <div class="info-row">
+        <div class="info-row-label">Kode Shift</div>
+        <div class="info-row-value shift-value" id="infoShiftValue" data-column="shift_code"></div>
+      </div>
+      <div class="info-hint">Klik 3× pada nilai untuk mengedit</div>
     </div>
   </div>
 
@@ -167,28 +528,11 @@
         <p class="mt-2">Memuat data...</p>
       </div>
 
-      <div class="rounded-lg border border-gray-200 overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider qr-cell">QR Code</th>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Nama</th>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Judul</th>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Kategori</th>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">URL</th>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Kode Shift</th>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Dibuat Pada</th>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
-              <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Hapus</th>
-            </tr>
-          </thead>
-          <tbody id="links-table-body" class="bg-white divide-y divide-gray-200">
-          </tbody>
-        </table>
-      </div>
+      <div id="links-grid"></div>
     </div>
   </div>
 
+  <!-- QR MODAL -->
   <div id="qrModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
     <div class="bg-white p-4 rounded-lg shadow-lg relative">
       <button id="closeModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 focus:outline-none">✕</button>
@@ -200,6 +544,7 @@
     </div>
   </div>
 
+  <!-- DESCRIPTION MODAL -->
   <div id="descriptionModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0 transition-opacity duration-300 ease-in-out modal-overlay">
     <div class="bg-white p-6 rounded-xl shadow-2xl relative max-w-xl mx-auto w-full max-h-[90vh] overflow-hidden flex flex-col transform scale-100 transition-transform duration-300">
       <button id="closeDescriptionModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 focus:outline-none transition-colors">
@@ -224,9 +569,12 @@
   </div>
   </div>
 
-<button id="sidebarToggle" class="p-4"> <!-- Diperbesar kelas padding dari p-2 ke p-4 -->
-    <i class="fa-solid fa-bars text-gray-700 w-8 h-8"></i> <!-- Diperbesar dari w-5 h-5 ke w-8 h-8 -->
-</button>
+  <!-- SIDEBAR TOGGLE -->
+  <button id="sidebarToggle" class="p-4">
+    <i class="fa-solid fa-bars text-gray-700 w-8 h-8"></i>
+  </button>
+
+  <!-- SIDEBAR -->
   <div id="sidebar">
     <button id="closeSidebar" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
       <i class="fa-solid fa-times"></i>
@@ -254,6 +602,7 @@
     <div id="nameTags"></div>
   </div>
 
+  <!-- LOGIN SCRIPT -->
   <script>
     (function(){
       const SECRET_TEXT = 'YQDYIpjYnF7PZtDYs6e8yZJmGqTuB4rgZQSaenc618nmy4x095';
@@ -262,6 +611,8 @@
       const msg = document.getElementById('loginMsg');
       const logoutBtn = document.getElementById('logoutBtn');
       const pageContent = document.getElementById('pageContent');
+      const fileUploadArea = document.getElementById('fileUploadArea');
+      const fileNameDisplay = document.getElementById('fileNameDisplay');
 
       function lockPage() {
         overlay.style.display = 'flex';
@@ -274,30 +625,57 @@
         document.documentElement.classList.remove('lock-scroll');
         document.body.classList.remove('lock-scroll');
         if (pageContent) pageContent.classList.remove('blurred');
-        logoutBtn.style.display = 'inline-block';
+        logoutBtn.style.display = 'inline-flex';
         localStorage.setItem('dekrip_logged_in', 'true');
       }
       function resetAccess() {
         fileInput.value = '';
         msg.textContent = '';
+        msg.className = '';
+        fileNameDisplay.style.display = 'none';
         logoutBtn.style.display = 'none';
         localStorage.removeItem('dekrip_logged_in');
         lockPage();
       }
+      function showLoginMsg(text, type) {
+        msg.textContent = text;
+        msg.className = 'has-msg ' + type;
+      }
 
       lockPage();
 
-      fileInput.addEventListener('change', (ev) => {
+      fileUploadArea.addEventListener('click', () => fileInput.click());
+
+      fileUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.add('dragover');
+      });
+      fileUploadArea.addEventListener('dragleave', () => {
+        fileUploadArea.classList.remove('dragover');
+      });
+      fileUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+          fileInput.files = e.dataTransfer.files;
+          fileInput.dispatchEvent(new Event('change'));
+        }
+      });
+
+      function processFile(f) {
         msg.textContent = '';
-        const f = ev.target.files && ev.target.files[0];
-        if (!f) { msg.textContent = 'Tidak ada file terpilih.'; return; }
+        msg.className = '';
+        if (!f) { showLoginMsg('Tidak ada file terpilih.', 'error'); return; }
         const name = f.name || '';
         if (!name.toLowerCase().endsWith('.bat')) {
-          msg.style.color = '#b91c1c';
-          msg.textContent = 'Harap unggah file.';
+          showLoginMsg('Harap unggah file yang benar.', 'error');
           fileInput.value = '';
+          fileNameDisplay.style.display = 'none';
           return;
         }
+
+        fileNameDisplay.textContent = name;
+        fileNameDisplay.style.display = 'block';
 
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -306,20 +684,24 @@
           const cleaned = text.trim();
           if (cleaned === SECRET_TEXT) {
             unlockPage();
-            msg.style.color = '#059669';
-            msg.textContent = 'Berhasil — akses diberikan.';
+            showLoginMsg('Berhasil — akses diberikan.', 'success');
           } else {
-            msg.style.color = '#b91c1c';
-            msg.textContent = 'Isi file tidak cocok. Coba lagi.';
+            showLoginMsg('Isi file tidak cocok. Coba lagi.', 'error');
             fileInput.value = '';
+            fileNameDisplay.style.display = 'none';
           }
         };
         reader.onerror = function() {
-          msg.style.color = '#b91c1c';
-          msg.textContent = 'Gagal membaca file.';
+          showLoginMsg('Gagal membaca file.', 'error');
           fileInput.value = '';
+          fileNameDisplay.style.display = 'none';
         };
         reader.readAsText(f);
+      }
+
+      fileInput.addEventListener('change', (ev) => {
+        const f = ev.target.files && ev.target.files[0];
+        processFile(f);
       });
 
       logoutBtn.addEventListener('click', () => {
@@ -328,12 +710,13 @@
 
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
-          msg.textContent = 'Silakan unggah yang benar untuk masuk.';
+          showLoginMsg('Silakan unggah file untuk masuk.', 'error');
         }
       });
     })();
   </script>
 
+  <!-- MAIN SCRIPT -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
 
@@ -341,9 +724,8 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const linksTableBody = document.getElementById('links-table-body');
+    const linksGrid = document.getElementById('links-grid');
     const loadingIndicator = document.getElementById('loadingIndicator');
-    const statusMessage = document.getElementById('statusMessage');
     const statusPopup = document.getElementById('statusPopup');
     const searchInput = document.getElementById('searchInput');
     const clearSearchBtn = document.getElementById('clearSearchBtn');
@@ -361,85 +743,154 @@
     const nameTagsContainer = document.getElementById('nameTags');
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
-    const closeSidebar = document.getElementById('closeSidebar');
+    const closeSidebarEl = document.getElementById('closeSidebar');
     const pageContent = document.getElementById('pageContent');
+
+    // Info popup elements
+    const infoPopupOverlay = document.getElementById('infoPopupOverlay');
+    const infoCloseBtn = document.getElementById('infoCloseBtn');
+    const infoPopupTitle = document.getElementById('infoPopupTitle');
+    const infoUrlValue = document.getElementById('infoUrlValue');
+    const infoShiftValue = document.getElementById('infoShiftValue');
 
     let lastClickTime = 0;
     let clickCount = 0;
     let currentDownloadBlob = null;
     let currentDownloadFilename = null;
     let allLinksData = [];
-    let currentQrDataUrl = null;
     let currentQrFilename = null;
+    let currentInfoCardId = null;
 
-function openSidebar(e) {
-        e.stopPropagation(); // Tambahan untuk mencegah konflik event bubbling
+    // --- Info Popup ---
+    function openInfoPopup(linkId, linkName, url, shiftCode) {
+        currentInfoCardId = linkId;
+        infoPopupTitle.textContent = linkName || 'Detail';
+        infoUrlValue.textContent = url || '-';
+        infoShiftValue.textContent = shiftCode || '-';
+        infoUrlValue.contentEditable = 'false';
+        infoShiftValue.contentEditable = 'false';
+        infoUrlValue.classList.remove('editable');
+        infoShiftValue.classList.remove('editable');
+        infoPopupOverlay.classList.add('show');
+    }
+
+    function closeInfoPopup() {
+        infoPopupOverlay.classList.remove('show');
+        currentInfoCardId = null;
+    }
+
+    infoCloseBtn.addEventListener('click', closeInfoPopup);
+    infoPopupOverlay.addEventListener('click', (e) => {
+        if (e.target === infoPopupOverlay) closeInfoPopup();
+    });
+
+    // Triple-click edit for info popup fields
+    let infoClickTime = 0;
+    let infoClickCount = 0;
+
+    function setupInfoFieldEdit(el) {
+        el.addEventListener('click', (e) => {
+            const now = Date.now();
+            const diff = now - infoClickTime;
+            infoClickCount = (diff < 300 && infoClickCount < 3) ? infoClickCount + 1 : 1;
+            infoClickTime = now;
+
+            if (infoClickCount === 3) {
+                e.preventDefault();
+                el.contentEditable = 'true';
+                el.classList.add('editable');
+                el.focus();
+
+                const onBlur = async () => {
+                    el.contentEditable = 'false';
+                    el.classList.remove('editable');
+                    el.removeEventListener('blur', onBlur);
+                    el.removeEventListener('keydown', onEnter);
+
+                    const newText = el.textContent.trim();
+                    const column = el.dataset.column;
+                    if (!currentInfoCardId || !column) return;
+
+                    const updates = {};
+                    updates[column] = newText;
+                    showStatus('Menyimpan perubahan...', 'success');
+
+                    try {
+                        const { error } = await supabase.from('links').update(updates).eq('id', currentInfoCardId);
+                        if (error) throw error;
+                        showStatus('Perubahan berhasil disimpan!', 'success');
+                        fetchLinks();
+                    } catch (error) {
+                        showStatus(`Gagal menyimpan: ${error.message}`, 'error');
+                    }
+                };
+
+                const onEnter = (ev) => {
+                    if (ev.key === 'Enter') { ev.preventDefault(); el.blur(); }
+                };
+
+                el.addEventListener('blur', onBlur);
+                el.addEventListener('keydown', onEnter);
+            }
+        });
+    }
+
+    setupInfoFieldEdit(infoUrlValue);
+    setupInfoFieldEdit(infoShiftValue);
+
+    // --- Sidebar ---
+    function openSidebar(e) {
+        e.stopPropagation();
         sidebar.classList.add('open');
         sidebarToggle.style.display = 'none';
         pageContent.classList.add('blurred');
     }
 
     function closeSidebarFunc() {
-      sidebar.classList.remove('open');
-      sidebarToggle.style.display = 'block';
-      pageContent.classList.remove('blurred');
+        sidebar.classList.remove('open');
+        sidebarToggle.style.display = 'block';
+        pageContent.classList.remove('blurred');
     }
 
     sidebarToggle.addEventListener('click', openSidebar);
-
-    closeSidebar.addEventListener('click', closeSidebarFunc);
+    closeSidebarEl.addEventListener('click', closeSidebarFunc);
 
     document.addEventListener('click', (e) => {
-      if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== sidebarToggle) {
-        closeSidebarFunc();
-      }
+        if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== sidebarToggle) {
+            closeSidebarFunc();
+        }
     });
 
     function showStatus(message, type = 'error') {
-      statusPopup.textContent = message;
-      if (type === 'error') {
-        statusPopup.classList.add('bg-red-500', 'text-white');
-        statusPopup.classList.remove('bg-green-500');
-      } else {
-        statusPopup.classList.add('bg-green-500', 'text-white');
-        statusPopup.classList.remove('bg-red-500');
-      }
-      statusPopup.classList.add('show');
-      setTimeout(() => {
-        statusPopup.classList.remove('show');
-      }, 3000);
+        statusPopup.textContent = message;
+        if (type === 'error') {
+            statusPopup.classList.add('bg-red-500', 'text-white');
+            statusPopup.classList.remove('bg-green-500');
+        } else {
+            statusPopup.classList.add('bg-green-500', 'text-white');
+            statusPopup.classList.remove('bg-red-500');
+        }
+        statusPopup.classList.add('show');
+        setTimeout(() => { statusPopup.classList.remove('show'); }, 3000);
     }
 
     async function generateQrCodeWithPadding(data, size = 256, padding = 4) {
         const canvas = document.createElement('canvas');
-        await QRCode.toCanvas(canvas, data, { 
-            errorCorrectionLevel: 'H',
-            margin: 0, 
-            width: size 
-        });
-
-        const ctx = canvas.getContext('2d');
+        await QRCode.toCanvas(canvas, data, { errorCorrectionLevel: 'H', margin: 0, width: size });
         const qrSize = canvas.width;
         const totalSize = qrSize + 2 * padding;
-
         const finalCanvas = document.createElement('canvas');
         finalCanvas.width = totalSize;
         finalCanvas.height = totalSize;
         const finalCtx = finalCanvas.getContext('2d');
-
         finalCtx.fillStyle = '#FFFFFF';
         finalCtx.fillRect(0, 0, totalSize, totalSize);
         finalCtx.drawImage(canvas, padding, padding, qrSize, qrSize);
-
         return finalCanvas;
     }
 
     function downloadQrCode(canvas, filename) {
-        if (!canvas) {
-            showStatus('Gagal membuat QR Code untuk diunduh.', 'error');
-            return;
-        }
-
+        if (!canvas) { showStatus('Gagal membuat QR Code untuk diunduh.', 'error'); return; }
         const a = document.createElement('a');
         a.href = canvas.toDataURL('image/png');
         a.download = filename;
@@ -450,11 +901,7 @@ function openSidebar(e) {
     }
 
     async function downloadAllQRCodes() {
-        if (allLinksData.length === 0) {
-            showStatus('Tidak ada data tautan untuk diunduh.', 'error');
-            return;
-        }
-
+        if (allLinksData.length === 0) { showStatus('Tidak ada data tautan untuk diunduh.', 'error'); return; }
         const zip = new JSZip();
         const promises = [];
         downloadAllQrBtn.disabled = true;
@@ -465,490 +912,433 @@ function openSidebar(e) {
             const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
             let filename = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}.png`;
             filename = filename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
-
-            const promise = generateQrCodeWithPadding(qrData, 512, 20)
-                .then(canvas => {
-                    return new Promise(resolve => {
-                        canvas.toBlob(blob => {
-                            zip.file(filename, blob);
-                            resolve();
-                        }, 'image/png');
-                    });
+            const promise = generateQrCodeWithPadding(qrData, 512, 20).then(canvas => {
+                return new Promise(resolve => {
+                    canvas.toBlob(blob => { zip.file(filename, blob); resolve(); }, 'image/png');
                 });
-            
+            });
             promises.push(promise);
         }
-
         await Promise.all(promises);
-        
-        zip.generateAsync({ type: 'blob' })
-            .then(content => {
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(content);
-                a.download = 'Semua_QR_Codes.zip';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                showStatus('Semua QR Code berhasil dikemas dan diunduh!', 'success');
-            })
-            .catch(error => {
-                showStatus('Gagal membuat file ZIP.', 'error');
-            })
-            .finally(() => {
-                downloadAllQrBtn.disabled = false;
-                downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-file-zipper w-5 h-5"></i> Unduh Semua QR';
-            });
+        zip.generateAsync({ type: 'blob' }).then(content => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(content);
+            a.download = 'Semua_QR_Codes.zip';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showStatus('Semua QR Code berhasil dikemas dan diunduh!', 'success');
+        }).catch(() => {
+            showStatus('Gagal membuat file ZIP.', 'error');
+        }).finally(() => {
+            downloadAllQrBtn.disabled = false;
+            downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-file-zipper w-5 h-5"></i> Unduh Semua QR';
+        });
     }
 
     downloadAllQrBtn.addEventListener('click', downloadAllQRCodes);
 
     function decryptCaesar(text, shift) {
-      if (typeof text !== 'string') return text;
-      const s = Number(shift);
-      if (isNaN(s)) return text;
-      let result = '';
-      for (let i = 0; i < text.length; i++) {
-        let code = text.charCodeAt(i);
-        if (code >= 65 && code <= 90) {
-          code = ((code - 65 - s + 260) % 26) + 65;
-        } else if (code >= 97 && code <= 122) {
-          code = ((code - 97 - s + 260) % 26) + 97;
+        if (typeof text !== 'string') return text;
+        const s = Number(shift);
+        if (isNaN(s)) return text;
+        let result = '';
+        for (let i = 0; i < text.length; i++) {
+            let code = text.charCodeAt(i);
+            if (code >= 65 && code <= 90) code = ((code - 65 - s + 260) % 26) + 65;
+            else if (code >= 97 && code <= 122) code = ((code - 97 - s + 260) % 26) + 97;
+            result += String.fromCharCode(code);
         }
-        result += String.fromCharCode(code);
-      }
-      return result;
+        return result;
     }
 
     function normalizeBase64(b64) {
-      if (!b64 || typeof b64 !== 'string') return '';
-      let s = b64.replace(/\s+/g, '');
-      const dataMatch = s.match(/^data:.*;base64,(.*)$/i);
-      if (dataMatch) s = dataMatch[1];
-      s = s.replace(/-/g, '+').replace(/_/g, '/');
-      const pad = s.length % 4;
-      if (pad === 2) s += '=='; else if (pad === 3) s += '=';
-      return s;
+        if (!b64 || typeof b64 !== 'string') return '';
+        let s = b64.replace(/\s+/g, '');
+        const dataMatch = s.match(/^data:.*;base64,(.*)$/i);
+        if (dataMatch) s = dataMatch[1];
+        s = s.replace(/-/g, '+').replace(/_/g, '/');
+        const pad = s.length % 4;
+        if (pad === 2) s += '=='; else if (pad === 3) s += '=';
+        return s;
     }
 
     function isBase64String(s) {
-      if (!s || typeof s !== 'string') return false;
-      const cleaned = normalizeBase64(s);
-      return cleaned.length % 4 === 0 && /^[A-Za-z0-9+/=]+$/.test(cleaned);
+        if (!s || typeof s !== 'string') return false;
+        const cleaned = normalizeBase64(s);
+        return cleaned.length % 4 === 0 && /^[A-Za-z0-9+/=]+$/.test(cleaned);
     }
 
     function getMimeFromBase64Sample(b64) {
-      try {
-        const cleaned = normalizeBase64(b64).slice(0,2000);
-        if (!cleaned) return null;
-        const bin = atob(cleaned);
-        const c0 = bin.charCodeAt(0), c1 = bin.charCodeAt(1);
-        if (c0 === 0x89 && bin[1] === 'P' && bin[2] === 'N' && bin[3] === 'G') return 'image/png';
-        if (c0 === 0xFF && c1 === 0xD8) return 'image/jpeg';
-        if (bin.startsWith('GIF87a') || bin.startsWith('GIF89a')) return 'image/gif';
-        if (bin.trim().startsWith('<svg')) return 'image/svg+xml';
-        if (bin.indexOf('ftyp') !== -1) return 'video/mp4';
-        if (bin.toLowerCase().indexOf('webm') !== -1) return 'video/webm';
-        const prefix = normalizeBase64(b64).slice(0,8);
-        if (prefix.startsWith('iVBOR') || prefix.startsWith('iVBORw0K')) return 'image/png';
-        if (prefix.startsWith('/9j/')) return 'image/jpeg';
-        if (prefix.startsWith('R0lG')) return 'image/gif';
-        return null;
-      } catch (e) {
-        return null;
-      }
+        try {
+            const cleaned = normalizeBase64(b64).slice(0, 2000);
+            if (!cleaned) return null;
+            const bin = atob(cleaned);
+            const c0 = bin.charCodeAt(0), c1 = bin.charCodeAt(1);
+            if (c0 === 0x89 && bin[1] === 'P' && bin[2] === 'N' && bin[3] === 'G') return 'image/png';
+            if (c0 === 0xFF && c1 === 0xD8) return 'image/jpeg';
+            if (bin.startsWith('GIF87a') || bin.startsWith('GIF89a')) return 'image/gif';
+            if (bin.trim().startsWith('<svg')) return 'image/svg+xml';
+            if (bin.indexOf('ftyp') !== -1) return 'video/mp4';
+            if (bin.toLowerCase().indexOf('webm') !== -1) return 'video/webm';
+            const prefix = normalizeBase64(b64).slice(0, 8);
+            if (prefix.startsWith('iVBOR') || prefix.startsWith('iVBORw0K')) return 'image/png';
+            if (prefix.startsWith('/9j/')) return 'image/jpeg';
+            if (prefix.startsWith('R0lG')) return 'image/gif';
+            return null;
+        } catch (e) { return null; }
     }
 
     function base64ToBlob(base64, mime) {
-      const binary = atob(base64);
-      const len = binary.length;
-      const arr = new Uint8Array(len);
-      for (let i=0;i<len;i++) arr[i] = binary.charCodeAt(i);
-      return new Blob([arr], { type: mime || 'application/octet-stream'});
+        const binary = atob(base64);
+        const len = binary.length;
+        const arr = new Uint8Array(len);
+        for (let i = 0; i < len; i++) arr[i] = binary.charCodeAt(i);
+        return new Blob([arr], { type: mime || 'application/octet-stream' });
     }
 
     function setPreviewFromBase64(rawBase64, mimeHint, useBlobIfLarge = true) {
-      const cleaned = normalizeBase64(rawBase64);
-      if (!cleaned) { descriptionContent.innerHTML = '<p class="text-red-500">Data base64 kosong.</p>'; return; }
-
-      let mime = mimeHint || getMimeFromBase64Sample(cleaned);
-      if (!mime) {
-        if (cleaned.startsWith('iVBOR') || cleaned.startsWith('iVBORw0K')) mime = 'image/png';
-        else if (cleaned.startsWith('/9j/')) mime = 'image/jpeg';
-        else if (cleaned.startsWith('R0lG')) mime = 'image/gif';
-      }
-
-      descriptionContent.innerHTML = '';
-      const threshold = 1024 * 300;
-      const approximateSize = Math.ceil((cleaned.length * 3) / 4);
-      let blob = null;
-
-      if (useBlobIfLarge && approximateSize > threshold) {
-        try {
-          blob = base64ToBlob(cleaned, mime);
-          const objectUrl = URL.createObjectURL(blob);
-          if (mime && mime.startsWith('image/')) {
-            const img = document.createElement('img');
-            img.src = objectUrl;
-            img.className = 'media-preview rounded-md border border-gray-200';
-            img.onload = () => URL.revokeObjectURL(objectUrl);
-            descriptionContent.appendChild(img);
-          } else if (mime && mime.startsWith('video/')) {
-            const video = document.createElement('video');
-            video.src = objectUrl;
-            video.controls = true;
-            video.className = 'video-preview rounded-md border border-gray-200';
-            video.onloadeddata = () => URL.revokeObjectURL(objectUrl);
-            descriptionContent.appendChild(video);
-          } else {
-            const a = document.createElement('a');
-            a.href = objectUrl;
-            a.download = 'file.bin';
-            a.textContent = 'Unduh file (tipe media tidak terdeteksi)';
-            a.className = 'underline text-blue-600';
-            descriptionContent.appendChild(a);
-            const pre = document.createElement('pre');
-            pre.textContent = cleaned.slice(0,1000) + (cleaned.length>1000? '\n\n... (terpotong) ...':'');
-            pre.className = 'mt-3 p-3 bg-gray-50 rounded-md max-h-64 overflow-auto text-sm';
-            descriptionContent.appendChild(pre);
-          }
-        } catch (err) {
-          blob = null;
+        const cleaned = normalizeBase64(rawBase64);
+        if (!cleaned) { descriptionContent.innerHTML = '<p class="text-red-500">Data base64 kosong.</p>'; return; }
+        let mime = mimeHint || getMimeFromBase64Sample(cleaned);
+        if (!mime) {
+            if (cleaned.startsWith('iVBOR') || cleaned.startsWith('iVBORw0K')) mime = 'image/png';
+            else if (cleaned.startsWith('/9j/')) mime = 'image/jpeg';
+            else if (cleaned.startsWith('R0lG')) mime = 'image/gif';
         }
-      }
+        descriptionContent.innerHTML = '';
+        const threshold = 1024 * 300;
+        const approximateSize = Math.ceil((cleaned.length * 3) / 4);
+        let blob = null;
 
-      if (!blob) {
-        const dataMime = mime || 'application/octet-stream';
-        const dataUrl = `data:${dataMime};base64,${cleaned}`;
-        if (dataMime.startsWith('image/')) {
-          const img = document.createElement('img');
-          img.src = dataUrl;
-          img.className = 'media-preview rounded-md border border-gray-200';
-          descriptionContent.appendChild(img);
-        } else if (dataMime.startsWith('video/')) {
-          const video = document.createElement('video');
-          video.src = dataUrl;
-          video.controls = true;
-          video.className = 'video-preview rounded-md border border-gray-200';
-          video.setAttribute('playsinline', '');
-          descriptionContent.appendChild(video);
-        } else {
-          const pre = document.createElement('pre');
-          pre.textContent = cleaned.slice(0,2000) + (cleaned.length>2000? '\n\n... (terpotong) ...':'');
-          pre.className = 'p-4 bg-gray-50 rounded-md text-sm max-h-96 overflow-auto w-full';
-          descriptionContent.appendChild(pre);
+        if (useBlobIfLarge && approximateSize > threshold) {
+            try {
+                blob = base64ToBlob(cleaned, mime);
+                const objectUrl = URL.createObjectURL(blob);
+                if (mime && mime.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = objectUrl;
+                    img.className = 'media-preview rounded-md border border-gray-200';
+                    img.onload = () => URL.revokeObjectURL(objectUrl);
+                    descriptionContent.appendChild(img);
+                } else if (mime && mime.startsWith('video/')) {
+                    const video = document.createElement('video');
+                    video.src = objectUrl; video.controls = true;
+                    video.className = 'video-preview rounded-md border border-gray-200';
+                    video.onloadeddata = () => URL.revokeObjectURL(objectUrl);
+                    descriptionContent.appendChild(video);
+                } else {
+                    const a = document.createElement('a');
+                    a.href = objectUrl; a.download = 'file.bin';
+                    a.textContent = 'Unduh file (tipe media tidak terdeteksi)';
+                    a.className = 'underline text-blue-600';
+                    descriptionContent.appendChild(a);
+                }
+            } catch (err) { blob = null; }
         }
-      }
-      
-      return { blob: blob, mime: mime };
+        if (!blob) {
+            const dataMime = mime || 'application/octet-stream';
+            const dataUrl = `data:${dataMime};base64,${cleaned}`;
+            if (dataMime.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.src = dataUrl;
+                img.className = 'media-preview rounded-md border border-gray-200';
+                descriptionContent.appendChild(img);
+            } else if (dataMime.startsWith('video/')) {
+                const video = document.createElement('video');
+                video.src = dataUrl; video.controls = true;
+                video.className = 'video-preview rounded-md border border-gray-200';
+                video.setAttribute('playsinline', '');
+                descriptionContent.appendChild(video);
+            } else {
+                const pre = document.createElement('pre');
+                pre.textContent = cleaned.slice(0, 2000) + (cleaned.length > 2000 ? '\n\n... (terpotong) ...' : '');
+                pre.className = 'p-4 bg-gray-50 rounded-md text-sm max-h-96 overflow-auto w-full';
+                descriptionContent.appendChild(pre);
+            }
+        }
+        return { blob, mime };
     }
 
     async function showDescriptionModal(url, shiftCode, personName, linkName) {
-      descriptionModal.classList.remove('hidden');
-      descriptionContent.innerHTML = '';
-      descriptionMessage.classList.add('hidden');
-      descriptionLoading.classList.remove('hidden');
-      downloadBtn.classList.add('hidden');
-
-      try {
-        if (!url || !url.startsWith('http')) throw new Error('URL deskripsi tidak valid.');
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`Gagal memuat file dari URL. Status: ${response.status}`);
-
-        const encryptedText = await response.text();
-        const decrypted = decryptCaesar(encryptedText, shiftCode);
-        const probableBase64 = decrypted.trim();
-        const mimeHint = getMimeFromBase64Sample(probableBase64);
-
-        const previewResult = setPreviewFromBase64(probableBase64, mimeHint, true);
-        const blob = previewResult.blob;
-        const mime = previewResult.mime;
-
-        if (isBase64String(probableBase64)) {
-          const fileExt = mime ? mime.split('/')[1] : 'bin';
-          let baseFilename = `${personName || 'anonim'} - ${linkName || 'tanpa-nama'}`;
-          baseFilename = baseFilename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
-          currentDownloadFilename = `${baseFilename}.${fileExt}`;
-          currentDownloadBlob = blob;
-        } else {
-          currentDownloadBlob = new Blob([decrypted], { type: 'text/plain' });
-          currentDownloadFilename = `${personName || 'anonim'} - ${linkName || 'tanpa-nama'}.txt`;
+        descriptionModal.classList.remove('hidden');
+        descriptionContent.innerHTML = '';
+        descriptionMessage.classList.add('hidden');
+        descriptionLoading.classList.remove('hidden');
+        downloadBtn.classList.add('hidden');
+        try {
+            if (!url || !url.startsWith('http')) throw new Error('URL deskripsi tidak valid.');
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Gagal memuat file dari URL. Status: ${response.status}`);
+            const encryptedText = await response.text();
+            const decrypted = decryptCaesar(encryptedText, shiftCode);
+            const probableBase64 = decrypted.trim();
+            const mimeHint = getMimeFromBase64Sample(probableBase64);
+            const previewResult = setPreviewFromBase64(probableBase64, mimeHint, true);
+            const blob = previewResult.blob;
+            const mime = previewResult.mime;
+            if (isBase64String(probableBase64)) {
+                const fileExt = mime ? mime.split('/')[1] : 'bin';
+                let baseFilename = `${personName || 'anonim'} - ${linkName || 'tanpa-nama'}`;
+                baseFilename = baseFilename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+                currentDownloadFilename = `${baseFilename}.${fileExt}`;
+                currentDownloadBlob = blob;
+            } else {
+                currentDownloadBlob = new Blob([decrypted], { type: 'text/plain' });
+                currentDownloadFilename = `${personName || 'anonim'} - ${linkName || 'tanpa-nama'}.txt`;
+            }
+            downloadBtn.textContent = 'Unduh Konten';
+            downloadBtn.classList.remove('hidden');
+            descriptionLoading.classList.add('hidden');
+        } catch (error) {
+            descriptionMessage.textContent = `Gagal memuat atau mendekripsi: ${error.message}`;
+            descriptionLoading.classList.add('hidden');
+            descriptionMessage.classList.remove('hidden');
         }
-        
-        downloadBtn.textContent = 'Unduh Konten';
-        downloadBtn.classList.remove('hidden');
-        descriptionLoading.classList.add('hidden');
-      } catch (error) {
-        descriptionMessage.textContent = `Gagal memuat atau mendekripsi deskripsi: ${error.message}`;
-        descriptionLoading.classList.add('hidden');
-        descriptionMessage.classList.remove('hidden');
-      }
     }
 
     function hideDescriptionModal() {
-      descriptionModal.classList.add('hidden');
-      descriptionContent.innerHTML = '';
-      descriptionMessage.classList.add('hidden');
-      descriptionLoading.classList.add('hidden');
-      downloadBtn.classList.add('hidden');
-      if (currentDownloadBlob) {
-        URL.revokeObjectURL(URL.createObjectURL(currentDownloadBlob));
-        currentDownloadBlob = null;
-        currentDownloadFilename = null;
-      }
+        descriptionModal.classList.add('hidden');
+        descriptionContent.innerHTML = '';
+        descriptionMessage.classList.add('hidden');
+        descriptionLoading.classList.add('hidden');
+        downloadBtn.classList.add('hidden');
+        if (currentDownloadBlob) {
+            URL.revokeObjectURL(URL.createObjectURL(currentDownloadBlob));
+            currentDownloadBlob = null;
+            currentDownloadFilename = null;
+        }
     }
 
     closeModalButton.addEventListener('click', () => qrModal.classList.add('hidden'));
-    qrModal.addEventListener('click', (e) => { 
-        if (e.target === qrModal) qrModal.classList.add('hidden'); 
-    });
+    qrModal.addEventListener('click', (e) => { if (e.target === qrModal) qrModal.classList.add('hidden'); });
     closeDescriptionModalButton.addEventListener('click', hideDescriptionModal);
-    descriptionModal.addEventListener('click', (e) => { 
-        if (e.target === descriptionModal) hideDescriptionModal(); 
-    });
+    descriptionModal.addEventListener('click', (e) => { if (e.target === descriptionModal) hideDescriptionModal(); });
 
     downloadSingleQrBtn.addEventListener('click', () => {
         const canvas = enlargedQrContainer.querySelector('canvas');
-        if (canvas && currentQrFilename) {
-            downloadQrCode(canvas, currentQrFilename);
-        } else {
-            showStatus('QR Code tidak ditemukan atau nama file hilang.', 'error');
-        }
+        if (canvas && currentQrFilename) downloadQrCode(canvas, currentQrFilename);
+        else showStatus('QR Code tidak ditemukan.', 'error');
     });
 
     downloadBtn.addEventListener('click', () => {
-      if (currentDownloadBlob) {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(currentDownloadBlob);
-        a.download = currentDownloadFilename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
+        if (currentDownloadBlob) {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(currentDownloadBlob);
+            a.download = currentDownloadFilename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
     });
 
     function filterLinks() {
-      const searchTerm = searchInput.value.toLowerCase().trim();
-      const rows = linksTableBody.querySelectorAll('tr');
-
-      rows.forEach(row => {
-        const rowText = row.textContent.toLowerCase();
-        row.style.display = rowText.includes(searchTerm) ? '' : 'none';
-      });
-
-      document.querySelectorAll('.name-tag').forEach(t => t.classList.remove('active'));
-      if (searchTerm) {
-        const activeTag = Array.from(document.querySelectorAll('.name-tag'))
-          .find(t => t.textContent.toLowerCase() === searchTerm);
-        if (activeTag) activeTag.classList.add('active');
-      }
-
-      clearSearchBtn.classList.toggle('hidden', !searchTerm);
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const cards = linksGrid.querySelectorAll('.link-card');
+        cards.forEach(card => {
+            const cardText = (card.dataset.searchtext || '').toLowerCase();
+            card.style.display = cardText.includes(searchTerm) ? '' : 'none';
+        });
+        document.querySelectorAll('.name-tag').forEach(t => t.classList.remove('active'));
+        if (searchTerm) {
+            const activeTag = Array.from(document.querySelectorAll('.name-tag')).find(t => t.dataset.name === searchTerm);
+            if (activeTag) activeTag.classList.add('active');
+        }
+        clearSearchBtn.classList.toggle('hidden', !searchTerm);
     }
     searchInput.addEventListener('input', filterLinks);
-    clearSearchBtn.addEventListener('click', () => {
-      searchInput.value = '';
-      filterLinks();
-    });
+    clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; filterLinks(); });
 
-    async function handleEdit(e) {
+    async function handleEditCard(e) {
         const cell = e.target;
         if (!cell.classList.contains('editable')) return;
-
         cell.contentEditable = 'false';
         cell.classList.remove('editable');
         cell.removeEventListener('keydown', handleEnter);
-        cell.removeEventListener('blur', handleEdit);
-
+        cell.removeEventListener('blur', handleEditCard);
         const newText = cell.textContent.trim();
-        const row = cell.closest('tr');
-        const linkId = row.dataset.id;
+        const card = cell.closest('.link-card');
+        const linkId = card.dataset.id;
         const column = cell.dataset.column;
-
-        if (!linkId || !column) {
-            showStatus('Gagal menemukan ID atau kolom untuk memperbarui.', 'error');
-            return;
-        }
-
+        if (!linkId || !column) { showStatus('Gagal menemukan ID atau kolom.', 'error'); return; }
         const updates = {};
         updates[column] = newText;
-
         showStatus('Menyimpan perubahan...', 'success');
-        
         try {
             const { error } = await supabase.from('links').update(updates).eq('id', linkId);
             if (error) throw error;
             showStatus('Perubahan berhasil disimpan!', 'success');
-            if (column === 'url' || column === 'shift_code') {
-                fetchLinks();
-            }
+            if (column === 'url' || column === 'shift_code') fetchLinks();
         } catch (error) {
-            showStatus(`Gagal menyimpan perubahan: ${error.message}`, 'error');
+            showStatus(`Gagal menyimpan: ${error.message}`, 'error');
         }
     }
-    
+
     function handleEnter(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            e.target.blur();
-        }
+        if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
     }
-    
+
     async function handleDelete(e) {
         const button = e.target.closest('button');
-        const row = button.closest('tr');
-        const linkId = row.dataset.id;
-        
-        if (!linkId) {
-            showStatus('Gagal menemukan ID tautan untuk dihapus.', 'error');
-            return;
-        }
-        
+        const card = button.closest('.link-card');
+        const linkId = card.dataset.id;
+        if (!linkId) { showStatus('Gagal menemukan ID tautan.', 'error'); return; }
         if (confirm('Apakah Anda yakin ingin menghapus tautan ini?')) {
             showStatus('Menghapus tautan...', 'success');
             try {
                 const { error } = await supabase.from('links').delete().eq('id', linkId);
                 if (error) throw error;
                 showStatus('Tautan berhasil dihapus!', 'success');
-                row.remove();
+                card.remove();
                 fetchLinks();
             } catch (error) {
-                showStatus(`Gagal menghapus tautan: ${error.message}`, 'error');
+                showStatus(`Gagal menghapus: ${error.message}`, 'error');
             }
         }
     }
 
     async function fetchLinks() {
-      loadingIndicator && loadingIndicator.classList.remove('hidden');
-      linksTableBody.querySelectorAll('tr').forEach(row => row.remove());
-      allLinksData = [];
-      nameTagsContainer.innerHTML = '';
+        loadingIndicator && loadingIndicator.classList.remove('hidden');
+        linksGrid.innerHTML = '';
+        allLinksData = [];
+        nameTagsContainer.innerHTML = '';
 
-      try {
-        const { data, error } = await supabase.from('links').select('*, category').order('created_at', { ascending: false });
-        loadingIndicator && loadingIndicator.classList.add('hidden');
-        if (error) { showStatus(`Error fetching data: ${error.message}`); return; }
-        if (!data || data.length === 0) { return; }
+        try {
+            const { data, error } = await supabase.from('links').select('*, category').order('created_at', { ascending: false });
+            loadingIndicator && loadingIndicator.classList.add('hidden');
+            if (error) { showStatus(`Error: ${error.message}`); return; }
+            if (!data || data.length === 0) return;
 
-        allLinksData = data;
+            allLinksData = data;
 
-        const uniqueNames = [...new Set(data
-            .map(link => link.person_name)
-            .filter(Boolean)
-        )].sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
+            const nameCounts = {};
+            data.forEach(link => {
+                const n = link.person_name;
+                if (n) nameCounts[n] = (nameCounts[n] || 0) + 1;
+            });
+            const uniqueNames = Object.keys(nameCounts).sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
 
-        uniqueNames.forEach(name => {
-          const tag = document.createElement('span');
-          tag.className = 'name-tag';
-          tag.textContent = name;
-          tag.title = `Klik untuk filter "${name}"`;
-          tag.addEventListener('click', () => {
-            searchInput.value = name;
-            filterLinks();
-            document.querySelectorAll('.name-tag').forEach(t => t.classList.remove('active'));
-            tag.classList.add('active');
-          });
-          nameTagsContainer.appendChild(tag);
-        });
+            uniqueNames.forEach(name => {
+                const tag = document.createElement('span');
+                tag.className = 'name-tag';
+                tag.dataset.name = name.toLowerCase();
+                tag.innerHTML = `${name} <span class="tag-count">${nameCounts[name]}</span>`;
+                tag.title = `Filter "${name}" (${nameCounts[name]} item)`;
+                tag.addEventListener('click', () => {
+                    const isActive = tag.classList.contains('active');
+                    document.querySelectorAll('.name-tag').forEach(t => t.classList.remove('active'));
+                    if (isActive) { searchInput.value = ''; } else { searchInput.value = name; tag.classList.add('active'); }
+                    filterLinks();
+                });
+                nameTagsContainer.appendChild(tag);
+            });
 
-        if (uniqueNames.length === 0) {
-          nameTagsContainer.innerHTML = '<span class="text-gray-500">Belum ada nama orang terdaftar</span>';
+            if (uniqueNames.length === 0) {
+                nameTagsContainer.innerHTML = '<span class="text-gray-500 text-sm">Belum ada nama orang terdaftar</span>';
+            }
+
+            data.forEach(link => {
+                const card = document.createElement('div');
+                card.classList.add('link-card');
+                card.dataset.id = link.id;
+                // searchtext for filtering (includes url, shift, etc)
+                card.dataset.searchtext = `${link.name || ''} ${link.person_name || ''} ${link.category || ''} ${link.url || ''} ${link.shift_code || ''} ${link.created_at || ''}`;
+
+                const formattedDate = link.created_at ? new Date(link.created_at).toLocaleString() : '-';
+                const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
+                const category = link.category || 'Belum Dikategorikan';
+
+                let qrFilenameBase = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}`;
+                qrFilenameBase = qrFilenameBase.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+                const smallQrId = `qr-${link.id}`;
+
+                card.innerHTML = `
+                    <button class="card-info-btn" title="Lihat URL & Kode Shift">!</button>
+                    <div class="link-card-qr" title="Klik untuk memperbesar QR">
+                      <canvas id="${smallQrId}" style="width:100px;height:100px;"></canvas>
+                    </div>
+                    <div class="link-card-body">
+                      <div class="link-card-title" data-column="name">${link.name || '-'}</div>
+                      <div class="link-card-person" data-column="person_name">${link.person_name || '-'}</div>
+                      <div class="link-card-category" data-column="category">${category}</div>
+                      <div class="link-card-meta"><i class="fa-regular fa-clock" style="margin-right:0.2rem;"></i>${formattedDate}</div>
+                    </div>
+                    <div class="link-card-actions">
+                      <button class="card-btn-view view-description-btn"><i class="fa-solid fa-eye" style="margin-right:0.3rem;"></i>Lihat</button>
+                      <button class="card-btn-delete delete-btn"><i class="fa-solid fa-trash-can" style="margin-right:0.3rem;"></i>Hapus</button>
+                    </div>
+                `;
+
+                linksGrid.appendChild(card);
+
+                QRCode.toCanvas(document.getElementById(smallQrId), qrData, {
+                    errorCorrectionLevel: 'L', margin: 1, width: 100,
+                    color: { dark: '#000000', light: '#ffffff' }
+                });
+
+                // Info button
+                const infoBtn = card.querySelector('.card-info-btn');
+                infoBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openInfoPopup(link.id, link.name, link.url, link.shift_code);
+                });
+
+                // QR enlarge
+                const qrClickArea = card.querySelector('.link-card-qr');
+                qrClickArea.addEventListener('click', () => {
+                    enlargedQrContainer.innerHTML = '';
+                    generateQrCodeWithPadding(qrData, 256, 12).then(canvas => {
+                        enlargedQrContainer.appendChild(canvas);
+                        canvas.style.borderRadius = '0.375rem';
+                        canvas.style.display = 'block';
+                        currentQrFilename = `${qrFilenameBase}.png`;
+                        qrModal.classList.remove('hidden');
+                    });
+                });
+
+                // View button
+                const viewBtn = card.querySelector('.view-description-btn');
+                if (viewBtn) {
+                    viewBtn.addEventListener('click', () => {
+                        const urlParam = encodeURIComponent(link.url || '');
+                        const shiftParam = encodeURIComponent(link.shift_code || '');
+                        const personParam = encodeURIComponent(link.person_name || '');
+                        const nameParam = encodeURIComponent(link.name || '');
+                        const targetUrl = `dekripsi.html?url=${urlParam}&shift=${shiftParam}&person=${personParam}&name=${nameParam}`;
+                        window.open(targetUrl, '_blank');
+                    });
+                }
+
+                // Delete button
+                const deleteBtn = card.querySelector('.delete-btn');
+                deleteBtn.addEventListener('click', handleDelete);
+
+                // Triple-click edit on card fields (name, person_name, category)
+                const editableCells = card.querySelectorAll('[data-column]');
+                editableCells.forEach(cell => {
+                    cell.addEventListener('click', (e) => {
+                        const now = Date.now();
+                        const diff = now - lastClickTime;
+                        clickCount = (diff < 300 && clickCount < 3) ? clickCount + 1 : 1;
+                        lastClickTime = now;
+                        if (clickCount === 3) {
+                            e.preventDefault();
+                            cell.contentEditable = 'true';
+                            cell.classList.add('editable');
+                            cell.focus();
+                            cell.removeEventListener('blur', handleEditCard);
+                            cell.removeEventListener('keydown', handleEnter);
+                            cell.addEventListener('blur', handleEditCard);
+                            cell.addEventListener('keydown', handleEnter);
+                        }
+                    });
+                });
+            });
+
+        } catch (err) {
+            loadingIndicator && loadingIndicator.classList.add('hidden');
+            showStatus(`Terjadi kesalahan: ${err.message}`, 'error');
         }
-
-        data.forEach(link => {
-          const row = document.createElement('tr');
-          row.classList.add('hover:bg-gray-50');
-          row.dataset.id = link.id;
-
-          const formattedDate = link.created_at ? new Date(link.created_at).toLocaleString() : '-';
-          const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
-          const category = link.category || 'Belum Dikategorikan';
-          
-          let qrFilenameBase = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}`;
-          qrFilenameBase = qrFilenameBase.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
-          const smallQrId = `qr-${link.id}`;
-
-          row.innerHTML = `
-            <td class="px-6 py-4 text-sm text-gray-500 flex justify-center cursor-pointer qr-cell">
-              <canvas id="${smallQrId}" style="width:64px;height:64px;"></canvas>
-            </td>
-            <td class="px-6 py-4 text-sm text-gray-500" data-column="person_name">${link.person_name || '-'}</td>
-            <td class="px-6 py-4 text-sm text-gray-500" data-column="name">${link.name || '-'}</td>
-            <td class="px-6 py-4 text-sm text-gray-500" data-column="category">${category}</td>
-            <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs" data-column="url">${link.url || '-'}</td>
-            <td class="px-6 py-4 text-sm text-gray-500" data-column="shift_code">${link.shift_code || '-'}</td>
-            <td class="px-6 py-4 text-sm text-gray-500">${formattedDate}</td>
-            <td class="px-6 py-4 text-sm text-gray-500"><button class="view-description-btn bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 transition-colors">Lihat</button></td>
-            <td class="px-6 py-4 text-sm text-gray-500">
-                <button class="delete-btn text-red-500 hover:text-red-700 transition-colors">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
-            </td>
-          `;
-
-          linksTableBody.appendChild(row);
-
-          QRCode.toCanvas(document.getElementById(smallQrId), qrData, { 
-              errorCorrectionLevel: 'L', 
-              margin: 1, 
-              width: 64,
-              color: { dark: '#000000', light: '#ffffff' }
-          });
-
-          const qrCanvasSmall = row.querySelector(`#${smallQrId}`);
-          qrCanvasSmall.addEventListener('click', () => {
-            enlargedQrContainer.innerHTML = '';
-            generateQrCodeWithPadding(qrData, 256, 12).then(canvas => {
-                enlargedQrContainer.appendChild(canvas);
-                canvas.style.borderRadius = '0.375rem';
-                canvas.style.display = 'block';
-                currentQrFilename = `${qrFilenameBase}.png`;
-                qrModal.classList.remove('hidden');
-            });
-          });
-
-          const viewBtn = row.querySelector('.view-description-btn');
-          if (viewBtn) {
-            viewBtn.addEventListener('click', () => {
-              const urlParam = encodeURIComponent(link.url || '');
-              const shiftParam = encodeURIComponent(link.shift_code || '');
-              const personParam = encodeURIComponent(link.person_name || '');
-              const nameParam = encodeURIComponent(link.name || '');
-              const targetUrl = `dekripsi.html?url=${urlParam}&shift=${shiftParam}&person=${personParam}&name=${nameParam}`;
-              window.open(targetUrl, '_blank');
-            });
-          }
-          
-          const deleteBtn = row.querySelector('.delete-btn');
-          deleteBtn.addEventListener('click', handleDelete);
-
-          const editableCells = row.querySelectorAll('td[data-column]');
-          editableCells.forEach(cell => {
-              cell.addEventListener('click', (e) => {
-                  const now = new Date().getTime();
-                  const diff = now - lastClickTime;
-                  clickCount = (diff < 300 && clickCount < 3) ? clickCount + 1 : 1;
-                  lastClickTime = now;
-
-                  if (clickCount === 3) {
-                      e.preventDefault();
-                      cell.contentEditable = 'true';
-                      cell.classList.add('editable');
-                      cell.focus();
-                      
-                      cell.removeEventListener('blur', handleEdit);
-                      cell.removeEventListener('keydown', handleEnter);
-
-                      cell.addEventListener('blur', handleEdit);
-                      cell.addEventListener('keydown', handleEnter);
-                  }
-              });
-          });
-        });
-
-      } catch (err) {
-        loadingIndicator && loadingIndicator.classList.add('hidden');
-        showStatus(`Terjadi kesalahan tak terduga: ${err.message}`, 'error');
-      }
     }
 
     document.addEventListener('DOMContentLoaded', fetchLinks);
