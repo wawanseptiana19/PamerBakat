@@ -14,569 +14,232 @@
         .video-preview { max-width: 100%; height: auto; }
         .editable { outline: 2px solid #3b82f6; background-color: #eff6ff; }
         .status-popup {
-            position: fixed;
-            top: 1rem;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 0.75rem 1.5rem;
-            border-radius: 9999px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
+            position: fixed; top: 1rem; left: 50%; transform: translateX(-50%);
+            padding: 0.75rem 1.5rem; border-radius: 9999px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000;
             transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-            opacity: 0;
-            pointer-events: none;
+            opacity: 0; pointer-events: none;
         }
-        .status-popup.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-        .icon-wrapper {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
+        .status-popup.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .icon-wrapper { display: flex; align-items: center; justify-content: center; }
 
-        /* LOGIN OVERLAY */
         #loginOverlay {
-          position: fixed;
-          inset: 0;
+          position: fixed; inset: 0;
           background: linear-gradient(135deg, rgba(15,23,42,0.8), rgba(30,58,138,0.75));
-          z-index: 20000;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 1rem;
-          backdrop-filter: blur(8px);
+          z-index: 20000; display: flex; align-items: center; justify-content: center;
+          padding: 1rem; backdrop-filter: blur(8px);
         }
         #loginBox {
-          background: white;
-          width: 100%;
-          max-width: 420px;
-          border-radius: 1.25rem;
-          padding: 2.5rem 2rem 2rem;
-          box-shadow: 0 25px 60px rgba(0,0,0,0.3);
-          text-align: center;
+          background: white; width: 100%; max-width: 420px; border-radius: 1.25rem;
+          padding: 2.5rem 2rem 2rem; box-shadow: 0 25px 60px rgba(0,0,0,0.3); text-align: center;
         }
         #loginBox .login-icon {
-          width: 56px;
-          height: 56px;
-          background: linear-gradient(135deg, #3b82f6, #6366f1);
-          border-radius: 1rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6, #6366f1);
+          border-radius: 1rem; display: flex; align-items: center; justify-content: center;
           margin: 0 auto 1.25rem;
         }
-        #loginBox .login-icon i {
-          font-size: 1.5rem;
-          color: white;
-        }
-        #loginBox h2 {
-          margin-bottom: 0.35rem;
-          font-size: 1.4rem;
-          font-weight: 800;
-          color: #0f172a;
-        }
-        #loginBox p {
-          margin-bottom: 1.5rem;
-          color: #64748b;
-          font-size: 0.88rem;
-          line-height: 1.5;
-        }
+        #loginBox .login-icon i { font-size: 1.5rem; color: white; }
+        #loginBox h2 { margin-bottom: 0.35rem; font-size: 1.4rem; font-weight: 800; color: #0f172a; }
+        #loginBox p { margin-bottom: 1.5rem; color: #64748b; font-size: 0.88rem; line-height: 1.5; }
         #loginBox .file-upload-area {
-          border: 2px dashed #cbd5e1;
-          border-radius: 0.75rem;
-          padding: 1.5rem 1rem;
-          cursor: pointer;
-          transition: all 0.2s;
-          background: #f8fafc;
-          margin-bottom: 1rem;
+          border: 2px dashed #cbd5e1; border-radius: 0.75rem; padding: 1.5rem 1rem;
+          cursor: pointer; transition: all 0.2s; background: #f8fafc; margin-bottom: 1rem;
         }
-        #loginBox .file-upload-area:hover {
-          border-color: #3b82f6;
-          background: #eff6ff;
-        }
-        #loginBox .file-upload-area.dragover {
-          border-color: #3b82f6;
-          background: #dbeafe;
-        }
-        #loginBox .file-upload-area i {
-          font-size: 1.75rem;
-          color: #94a3b8;
-          margin-bottom: 0.5rem;
-        }
-        #loginBox .file-upload-area p {
-          margin: 0;
-          font-size: 0.82rem;
-          color: #64748b;
-        }
-        #loginBox .file-upload-area .file-name {
-          margin-top: 0.5rem;
-          font-size: 0.8rem;
-          color: #3b82f6;
-          font-weight: 600;
-        }
+        #loginBox .file-upload-area:hover { border-color: #3b82f6; background: #eff6ff; }
+        #loginBox .file-upload-area.dragover { border-color: #3b82f6; background: #dbeafe; }
+        #loginBox .file-upload-area i { font-size: 1.75rem; color: #94a3b8; margin-bottom: 0.5rem; }
+        #loginBox .file-upload-area p { margin: 0; font-size: 0.82rem; color: #64748b; }
+        #loginBox .file-upload-area .file-name { margin-top: 0.5rem; font-size: 0.8rem; color: #3b82f6; font-weight: 600; }
         #loginFileInput { display: none; }
-        #loginMsg {
-          min-height: 1.25rem;
-          margin-bottom: 0.5rem;
-          font-size: 0.85rem;
-          font-weight: 500;
-          border-radius: 0.5rem;
-          padding: 0;
-          transition: all 0.3s;
-        }
-        #loginMsg.has-msg {
-          padding: 0.6rem 1rem;
-        }
-        #loginMsg.error {
-          background: #fef2f2;
-          color: #b91c1c;
-        }
-        #loginMsg.success {
-          background: #f0fdf4;
-          color: #15803d;
-        }
+        #loginMsg { min-height: 1.25rem; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 500; border-radius: 0.5rem; padding: 0; transition: all 0.3s; }
+        #loginMsg.has-msg { padding: 0.6rem 1rem; }
+        #loginMsg.error { background: #fef2f2; color: #b91c1c; }
+        #loginMsg.success { background: #f0fdf4; color: #15803d; }
         #logoutBtn {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.4rem;
-          margin-top: 0.75rem;
-          background: transparent;
-          border: 1px solid #e2e8f0;
-          padding: 0.5rem 1rem;
-          border-radius: 0.5rem;
-          cursor: pointer;
-          font-size: 0.8rem;
-          color: #64748b;
-          transition: all 0.2s;
+          display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.75rem;
+          background: transparent; border: 1px solid #e2e8f0; padding: 0.5rem 1rem;
+          border-radius: 0.5rem; cursor: pointer; font-size: 0.8rem; color: #64748b; transition: all 0.2s;
         }
-        #logoutBtn:hover {
-          background: #f1f5f9;
-          color: #334155;
-        }
+        #logoutBtn:hover { background: #f1f5f9; color: #334155; }
 
         body.lock-scroll { overflow: hidden; }
-        #pageContent.blurred {
-          filter: blur(6px) saturate(0.95);
-          transition: filter 0.25s ease;
-          pointer-events: none;
-          user-select: none;
-        }
-        #pageContent {
-          transition: filter 0.25s ease;
-        }
+        #pageContent.blurred { filter: blur(6px) saturate(0.95); transition: filter 0.25s ease; pointer-events: none; user-select: none; }
+        #pageContent { transition: filter 0.25s ease; }
 
-        /* NAME TAGS - horizontal scrollable */
-        #nameTagsWrapper {
-            position: relative;
-            margin-bottom: 1rem;
+        .filter-scroller-wrapper { position: relative; margin-bottom: 0.75rem; }
+        .filter-scroller {
+            display: flex; flex-direction: row; flex-wrap: nowrap; gap: 0.5rem;
+            overflow-x: auto; overflow-y: hidden; padding-bottom: 0.5rem;
+            scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;
+            -webkit-overflow-scrolling: touch; scroll-behavior: smooth;
         }
-        #nameTagsScroller {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: nowrap;
-            gap: 0.5rem;
-            overflow-x: auto;
-            overflow-y: hidden;
-            padding-bottom: 0.5rem;
-            scrollbar-width: thin;
-            scrollbar-color: #cbd5e1 transparent;
-            -webkit-overflow-scrolling: touch;
-            scroll-behavior: smooth;
+        .filter-scroller::-webkit-scrollbar { height: 4px; }
+        .filter-scroller::-webkit-scrollbar-track { background: transparent; }
+        .filter-scroller::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        .filter-scroller::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .filter-label {
+            display: flex; align-items: center; gap: 0.35rem;
+            font-size: 0.72rem; font-weight: 700; color: #94a3b8;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            white-space: nowrap; flex-shrink: 0;
+            padding: 0.4rem 0.5rem 0.4rem 0;
+            border-right: 1.5px solid #e2e8f0;
+            margin-right: 0.15rem;
         }
-        #nameTagsScroller::-webkit-scrollbar {
-            height: 4px;
+        .filter-label i { font-size: 0.7rem; }
+
+        .filter-tag {
+            padding: 0.4rem 0.9rem; background: white; color: #334155;
+            border: 1.5px solid #e2e8f0; border-radius: 0.5rem;
+            font-size: 0.78rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; display: flex; align-items: center;
+            gap: 0.35rem; white-space: nowrap; flex-shrink: 0;
         }
-        #nameTagsScroller::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        #nameTagsScroller::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 9999px;
-        }
-        #nameTagsScroller::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        .name-tag {
-            padding: 0.4rem 0.9rem;
-            background: white;
-            color: #334155;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 0.5rem;
-            font-size: 0.78rem;
-            font-weight: 600;
-            cursor: pointer;
+        .filter-tag:hover { border-color: #3b82f6; color: #1e40af; background: #eff6ff; }
+        .filter-tag.active { background: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 2px 8px rgba(59,130,246,0.3); }
+        .filter-tag .tag-count {
+            font-size: 0.65rem; background: rgba(0,0,0,0.08);
+            padding: 0.1rem 0.35rem; border-radius: 0.25rem; font-weight: 700;
+            min-width: 1.1rem; text-align: center;
             transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-            white-space: nowrap;
-            flex-shrink: 0;
         }
-        .name-tag:hover {
-            border-color: #3b82f6;
-            color: #1e40af;
-            background: #eff6ff;
-        }
-        .name-tag.active {
-            background: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-            box-shadow: 0 2px 8px rgba(59,130,246,0.3);
-        }
-        .name-tag .tag-count {
-            font-size: 0.65rem;
-            background: rgba(0,0,0,0.08);
-            padding: 0.1rem 0.35rem;
-            border-radius: 0.25rem;
-            font-weight: 700;
-        }
-        .name-tag.active .tag-count {
-            background: rgba(255,255,255,0.25);
-        }
+        .filter-tag.active .tag-count { background: rgba(255,255,255,0.25); }
 
-        /* Scroll hint fade edges */
-        #nameTagsWrapper::before,
-        #nameTagsWrapper::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            bottom: 0.5rem;
-            width: 2rem;
-            z-index: 2;
-            pointer-events: none;
-            transition: opacity 0.3s;
+        .cat-tag { border-color: #e9d5ff; color: #6b21a8; background: #faf5ff; }
+        .cat-tag:hover { border-color: #a855f7; color: #581c87; background: #f3e8ff; }
+        .cat-tag.active { background: #a855f7; color: white; border-color: #a855f7; box-shadow: 0 2px 8px rgba(168,85,247,0.3); }
+        .cat-tag .tag-count { background: rgba(107,33,168,0.1); }
+        .cat-tag.active .tag-count { background: rgba(255,255,255,0.25); }
+
+        .filter-scroller-wrapper::before,
+        .filter-scroller-wrapper::after {
+            content: ''; position: absolute; top: 0; bottom: 0.5rem;
+            width: 2rem; z-index: 2; pointer-events: none; transition: opacity 0.3s;
         }
-        #nameTagsWrapper::before {
-            left: 0;
-            background: linear-gradient(to right, #f3f4f6, transparent);
-            opacity: 0;
+        .filter-scroller-wrapper::before { left: 0; background: linear-gradient(to right, #f3f4f6, transparent); opacity: 0; }
+        .filter-scroller-wrapper::after { right: 0; background: linear-gradient(to left, #f3f4f6, transparent); opacity: 0; }
+        .filter-scroller-wrapper.fade-left::before { opacity: 1; }
+        .filter-scroller-wrapper.fade-right::after { opacity: 1; }
+
+        #activeFilters {
+            display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem;
+            min-height: 0; transition: all 0.2s;
         }
-        #nameTagsWrapper::after {
-            right: 0;
-            background: linear-gradient(to left, #f3f4f6, transparent);
-            opacity: 0;
+        #activeFilters:empty { margin-bottom: 0; }
+        .active-filter-chip {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 0.3rem 0.7rem; border-radius: 9999px;
+            font-size: 0.72rem; font-weight: 600; cursor: pointer;
+            transition: all 0.15s; border: 1px solid;
         }
-        #nameTagsWrapper.fade-left::before {
-            opacity: 1;
+        .active-filter-chip.name-chip { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
+        .active-filter-chip.name-chip:hover { background: #bfdbfe; }
+        .active-filter-chip.cat-chip { background: #ede9fe; color: #5b21b6; border-color: #c4b5fd; }
+        .active-filter-chip.cat-chip:hover { background: #ddd6fe; }
+        .active-filter-chip .chip-x { font-size: 0.65rem; opacity: 0.6; margin-left: 0.1rem; }
+        .clear-all-chip {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 0.3rem 0.7rem; border-radius: 9999px;
+            font-size: 0.72rem; font-weight: 600; cursor: pointer;
+            background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5;
+            transition: all 0.15s;
         }
-        #nameTagsWrapper.fade-right::after {
-            opacity: 1;
-        }
+        .clear-all-chip:hover { background: #fecaca; }
 
         #sidebar {
-            position: fixed;
-            top: 0;
-            right: -300px;
-            width: 300px;
-            height: 100%;
-            background: white;
-            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-            transition: right 0.3s ease;
-            z-index: 1000;
-            padding: 1rem;
-            overflow-y: auto;
+            position: fixed; top: 0; right: -300px; width: 300px; height: 100%;
+            background: white; box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+            transition: right 0.3s ease; z-index: 1000; padding: 1rem; overflow-y: auto;
         }
-        #sidebar.open {
-            right: 0;
-        }
+        #sidebar.open { right: 0; }
         #sidebarToggle {
-            position: fixed;
-            bottom: 1rem;
-            right: 1rem;
-            z-index: 1200;
-            background: white;
-            border: 2px solid #e5e7eb;
-            padding: 0.5rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            touch-action: manipulation;
+            position: fixed; bottom: 1rem; right: 1rem; z-index: 1200;
+            background: white; border: 2px solid #e5e7eb; padding: 0.5rem;
+            border-radius: 0.5rem; cursor: pointer; touch-action: manipulation;
         }
 
-        /* CARD GRID */
-        #links-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.25rem;
-        }
+        #links-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; }
         .link-card {
-            background: white;
-            border-radius: 1rem;
+            background: white; border-radius: 1rem;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            overflow: hidden; display: flex; flex-direction: column;
             transition: box-shadow 0.2s ease, transform 0.2s ease;
-            border: 1px solid #e5e7eb;
-            position: relative;
+            border: 1px solid #e5e7eb; position: relative;
         }
-        .link-card:hover {
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }
-        .link-card-qr {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1.25rem 1.25rem 0.75rem;
-            cursor: pointer;
-        }
-        .link-card-qr canvas {
-            border-radius: 0.5rem;
-            border: 1px solid #f3f4f6;
-        }
-        .link-card-body {
-            padding: 0 1.25rem 1rem;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.35rem;
-        }
-        .link-card-title {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #1e293b;
-            line-height: 1.3;
-            word-break: break-word;
-            text-align: center;
-        }
-        .link-card-person {
-            font-size: 0.82rem;
-            color: #64748b;
-            font-weight: 500;
-            text-align: center;
-        }
-        .link-card-category {
-            display: inline-block;
-            font-size: 0.7rem;
-            padding: 0.15rem 0.6rem;
-            background: #f1f5f9;
-            color: #475569;
-            border-radius: 9999px;
-            font-weight: 600;
-            width: fit-content;
-            margin-top: 0.15rem;
-        }
-        .link-card-meta {
-            font-size: 0.72rem;
-            color: #94a3b8;
-            margin-top: 0.25rem;
-            text-align: center;
-        }
-        .link-card-actions {
-            display: flex;
-            border-top: 1px solid #f1f5f9;
-        }
-        .link-card-actions button {
-            flex: 1;
-            padding: 0.7rem 0;
-            text-align: center;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.15s;
-            border: none;
-            background: transparent;
-        }
-        .link-card-actions .card-btn-view {
-            color: #3b82f6;
-        }
-        .link-card-actions .card-btn-view:hover {
-            background: #eff6ff;
-        }
-        .link-card-actions .card-btn-delete {
-            color: #ef4444;
-        }
-        .link-card-actions .card-btn-delete:hover {
-            background: #fef2f2;
-        }
-        .link-card-actions > *:not(:last-child) {
-            border-right: 1px solid #f1f5f9;
-        }
+        .link-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        .link-card-qr { display: flex; align-items: center; justify-content: center; padding: 1.25rem 1.25rem 0.75rem; cursor: pointer; }
+        .link-card-qr canvas { border-radius: 0.5rem; border: 1px solid #f3f4f6; }
+        .link-card-body { padding: 0 1.25rem 1rem; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
+        .link-card-title { font-size: 1.05rem; font-weight: 700; color: #1e293b; line-height: 1.3; word-break: break-word; text-align: center; }
+        .link-card-person { font-size: 0.82rem; color: #64748b; font-weight: 500; text-align: center; }
+        .link-card-category { display: inline-block; font-size: 0.7rem; padding: 0.15rem 0.6rem; background: #f1f5f9; color: #475569; border-radius: 9999px; font-weight: 600; width: fit-content; margin-top: 0.15rem; }
+        .link-card-meta { font-size: 0.72rem; color: #94a3b8; margin-top: 0.25rem; text-align: center; }
+        .link-card-actions { display: flex; border-top: 1px solid #f1f5f9; }
+        .link-card-actions button { flex: 1; padding: 0.7rem 0; text-align: center; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: background 0.15s; border: none; background: transparent; }
+        .link-card-actions .card-btn-view { color: #3b82f6; }
+        .link-card-actions .card-btn-view:hover { background: #eff6ff; }
+        .link-card-actions .card-btn-delete { color: #ef4444; }
+        .link-card-actions .card-btn-delete:hover { background: #fef2f2; }
+        .link-card-actions > *:not(:last-child) { border-right: 1px solid #f1f5f9; }
 
-        /* INFO BUTTON */
         .card-info-btn {
-            position: absolute;
-            top: 0.6rem;
-            right: 0.6rem;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: #f1f5f9;
-            border: 1.5px solid #e2e8f0;
-            color: #64748b;
-            font-size: 0.8rem;
-            font-weight: 800;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            z-index: 5;
-            line-height: 1;
+            position: absolute; top: 0.6rem; right: 0.6rem; width: 28px; height: 28px;
+            border-radius: 50%; background: #f1f5f9; border: 1.5px solid #e2e8f0;
+            color: #64748b; font-size: 0.8rem; font-weight: 800; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; z-index: 5; line-height: 1;
         }
-        .card-info-btn:hover {
-            background: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-            transform: scale(1.1);
-        }
+        .card-info-btn:hover { background: #3b82f6; color: white; border-color: #3b82f6; transform: scale(1.1); }
 
-        /* INFO POPUP MODAL */
         #infoPopupOverlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 9000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            backdrop-filter: blur(2px);
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9000;
+            display: none; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(2px);
         }
-        #infoPopupOverlay.show {
-            display: flex;
-        }
+        #infoPopupOverlay.show { display: flex; }
         #infoPopupBox {
-            background: white;
-            width: 100%;
-            max-width: 480px;
-            border-radius: 1rem;
-            padding: 1.75rem 1.5rem 1.5rem;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-            position: relative;
-            animation: popIn 0.2s ease;
+            background: white; width: 100%; max-width: 480px; border-radius: 1rem;
+            padding: 1.75rem 1.5rem 1.5rem; box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            position: relative; animation: popIn 0.2s ease;
         }
-        @keyframes popIn {
-            from { transform: scale(0.92); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
+        @keyframes popIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         #infoPopupBox .info-close-btn {
-            position: absolute;
-            top: 0.75rem;
-            right: 0.75rem;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: #f1f5f9;
-            border: none;
-            color: #64748b;
-            font-size: 0.85rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.15s;
+            position: absolute; top: 0.75rem; right: 0.75rem; width: 28px; height: 28px;
+            border-radius: 50%; background: #f1f5f9; border: none; color: #64748b;
+            font-size: 0.85rem; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; transition: all 0.15s;
         }
-        #infoPopupBox .info-close-btn:hover {
-            background: #e2e8f0;
-            color: #1e293b;
-        }
-        #infoPopupBox h3 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-        .info-row {
-            margin-bottom: 0.85rem;
-        }
-        .info-row-label {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.25rem;
-        }
+        #infoPopupBox .info-close-btn:hover { background: #e2e8f0; color: #1e293b; }
+        #infoPopupBox h3 { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin-bottom: 1rem; text-align: center; }
+        .info-row { margin-bottom: 0.85rem; }
+        .info-row-label { font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
         .info-row-value {
-            font-size: 0.85rem;
-            color: #334155;
-            word-break: break-all;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            padding: 0.5rem 0.75rem;
-            min-height: 2rem;
-            line-height: 1.5;
-            cursor: default;
-            transition: all 0.15s;
+            font-size: 0.85rem; color: #334155; word-break: break-all; background: #f8fafc;
+            border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.5rem 0.75rem;
+            min-height: 2rem; line-height: 1.5; cursor: default; transition: all 0.15s;
         }
-        .info-row-value.editable {
-            outline: 2px solid #3b82f6;
-            background: #eff6ff;
-            border-color: #3b82f6;
-        }
-        .info-row-value.url-value {
-            color: #3b82f6;
-            font-size: 0.78rem;
-        }
-        .info-row-value.shift-value {
-            color: #7c3aed;
-            font-family: monospace;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-        .info-hint {
-            text-align: center;
-            font-size: 0.68rem;
-            color: #cbd5e1;
-            margin-top: 0.75rem;
-        }
+        .info-row-value.editable { outline: 2px solid #3b82f6; background: #eff6ff; border-color: #3b82f6; }
+        .info-row-value.url-value { color: #3b82f6; font-size: 0.78rem; }
+        .info-row-value.shift-value { color: #7c3aed; font-family: monospace; font-size: 0.9rem; font-weight: 600; }
+        .info-hint { text-align: center; font-size: 0.68rem; color: #cbd5e1; margin-top: 0.75rem; }
 
-        /* SEARCH BOX in header */
-        #searchWrapper {
-            position: relative;
-            width: 100%;
-            max-width: 280px;
-        }
+        #searchWrapper { position: relative; width: 100%; max-width: 280px; }
         #searchWrapper input {
-            width: 100%;
-            padding: 0.55rem 2.2rem 0.55rem 2.2rem;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 0.625rem;
-            font-size: 0.85rem;
-            background: #f8fafc;
-            transition: all 0.2s;
-            outline: none;
+            width: 100%; padding: 0.55rem 2.2rem 0.55rem 2.2rem;
+            border: 1.5px solid #e2e8f0; border-radius: 0.625rem;
+            font-size: 0.85rem; background: #f8fafc; transition: all 0.2s; outline: none;
         }
-        #searchWrapper input:focus {
-            border-color: #3b82f6;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-        }
-        #searchWrapper .search-icon {
-            position: absolute;
-            left: 0.7rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            font-size: 0.85rem;
-            pointer-events: none;
-        }
+        #searchWrapper input:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+        #searchWrapper .search-icon { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem; pointer-events: none; }
         #searchWrapper .clear-btn {
-            position: absolute;
-            right: 0.5rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            cursor: pointer;
-            padding: 0.2rem;
-            border: none;
-            background: none;
-            font-size: 0.8rem;
-            transition: color 0.15s;
-            display: none;
+            position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
+            color: #94a3b8; cursor: pointer; padding: 0.2rem; border: none;
+            background: none; font-size: 0.8rem; transition: color 0.15s; display: none;
         }
-        #searchWrapper .clear-btn:hover {
-            color: #475569;
-        }
-        #searchWrapper .clear-btn.visible {
-            display: block;
-        }
+        #searchWrapper .clear-btn:hover { color: #475569; }
+        #searchWrapper .clear-btn.visible { display: block; }
+
+        #resultCount { font-size: 0.78rem; color: #94a3b8; font-weight: 500; margin-bottom: 0.75rem; padding-left: 0.1rem; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -585,9 +248,7 @@
   <!-- LOGIN -->
   <div id="loginOverlay" role="dialog" aria-modal="true" aria-label="Login file .bat">
     <div id="loginBox" role="document">
-      <div class="login-icon">
-        <i class="fa-solid fa-lock"></i>
-      </div>
+      <div class="login-icon"><i class="fa-solid fa-lock"></i></div>
       <h2>Masuk ke Halaman</h2>
       <p>Unggah file akses Anda untuk melanjutkan</p>
       <div class="file-upload-area" id="fileUploadArea">
@@ -620,22 +281,29 @@
 
   <div id="pageContent">
   <div class="px-4 sm:px-6 py-6">
-    <!-- HEADER with search -->
+    <!-- HEADER -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white shadow-md rounded-lg p-6 mb-4 gap-4">
       <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Daftar Tautan</h1>
       <div id="searchWrapper">
         <i class="fa-solid fa-magnifying-glass search-icon"></i>
         <input type="text" id="searchInput" placeholder="Cari tautan...">
-        <button id="clearSearchBtn" class="clear-btn" title="Hapus pencarian">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
+        <button id="clearSearchBtn" class="clear-btn" title="Hapus pencarian"><i class="fa-solid fa-xmark"></i></button>
       </div>
     </div>
 
-    <!-- NAME TAGS horizontal scroll -->
-    <div id="nameTagsWrapper">
-      <div id="nameTagsScroller"></div>
+    <!-- NAME FILTER -->
+    <div class="filter-scroller-wrapper" id="nameTagsWrapper">
+      <div class="filter-scroller" id="nameTagsScroller"></div>
     </div>
+
+    <!-- CATEGORY FILTER -->
+    <div class="filter-scroller-wrapper" id="catTagsWrapper">
+      <div class="filter-scroller" id="catTagsScroller"></div>
+    </div>
+
+    <!-- ACTIVE FILTERS -->
+    <div id="activeFilters"></div>
+    <div id="resultCount"></div>
 
     <div class="px-0">
       <div id="statusMessage" class="hidden text-center p-4 rounded-lg mb-4 text-sm" role="alert"></div>
@@ -658,8 +326,7 @@
     <div class="bg-white p-4 rounded-lg shadow-lg relative">
       <button id="closeModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 focus:outline-none">✕</button>
       <div id="enlargedQrContainer" style="width:280px;height:300px;"></div>
-      <button id="downloadSingleQrBtn" 
-              class="mt-3 w-full bg-indigo-500 text-white p-2 rounded-md hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2">
+      <button id="downloadSingleQrBtn" class="mt-3 w-full bg-indigo-500 text-white p-2 rounded-md hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2">
           <i class="fa-solid fa-download"></i> Unduh
       </button>
     </div>
@@ -669,9 +336,7 @@
   <div id="descriptionModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0 transition-opacity duration-300 ease-in-out modal-overlay">
     <div class="bg-white p-6 rounded-xl shadow-2xl relative max-w-xl mx-auto w-full max-h-[90vh] overflow-hidden flex flex-col transform scale-100 transition-transform duration-300">
       <button id="closeDescriptionModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 focus:outline-none transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
       </button>
       <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">Preview</h2>
       <div id="descriptionLoading" class="text-center py-8 text-gray-500 hidden">
@@ -681,149 +346,44 @@
         </svg>
         <p class="mt-4 text-sm">Memuat dan mendekripsi...</p>
       </div>
-
       <div id="descriptionContent" class="overflow-y-auto w-full flex flex-col items-center p-2"></div>
       <p id="descriptionMessage" class="text-center text-red-500 hidden mt-3"></p>
-      
       <button id="downloadBtn" class="hidden mt-6 px-6 py-3 rounded-lg shadow-md transition-all duration-300 text-center font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg">Unduh Konten</button>
     </div>
   </div>
   </div>
 
-  <!-- SIDEBAR TOGGLE -->
-  <button id="sidebarToggle" class="p-4">
-    <i class="fa-solid fa-bars text-gray-700 w-8 h-8"></i>
-  </button>
+  <button id="sidebarToggle" class="p-4"><i class="fa-solid fa-bars text-gray-700 w-8 h-8"></i></button>
 
-  <!-- SIDEBAR -->
   <div id="sidebar">
-    <button id="closeSidebar" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
-      <i class="fa-solid fa-times"></i>
-    </button>
+    <button id="closeSidebar" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800"><i class="fa-solid fa-times"></i></button>
     <h2 class="text-lg font-semibold mb-4">Menu</h2>
-    <button id="downloadAllQrBtn" 
-            class="mb-4 p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors icon-wrapper flex items-center gap-2 text-sm font-semibold text-gray-700 w-full justify-center" 
-            title="Unduh Semua QR Code">
-        <i class="fa-solid fa-file-zipper w-5 h-5"></i>
-        Unduh Semua QR
+    <button id="downloadAllQrBtn" class="mb-4 p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors icon-wrapper flex items-center gap-2 text-sm font-semibold text-gray-700 w-full justify-center" title="Unduh Semua QR Code">
+        <i class="fa-solid fa-file-zipper w-5 h-5"></i> Unduh Semua QR
     </button>
     <a href="https://pamer-bakat.vercel.app/tambah_konten.html" target="_blank" title="Pengaturan" class="mb-4 p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors icon-wrapper flex items-center gap-2 text-sm font-semibold text-gray-700 w-full justify-center">
-        <i class="fa-solid fa-plus text-gray-700 w-5 h-5"></i>
-        Tambah Konten
+        <i class="fa-solid fa-plus text-gray-700 w-5 h-5"></i> Tambah Konten
     </a>
   </div>
 
   <!-- LOGIN SCRIPT -->
   <script>
     (function(){
-      const SECRET_TEXT = 'YQDYIpjYnF7PZtDYs6e8yZJmGqTuB4rgZQSaenc618nmy4x095';
-      const overlay = document.getElementById('loginOverlay');
-      const fileInput = document.getElementById('loginFileInput');
-      const msg = document.getElementById('loginMsg');
-      const logoutBtn = document.getElementById('logoutBtn');
-      const pageContent = document.getElementById('pageContent');
-      const fileUploadArea = document.getElementById('fileUploadArea');
-      const fileNameDisplay = document.getElementById('fileNameDisplay');
-
-      function lockPage() {
-        overlay.style.display = 'flex';
-        document.documentElement.classList.add('lock-scroll');
-        document.body.classList.add('lock-scroll');
-        if (pageContent) pageContent.classList.add('blurred');
-      }
-      function unlockPage() {
-        overlay.style.display = 'none';
-        document.documentElement.classList.remove('lock-scroll');
-        document.body.classList.remove('lock-scroll');
-        if (pageContent) pageContent.classList.remove('blurred');
-        logoutBtn.style.display = 'inline-flex';
-        localStorage.setItem('dekrip_logged_in', 'true');
-      }
-      function resetAccess() {
-        fileInput.value = '';
-        msg.textContent = '';
-        msg.className = '';
-        fileNameDisplay.style.display = 'none';
-        logoutBtn.style.display = 'none';
-        localStorage.removeItem('dekrip_logged_in');
-        lockPage();
-      }
-      function showLoginMsg(text, type) {
-        msg.textContent = text;
-        msg.className = 'has-msg ' + type;
-      }
-
+      const SECRET_TEXT='YQDYIpjYnF7PZtDYs6e8yZJmGqTuB4rgZQSaenc618nmy4x095';
+      const overlay=document.getElementById('loginOverlay');const fileInput=document.getElementById('loginFileInput');const msg=document.getElementById('loginMsg');const logoutBtn=document.getElementById('logoutBtn');const pageContent=document.getElementById('pageContent');const fileUploadArea=document.getElementById('fileUploadArea');const fileNameDisplay=document.getElementById('fileNameDisplay');
+      function lockPage(){overlay.style.display='flex';document.documentElement.classList.add('lock-scroll');document.body.classList.add('lock-scroll');if(pageContent)pageContent.classList.add('blurred');}
+      function unlockPage(){overlay.style.display='none';document.documentElement.classList.remove('lock-scroll');document.body.classList.remove('lock-scroll');if(pageContent)pageContent.classList.remove('blurred');logoutBtn.style.display='inline-flex';localStorage.setItem('dekrip_logged_in','true');}
+      function resetAccess(){fileInput.value='';msg.textContent='';msg.className='';fileNameDisplay.style.display='none';logoutBtn.style.display='none';localStorage.removeItem('dekrip_logged_in');lockPage();}
+      function showLoginMsg(t,type){msg.textContent=t;msg.className='has-msg '+type;}
       lockPage();
-
-      fileUploadArea.addEventListener('click', () => fileInput.click());
-
-      fileUploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        fileUploadArea.classList.add('dragover');
-      });
-      fileUploadArea.addEventListener('dragleave', () => {
-        fileUploadArea.classList.remove('dragover');
-      });
-      fileUploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        fileUploadArea.classList.remove('dragover');
-        if (e.dataTransfer.files.length > 0) {
-          fileInput.files = e.dataTransfer.files;
-          fileInput.dispatchEvent(new Event('change'));
-        }
-      });
-
-      function processFile(f) {
-        msg.textContent = '';
-        msg.className = '';
-        if (!f) { showLoginMsg('Tidak ada file terpilih.', 'error'); return; }
-        const name = f.name || '';
-        if (!name.toLowerCase().endsWith('.bat')) {
-          showLoginMsg('Harap unggah file yang benar.', 'error');
-          fileInput.value = '';
-          fileNameDisplay.style.display = 'none';
-          return;
-        }
-
-        fileNameDisplay.textContent = name;
-        fileNameDisplay.style.display = 'block';
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          let text = String(e.target.result || '');
-          if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-          const cleaned = text.trim();
-          if (cleaned === SECRET_TEXT) {
-            unlockPage();
-            showLoginMsg('Berhasil — akses diberikan.', 'success');
-          } else {
-            showLoginMsg('Isi file tidak cocok. Coba lagi.', 'error');
-            fileInput.value = '';
-            fileNameDisplay.style.display = 'none';
-          }
-        };
-        reader.onerror = function() {
-          showLoginMsg('Gagal membaca file.', 'error');
-          fileInput.value = '';
-          fileNameDisplay.style.display = 'none';
-        };
-        reader.readAsText(f);
-      }
-
-      fileInput.addEventListener('change', (ev) => {
-        const f = ev.target.files && ev.target.files[0];
-        processFile(f);
-      });
-
-      logoutBtn.addEventListener('click', () => {
-        if (confirm('Apakah Anda yakin ingin menghapus akses dan keluar?')) resetAccess();
-      });
-
-      overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-          showLoginMsg('Silakan unggah file untuk masuk.', 'error');
-        }
-      });
+      fileUploadArea.addEventListener('click',()=>fileInput.click());
+      fileUploadArea.addEventListener('dragover',(e)=>{e.preventDefault();fileUploadArea.classList.add('dragover');});
+      fileUploadArea.addEventListener('dragleave',()=>{fileUploadArea.classList.remove('dragover');});
+      fileUploadArea.addEventListener('drop',(e)=>{e.preventDefault();fileUploadArea.classList.remove('dragover');if(e.dataTransfer.files.length>0){fileInput.files=e.dataTransfer.files;fileInput.dispatchEvent(new Event('change'));}});
+      function processFile(f){msg.textContent='';msg.className='';if(!f){showLoginMsg('Tidak ada file terpilih.','error');return;}const name=f.name||'';if(!name.toLowerCase().endsWith('.bat')){showLoginMsg('Harap unggah file yang benar.','error');fileInput.value='';fileNameDisplay.style.display='none';return;}fileNameDisplay.textContent=name;fileNameDisplay.style.display='block';const reader=new FileReader();reader.onload=function(e){let text=String(e.target.result||'');if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);const cleaned=text.trim();if(cleaned===SECRET_TEXT){unlockPage();showLoginMsg('Berhasil — akses diberikan.','success');}else{showLoginMsg('Isi file tidak cocok. Coba lagi.','error');fileInput.value='';fileNameDisplay.style.display='none';}};reader.onerror=function(){showLoginMsg('Gagal membaca file.','error');fileInput.value='';fileNameDisplay.style.display='none';};reader.readAsText(f);}
+      fileInput.addEventListener('change',(ev)=>{const f=ev.target.files&&ev.target.files[0];processFile(f);});
+      logoutBtn.addEventListener('click',()=>{if(confirm('Apakah Anda yakin ingin menghapus akses dan keluar?'))resetAccess();});
+      overlay.addEventListener('click',(e)=>{if(e.target===overlay)showLoginMsg('Silakan unggah file untuk masuk.','error');});
     })();
   </script>
 
@@ -831,590 +391,412 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
 
-    const supabaseUrl = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseUrl='https://qzdvdfebkzlwkhvxwsju.supabase.co';
+    const supabaseKey='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
+    const supabase=createClient(supabaseUrl,supabaseKey);
 
-    const linksGrid = document.getElementById('links-grid');
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    const statusPopup = document.getElementById('statusPopup');
-    const searchInput = document.getElementById('searchInput');
-    const clearSearchBtn = document.getElementById('clearSearchBtn');
-    const qrModal = document.getElementById('qrModal');
-    const closeModalButton = document.getElementById('closeModal');
-    const descriptionModal = document.getElementById('descriptionModal');
-    const closeDescriptionModalButton = document.getElementById('closeDescriptionModal');
-    const descriptionContent = document.getElementById('descriptionContent');
-    const descriptionMessage = document.getElementById('descriptionMessage');
-    const descriptionLoading = document.getElementById('descriptionLoading');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const downloadSingleQrBtn = document.getElementById('downloadSingleQrBtn');
-    const enlargedQrContainer = document.getElementById('enlargedQrContainer');
-    const downloadAllQrBtn = document.getElementById('downloadAllQrBtn');
-    const nameTagsContainer = document.getElementById('nameTagsScroller');
-    const nameTagsWrapper = document.getElementById('nameTagsWrapper');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const closeSidebarEl = document.getElementById('closeSidebar');
-    const pageContent = document.getElementById('pageContent');
+    const linksGrid=document.getElementById('links-grid');
+    const loadingIndicator=document.getElementById('loadingIndicator');
+    const statusPopup=document.getElementById('statusPopup');
+    const searchInput=document.getElementById('searchInput');
+    const clearSearchBtn=document.getElementById('clearSearchBtn');
+    const qrModal=document.getElementById('qrModal');
+    const closeModalButton=document.getElementById('closeModal');
+    const descriptionModal=document.getElementById('descriptionModal');
+    const closeDescriptionModalButton=document.getElementById('closeDescriptionModal');
+    const descriptionContent=document.getElementById('descriptionContent');
+    const descriptionMessage=document.getElementById('descriptionMessage');
+    const descriptionLoading=document.getElementById('descriptionLoading');
+    const downloadBtn=document.getElementById('downloadBtn');
+    const downloadSingleQrBtn=document.getElementById('downloadSingleQrBtn');
+    const enlargedQrContainer=document.getElementById('enlargedQrContainer');
+    const downloadAllQrBtn=document.getElementById('downloadAllQrBtn');
+    const nameTagsContainer=document.getElementById('nameTagsScroller');
+    const nameTagsWrapper=document.getElementById('nameTagsWrapper');
+    const catTagsContainer=document.getElementById('catTagsScroller');
+    const catTagsWrapper=document.getElementById('catTagsWrapper');
+    const activeFiltersContainer=document.getElementById('activeFilters');
+    const resultCountEl=document.getElementById('resultCount');
+    const sidebar=document.getElementById('sidebar');
+    const sidebarToggle=document.getElementById('sidebarToggle');
+    const closeSidebarEl=document.getElementById('closeSidebar');
+    const pageContent=document.getElementById('pageContent');
+    const infoPopupOverlay=document.getElementById('infoPopupOverlay');
+    const infoCloseBtn=document.getElementById('infoCloseBtn');
+    const infoPopupTitle=document.getElementById('infoPopupTitle');
+    const infoUrlValue=document.getElementById('infoUrlValue');
+    const infoShiftValue=document.getElementById('infoShiftValue');
 
-    // Info popup elements
-    const infoPopupOverlay = document.getElementById('infoPopupOverlay');
-    const infoCloseBtn = document.getElementById('infoCloseBtn');
-    const infoPopupTitle = document.getElementById('infoPopupTitle');
-    const infoUrlValue = document.getElementById('infoUrlValue');
-    const infoShiftValue = document.getElementById('infoShiftValue');
+    let lastClickTime=0,clickCount=0;
+    let currentDownloadBlob=null,currentDownloadFilename=null;
+    let allLinksData=[];
+    let currentQrFilename=null,currentInfoCardId=null;
+    let activeNameFilter=null;
+    let activeCatFilter=null;
 
-    let lastClickTime = 0;
-    let clickCount = 0;
-    let currentDownloadBlob = null;
-    let currentDownloadFilename = null;
-    let allLinksData = [];
-    let currentQrFilename = null;
-    let currentInfoCardId = null;
+    // --- Scroll fade ---
+    function setupScrollFades(scroller,wrapper){
+        function update(){
+            const canLeft=scroller.scrollLeft>2;
+            const canRight=scroller.scrollLeft<(scroller.scrollWidth-scroller.clientWidth-2);
+            wrapper.classList.toggle('fade-left',canLeft);
+            wrapper.classList.toggle('fade-right',canRight);
+        }
+        scroller.addEventListener('scroll',update);
+        window.addEventListener('resize',update);
+        requestAnimationFrame(update);
+        return update;
+    }
+    const updateNameFades=setupScrollFades(nameTagsContainer,nameTagsWrapper);
+    const updateCatFades=setupScrollFades(catTagsContainer,catTagsWrapper);
 
-    // --- Scroll fade edges for name tags ---
-    function updateScrollFades() {
-        const el = nameTagsContainer;
-        if (!el) return;
-        const canScrollLeft = el.scrollLeft > 2;
-        const canScrollRight = el.scrollLeft < (el.scrollWidth - el.clientWidth - 2);
-        nameTagsWrapper.classList.toggle('fade-left', canScrollLeft);
-        nameTagsWrapper.classList.toggle('fade-right', canScrollRight);
+    // --- Drag scroll ---
+    function setupDragScroll(el){
+        let dragging=false,startX=0,scrollL=0;
+        el.addEventListener('mousedown',(e)=>{dragging=true;startX=e.pageX-el.offsetLeft;scrollL=el.scrollLeft;el.style.cursor='grabbing';el.style.userSelect='none';});
+        el.addEventListener('mouseleave',()=>{dragging=false;el.style.cursor='';el.style.userSelect='';});
+        el.addEventListener('mouseup',()=>{dragging=false;el.style.cursor='';el.style.userSelect='';});
+        el.addEventListener('mousemove',(e)=>{if(!dragging)return;e.preventDefault();const x=e.pageX-el.offsetLeft;el.scrollLeft=scrollL-(x-startX)*1.5;});
+    }
+    setupDragScroll(nameTagsContainer);
+    setupDragScroll(catTagsContainer);
+
+    // --- Recalculate category counts based on active name filter ---
+    function getCatCountsForCurrentNameFilter(){
+        const catCounts={};
+        const filtered=activeNameFilter
+            ? allLinksData.filter(l=>(l.person_name||'').toLowerCase()===activeNameFilter)
+            : allLinksData;
+        filtered.forEach(link=>{
+            const c=(link.category||'Belum Dikategorikan');
+            catCounts[c]=(catCounts[c]||0)+1;
+        });
+        return catCounts;
     }
 
-    nameTagsContainer.addEventListener('scroll', updateScrollFades);
-    window.addEventListener('resize', updateScrollFades);
+    // --- Rebuild category tags ---
+    function rebuildCatTags(){
+        catTagsContainer.innerHTML='';
+        const catCounts=getCatCountsForCurrentNameFilter();
+        const uniqueCats=Object.keys(catCounts).sort((a,b)=>a.localeCompare(b,'id',{sensitivity:'base'}));
 
-    // Mouse drag horizontal scroll for name tags
-    let isDragging = false;
-    let dragStartX = 0;
-    let dragScrollLeft = 0;
+        const catLabel=document.createElement('span');
+        catLabel.className='filter-label';
+        catLabel.innerHTML='<i class="fa-solid fa-tag"></i> Kategori';
+        catTagsContainer.appendChild(catLabel);
 
-    nameTagsContainer.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        dragStartX = e.pageX - nameTagsContainer.offsetLeft;
-        dragScrollLeft = nameTagsContainer.scrollLeft;
-        nameTagsContainer.style.cursor = 'grabbing';
-        nameTagsContainer.style.userSelect = 'none';
-    });
-    nameTagsContainer.addEventListener('mouseleave', () => {
-        isDragging = false;
-        nameTagsContainer.style.cursor = '';
-        nameTagsContainer.style.userSelect = '';
-    });
-    nameTagsContainer.addEventListener('mouseup', () => {
-        isDragging = false;
-        nameTagsContainer.style.cursor = '';
-        nameTagsContainer.style.userSelect = '';
-    });
-    nameTagsContainer.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        e.preventDefault();
-        const x = e.pageX - nameTagsContainer.offsetLeft;
-        const walk = (x - dragStartX) * 1.5;
-        nameTagsContainer.scrollLeft = dragScrollLeft - walk;
-    });
+        if(uniqueCats.length===0){
+            const empty=document.createElement('span');
+            empty.className='text-gray-400 text-sm';
+            empty.style.whiteSpace='nowrap';
+            empty.style.padding='0.4rem';
+            empty.textContent='Tidak ada kategori';
+            catTagsContainer.appendChild(empty);
+        } else {
+            uniqueCats.forEach(cat=>{
+                const tag=document.createElement('span');
+                tag.className='filter-tag cat-tag';
+                tag.dataset.cat=cat.toLowerCase();
+                tag.innerHTML=`${cat} <span class="tag-count">${catCounts[cat]}</span>`;
+                tag.title=`Filter "${cat}" (${catCounts[cat]} item)`;
+                if(activeCatFilter===cat.toLowerCase()) tag.classList.add('active');
+                tag.addEventListener('click',()=>{
+                    if(activeCatFilter===cat.toLowerCase()){activeCatFilter=null;}
+                    else{activeCatFilter=cat.toLowerCase();}
+                    applyFilters();
+                });
+                catTagsContainer.appendChild(tag);
+            });
+        }
+
+        // Check if current activeCatFilter still exists
+        if(activeCatFilter && !uniqueCats.some(c=>c.toLowerCase()===activeCatFilter)){
+            activeCatFilter=null;
+        }
+
+        requestAnimationFrame(()=>updateCatFades());
+    }
+
+    // --- Combined filter ---
+    function applyFilters(){
+        const searchTerm=searchInput.value.toLowerCase().trim();
+        const cards=linksGrid.querySelectorAll('.link-card');
+        let visibleCount=0;
+
+        // Rebuild category tags with updated counts
+        rebuildCatTags();
+
+        cards.forEach(card=>{
+            const text=(card.dataset.searchtext||'').toLowerCase();
+            const cardName=(card.dataset.personname||'').toLowerCase();
+            const cardCat=(card.dataset.category||'').toLowerCase();
+            let show=true;
+            if(searchTerm&&!text.includes(searchTerm))show=false;
+            if(activeNameFilter&&cardName!==activeNameFilter)show=false;
+            if(activeCatFilter&&cardCat!==activeCatFilter)show=false;
+            card.style.display=show?'':'none';
+            if(show)visibleCount++;
+        });
+
+        // Update name tag active states
+        document.querySelectorAll('#nameTagsScroller .filter-tag').forEach(t=>{
+            t.classList.toggle('active',activeNameFilter&&t.dataset.name===activeNameFilter);
+        });
+        // Cat tag active states are handled in rebuildCatTags
+
+        clearSearchBtn.classList.toggle('visible',!!searchTerm);
+        renderActiveFilters();
+
+        const totalCards=cards.length;
+        const hasAnyFilter=searchTerm||activeNameFilter||activeCatFilter;
+        if(hasAnyFilter){
+            resultCountEl.textContent=`Menampilkan ${visibleCount} dari ${totalCards} tautan`;
+        }else{
+            resultCountEl.textContent=totalCards>0?`Total ${totalCards} tautan`:'';
+        }
+    }
+
+    function renderActiveFilters(){
+        activeFiltersContainer.innerHTML='';
+        const hasFilter=activeNameFilter||activeCatFilter;
+        if(!hasFilter)return;
+
+        if(activeNameFilter){
+            const chip=document.createElement('span');
+            chip.className='active-filter-chip name-chip';
+            const displayName=allLinksData.find(l=>(l.person_name||'').toLowerCase()===activeNameFilter)?.person_name||activeNameFilter;
+            chip.innerHTML=`<i class="fa-solid fa-user" style="font-size:0.6rem;"></i> ${displayName} <span class="chip-x">✕</span>`;
+            chip.title='Klik untuk hapus filter nama';
+            chip.addEventListener('click',()=>{activeNameFilter=null;applyFilters();});
+            activeFiltersContainer.appendChild(chip);
+        }
+        if(activeCatFilter){
+            const chip=document.createElement('span');
+            chip.className='active-filter-chip cat-chip';
+            const displayCat=allLinksData.find(l=>(l.category||'Belum Dikategorikan').toLowerCase()===activeCatFilter)?.category||activeCatFilter;
+            chip.innerHTML=`<i class="fa-solid fa-tag" style="font-size:0.6rem;"></i> ${displayCat||'Belum Dikategorikan'} <span class="chip-x">✕</span>`;
+            chip.title='Klik untuk hapus filter kategori';
+            chip.addEventListener('click',()=>{activeCatFilter=null;applyFilters();});
+            activeFiltersContainer.appendChild(chip);
+        }
+        if(activeNameFilter&&activeCatFilter){
+            const clearChip=document.createElement('span');
+            clearChip.className='clear-all-chip';
+            clearChip.innerHTML='<i class="fa-solid fa-xmark" style="font-size:0.6rem;"></i> Hapus Semua';
+            clearChip.addEventListener('click',()=>{activeNameFilter=null;activeCatFilter=null;searchInput.value='';applyFilters();});
+            activeFiltersContainer.appendChild(clearChip);
+        }
+    }
+
+    searchInput.addEventListener('input',applyFilters);
+    clearSearchBtn.addEventListener('click',()=>{searchInput.value='';applyFilters();searchInput.focus();});
 
     // --- Info Popup ---
-    function openInfoPopup(linkId, linkName, url, shiftCode) {
-        currentInfoCardId = linkId;
-        infoPopupTitle.textContent = linkName || 'Detail';
-        infoUrlValue.textContent = url || '-';
-        infoShiftValue.textContent = shiftCode || '-';
-        infoUrlValue.contentEditable = 'false';
-        infoShiftValue.contentEditable = 'false';
-        infoUrlValue.classList.remove('editable');
-        infoShiftValue.classList.remove('editable');
+    function openInfoPopup(linkId,linkName,url,shiftCode){
+        currentInfoCardId=linkId;infoPopupTitle.textContent=linkName||'Detail';
+        infoUrlValue.textContent=url||'-';infoShiftValue.textContent=shiftCode||'-';
+        infoUrlValue.contentEditable='false';infoShiftValue.contentEditable='false';
+        infoUrlValue.classList.remove('editable');infoShiftValue.classList.remove('editable');
         infoPopupOverlay.classList.add('show');
     }
+    function closeInfoPopup(){infoPopupOverlay.classList.remove('show');currentInfoCardId=null;}
+    infoCloseBtn.addEventListener('click',closeInfoPopup);
+    infoPopupOverlay.addEventListener('click',(e)=>{if(e.target===infoPopupOverlay)closeInfoPopup();});
 
-    function closeInfoPopup() {
-        infoPopupOverlay.classList.remove('show');
-        currentInfoCardId = null;
-    }
-
-    infoCloseBtn.addEventListener('click', closeInfoPopup);
-    infoPopupOverlay.addEventListener('click', (e) => {
-        if (e.target === infoPopupOverlay) closeInfoPopup();
-    });
-
-    // Triple-click edit for info popup fields
-    let infoClickTime = 0;
-    let infoClickCount = 0;
-
-    function setupInfoFieldEdit(el) {
-        el.addEventListener('click', (e) => {
-            const now = Date.now();
-            const diff = now - infoClickTime;
-            infoClickCount = (diff < 300 && infoClickCount < 3) ? infoClickCount + 1 : 1;
-            infoClickTime = now;
-
-            if (infoClickCount === 3) {
-                e.preventDefault();
-                el.contentEditable = 'true';
-                el.classList.add('editable');
-                el.focus();
-
-                const onBlur = async () => {
-                    el.contentEditable = 'false';
-                    el.classList.remove('editable');
-                    el.removeEventListener('blur', onBlur);
-                    el.removeEventListener('keydown', onEnter);
-
-                    const newText = el.textContent.trim();
-                    const column = el.dataset.column;
-                    if (!currentInfoCardId || !column) return;
-
-                    const updates = {};
-                    updates[column] = newText;
-                    showStatus('Menyimpan perubahan...', 'success');
-
-                    try {
-                        const { error } = await supabase.from('links').update(updates).eq('id', currentInfoCardId);
-                        if (error) throw error;
-                        showStatus('Perubahan berhasil disimpan!', 'success');
-                        fetchLinks();
-                    } catch (error) {
-                        showStatus(`Gagal menyimpan: ${error.message}`, 'error');
-                    }
+    let infoClickTime=0,infoClickCount=0;
+    function setupInfoFieldEdit(el){
+        el.addEventListener('click',(e)=>{
+            const now=Date.now();const diff=now-infoClickTime;
+            infoClickCount=(diff<300&&infoClickCount<3)?infoClickCount+1:1;infoClickTime=now;
+            if(infoClickCount===3){
+                e.preventDefault();el.contentEditable='true';el.classList.add('editable');el.focus();
+                const onBlur=async()=>{
+                    el.contentEditable='false';el.classList.remove('editable');
+                    el.removeEventListener('blur',onBlur);el.removeEventListener('keydown',onEnter);
+                    const newText=el.textContent.trim();const column=el.dataset.column;
+                    if(!currentInfoCardId||!column)return;
+                    const updates={};updates[column]=newText;showStatus('Menyimpan perubahan...','success');
+                    try{const{error}=await supabase.from('links').update(updates).eq('id',currentInfoCardId);if(error)throw error;showStatus('Perubahan berhasil disimpan!','success');fetchLinks();}catch(error){showStatus(`Gagal menyimpan: ${error.message}`,'error');}
                 };
-
-                const onEnter = (ev) => {
-                    if (ev.key === 'Enter') { ev.preventDefault(); el.blur(); }
-                };
-
-                el.addEventListener('blur', onBlur);
-                el.addEventListener('keydown', onEnter);
+                const onEnter=(ev)=>{if(ev.key==='Enter'){ev.preventDefault();el.blur();}};
+                el.addEventListener('blur',onBlur);el.addEventListener('keydown',onEnter);
             }
         });
     }
-
-    setupInfoFieldEdit(infoUrlValue);
-    setupInfoFieldEdit(infoShiftValue);
+    setupInfoFieldEdit(infoUrlValue);setupInfoFieldEdit(infoShiftValue);
 
     // --- Sidebar ---
-    function openSidebar(e) {
-        e.stopPropagation();
-        sidebar.classList.add('open');
-        sidebarToggle.style.display = 'none';
+    function openSidebar(e){e.stopPropagation();sidebar.classList.add('open');sidebarToggle.style.display='none';}
+    function closeSidebarFunc(){sidebar.classList.remove('open');sidebarToggle.style.display='block';}
+    sidebarToggle.addEventListener('click',openSidebar);
+    closeSidebarEl.addEventListener('click',closeSidebarFunc);
+    document.addEventListener('click',(e)=>{if(sidebar.classList.contains('open')&&!sidebar.contains(e.target)&&e.target!==sidebarToggle)closeSidebarFunc();});
+
+    function showStatus(message,type='error'){
+        statusPopup.textContent=message;
+        if(type==='error'){statusPopup.classList.add('bg-red-500','text-white');statusPopup.classList.remove('bg-green-500');}
+        else{statusPopup.classList.add('bg-green-500','text-white');statusPopup.classList.remove('bg-red-500');}
+        statusPopup.classList.add('show');setTimeout(()=>{statusPopup.classList.remove('show');},3000);
     }
 
-    function closeSidebarFunc() {
-        sidebar.classList.remove('open');
-        sidebarToggle.style.display = 'block';
+    async function generateQrCodeWithPadding(data,size=256,padding=4){
+        const canvas=document.createElement('canvas');
+        await QRCode.toCanvas(canvas,data,{errorCorrectionLevel:'H',margin:0,width:size});
+        const qrSize=canvas.width;const totalSize=qrSize+2*padding;
+        const finalCanvas=document.createElement('canvas');finalCanvas.width=totalSize;finalCanvas.height=totalSize;
+        const finalCtx=finalCanvas.getContext('2d');finalCtx.fillStyle='#FFFFFF';finalCtx.fillRect(0,0,totalSize,totalSize);
+        finalCtx.drawImage(canvas,padding,padding,qrSize,qrSize);return finalCanvas;
     }
-
-    sidebarToggle.addEventListener('click', openSidebar);
-    closeSidebarEl.addEventListener('click', closeSidebarFunc);
-
-    document.addEventListener('click', (e) => {
-        if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== sidebarToggle) {
-            closeSidebarFunc();
-        }
-    });
-
-    function showStatus(message, type = 'error') {
-        statusPopup.textContent = message;
-        if (type === 'error') {
-            statusPopup.classList.add('bg-red-500', 'text-white');
-            statusPopup.classList.remove('bg-green-500');
-        } else {
-            statusPopup.classList.add('bg-green-500', 'text-white');
-            statusPopup.classList.remove('bg-red-500');
-        }
-        statusPopup.classList.add('show');
-        setTimeout(() => { statusPopup.classList.remove('show'); }, 3000);
+    function downloadQrCode(canvas,filename){
+        if(!canvas){showStatus('Gagal membuat QR Code untuk diunduh.','error');return;}
+        const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=filename;
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+        showStatus(`QR Code '${filename}' berhasil diunduh.`,'success');
     }
-
-    async function generateQrCodeWithPadding(data, size = 256, padding = 4) {
-        const canvas = document.createElement('canvas');
-        await QRCode.toCanvas(canvas, data, { errorCorrectionLevel: 'H', margin: 0, width: size });
-        const qrSize = canvas.width;
-        const totalSize = qrSize + 2 * padding;
-        const finalCanvas = document.createElement('canvas');
-        finalCanvas.width = totalSize;
-        finalCanvas.height = totalSize;
-        const finalCtx = finalCanvas.getContext('2d');
-        finalCtx.fillStyle = '#FFFFFF';
-        finalCtx.fillRect(0, 0, totalSize, totalSize);
-        finalCtx.drawImage(canvas, padding, padding, qrSize, qrSize);
-        return finalCanvas;
-    }
-
-    function downloadQrCode(canvas, filename) {
-        if (!canvas) { showStatus('Gagal membuat QR Code untuk diunduh.', 'error'); return; }
-        const a = document.createElement('a');
-        a.href = canvas.toDataURL('image/png');
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        showStatus(`QR Code '${filename}' berhasil diunduh.`, 'success');
-    }
-
-    async function downloadAllQRCodes() {
-        if (allLinksData.length === 0) { showStatus('Tidak ada data tautan untuk diunduh.', 'error'); return; }
-        const zip = new JSZip();
-        const promises = [];
-        downloadAllQrBtn.disabled = true;
-        downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
-        showStatus('Mempersiapkan file ZIP QR Code...', 'success');
-
-        for (const link of allLinksData) {
-            const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
-            let filename = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}.png`;
-            filename = filename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
-            const promise = generateQrCodeWithPadding(qrData, 512, 20).then(canvas => {
-                return new Promise(resolve => {
-                    canvas.toBlob(blob => { zip.file(filename, blob); resolve(); }, 'image/png');
-                });
-            });
-            promises.push(promise);
+    async function downloadAllQRCodes(){
+        if(allLinksData.length===0){showStatus('Tidak ada data tautan untuk diunduh.','error');return;}
+        const zip=new JSZip();const promises=[];
+        downloadAllQrBtn.disabled=true;downloadAllQrBtn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+        showStatus('Mempersiapkan file ZIP QR Code...','success');
+        for(const link of allLinksData){
+            const qrData=`${link.url||''} || ${link.shift_code||''}`;
+            let filename=`${link.person_name||'anonim'} - ${link.name||'tanpa-nama'}.png`;
+            filename=filename.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');
+            promises.push(generateQrCodeWithPadding(qrData,512,20).then(canvas=>new Promise(resolve=>{canvas.toBlob(blob=>{zip.file(filename,blob);resolve();},'image/png');})));
         }
         await Promise.all(promises);
-        zip.generateAsync({ type: 'blob' }).then(content => {
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(content);
-            a.download = 'Semua_QR_Codes.zip';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            showStatus('Semua QR Code berhasil dikemas dan diunduh!', 'success');
-        }).catch(() => {
-            showStatus('Gagal membuat file ZIP.', 'error');
-        }).finally(() => {
-            downloadAllQrBtn.disabled = false;
-            downloadAllQrBtn.innerHTML = '<i class="fa-solid fa-file-zipper w-5 h-5"></i> Unduh Semua QR';
+        zip.generateAsync({type:'blob'}).then(content=>{
+            const a=document.createElement('a');a.href=URL.createObjectURL(content);a.download='Semua_QR_Codes.zip';
+            document.body.appendChild(a);a.click();document.body.removeChild(a);
+            showStatus('Semua QR Code berhasil dikemas dan diunduh!','success');
+        }).catch(()=>{showStatus('Gagal membuat file ZIP.','error');}).finally(()=>{
+            downloadAllQrBtn.disabled=false;downloadAllQrBtn.innerHTML='<i class="fa-solid fa-file-zipper w-5 h-5"></i> Unduh Semua QR';
         });
     }
+    downloadAllQrBtn.addEventListener('click',downloadAllQRCodes);
 
-    downloadAllQrBtn.addEventListener('click', downloadAllQRCodes);
+    function decryptCaesar(text,shift){if(typeof text!=='string')return text;const s=Number(shift);if(isNaN(s))return text;let result='';for(let i=0;i<text.length;i++){let code=text.charCodeAt(i);if(code>=65&&code<=90)code=((code-65-s+260)%26)+65;else if(code>=97&&code<=122)code=((code-97-s+260)%26)+97;result+=String.fromCharCode(code);}return result;}
+    function normalizeBase64(b64){if(!b64||typeof b64!=='string')return'';let s=b64.replace(/\s+/g,'');const m=s.match(/^data:.*;base64,(.*)$/i);if(m)s=m[1];s=s.replace(/-/g,'+').replace(/_/g,'/');const pad=s.length%4;if(pad===2)s+='==';else if(pad===3)s+='=';return s;}
+    function isBase64String(s){if(!s||typeof s!=='string')return false;const c=normalizeBase64(s);return c.length%4===0&&/^[A-Za-z0-9+/=]+$/.test(c);}
+    function getMimeFromBase64Sample(b64){try{const cleaned=normalizeBase64(b64).slice(0,2000);if(!cleaned)return null;const bin=atob(cleaned);const c0=bin.charCodeAt(0),c1=bin.charCodeAt(1);if(c0===0x89&&bin[1]==='P'&&bin[2]==='N'&&bin[3]==='G')return'image/png';if(c0===0xFF&&c1===0xD8)return'image/jpeg';if(bin.startsWith('GIF87a')||bin.startsWith('GIF89a'))return'image/gif';if(bin.trim().startsWith('<svg'))return'image/svg+xml';if(bin.indexOf('ftyp')!==-1)return'video/mp4';if(bin.toLowerCase().indexOf('webm')!==-1)return'video/webm';const prefix=normalizeBase64(b64).slice(0,8);if(prefix.startsWith('iVBOR')||prefix.startsWith('iVBORw0K'))return'image/png';if(prefix.startsWith('/9j/'))return'image/jpeg';if(prefix.startsWith('R0lG'))return'image/gif';return null;}catch(e){return null;}}
+    function base64ToBlob(base64,mime){const binary=atob(base64);const len=binary.length;const arr=new Uint8Array(len);for(let i=0;i<len;i++)arr[i]=binary.charCodeAt(i);return new Blob([arr],{type:mime||'application/octet-stream'});}
 
-    function decryptCaesar(text, shift) {
-        if (typeof text !== 'string') return text;
-        const s = Number(shift);
-        if (isNaN(s)) return text;
-        let result = '';
-        for (let i = 0; i < text.length; i++) {
-            let code = text.charCodeAt(i);
-            if (code >= 65 && code <= 90) code = ((code - 65 - s + 260) % 26) + 65;
-            else if (code >= 97 && code <= 122) code = ((code - 97 - s + 260) % 26) + 97;
-            result += String.fromCharCode(code);
-        }
-        return result;
+    function setPreviewFromBase64(rawBase64,mimeHint,useBlobIfLarge=true){
+        const cleaned=normalizeBase64(rawBase64);if(!cleaned){descriptionContent.innerHTML='<p class="text-red-500">Data base64 kosong.</p>';return;}
+        let mime=mimeHint||getMimeFromBase64Sample(cleaned);
+        if(!mime){if(cleaned.startsWith('iVBOR')||cleaned.startsWith('iVBORw0K'))mime='image/png';else if(cleaned.startsWith('/9j/'))mime='image/jpeg';else if(cleaned.startsWith('R0lG'))mime='image/gif';}
+        descriptionContent.innerHTML='';const threshold=1024*300;const approximateSize=Math.ceil((cleaned.length*3)/4);let blob=null;
+        if(useBlobIfLarge&&approximateSize>threshold){try{blob=base64ToBlob(cleaned,mime);const objectUrl=URL.createObjectURL(blob);if(mime&&mime.startsWith('image/')){const img=document.createElement('img');img.src=objectUrl;img.className='media-preview rounded-md border border-gray-200';img.onload=()=>URL.revokeObjectURL(objectUrl);descriptionContent.appendChild(img);}else if(mime&&mime.startsWith('video/')){const video=document.createElement('video');video.src=objectUrl;video.controls=true;video.className='video-preview rounded-md border border-gray-200';video.onloadeddata=()=>URL.revokeObjectURL(objectUrl);descriptionContent.appendChild(video);}else{const a=document.createElement('a');a.href=objectUrl;a.download='file.bin';a.textContent='Unduh file (tipe media tidak terdeteksi)';a.className='underline text-blue-600';descriptionContent.appendChild(a);}}catch(err){blob=null;}}
+        if(!blob){const dataMime=mime||'application/octet-stream';const dataUrl=`data:${dataMime};base64,${cleaned}`;if(dataMime.startsWith('image/')){const img=document.createElement('img');img.src=dataUrl;img.className='media-preview rounded-md border border-gray-200';descriptionContent.appendChild(img);}else if(dataMime.startsWith('video/')){const video=document.createElement('video');video.src=dataUrl;video.controls=true;video.className='video-preview rounded-md border border-gray-200';video.setAttribute('playsinline','');descriptionContent.appendChild(video);}else{const pre=document.createElement('pre');pre.textContent=cleaned.slice(0,2000)+(cleaned.length>2000?'\n\n... (terpotong) ...':'');pre.className='p-4 bg-gray-50 rounded-md text-sm max-h-96 overflow-auto w-full';descriptionContent.appendChild(pre);}}
+        return{blob,mime};
     }
 
-    function normalizeBase64(b64) {
-        if (!b64 || typeof b64 !== 'string') return '';
-        let s = b64.replace(/\s+/g, '');
-        const dataMatch = s.match(/^data:.*;base64,(.*)$/i);
-        if (dataMatch) s = dataMatch[1];
-        s = s.replace(/-/g, '+').replace(/_/g, '/');
-        const pad = s.length % 4;
-        if (pad === 2) s += '=='; else if (pad === 3) s += '=';
-        return s;
+    async function showDescriptionModal(url,shiftCode,personName,linkName){
+        descriptionModal.classList.remove('hidden');descriptionContent.innerHTML='';descriptionMessage.classList.add('hidden');descriptionLoading.classList.remove('hidden');downloadBtn.classList.add('hidden');
+        try{if(!url||!url.startsWith('http'))throw new Error('URL deskripsi tidak valid.');const response=await fetch(url);if(!response.ok)throw new Error(`Gagal memuat file dari URL. Status: ${response.status}`);const encryptedText=await response.text();const decrypted=decryptCaesar(encryptedText,shiftCode);const probableBase64=decrypted.trim();const mimeHint=getMimeFromBase64Sample(probableBase64);const previewResult=setPreviewFromBase64(probableBase64,mimeHint,true);const blob=previewResult.blob;const mime=previewResult.mime;if(isBase64String(probableBase64)){const fileExt=mime?mime.split('/')[1]:'bin';let baseFilename=`${personName||'anonim'} - ${linkName||'tanpa-nama'}`;baseFilename=baseFilename.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');currentDownloadFilename=`${baseFilename}.${fileExt}`;currentDownloadBlob=blob;}else{currentDownloadBlob=new Blob([decrypted],{type:'text/plain'});currentDownloadFilename=`${personName||'anonim'} - ${linkName||'tanpa-nama'}.txt`;}downloadBtn.textContent='Unduh Konten';downloadBtn.classList.remove('hidden');descriptionLoading.classList.add('hidden');}catch(error){descriptionMessage.textContent=`Gagal memuat atau mendekripsi: ${error.message}`;descriptionLoading.classList.add('hidden');descriptionMessage.classList.remove('hidden');}
     }
 
-    function isBase64String(s) {
-        if (!s || typeof s !== 'string') return false;
-        const cleaned = normalizeBase64(s);
-        return cleaned.length % 4 === 0 && /^[A-Za-z0-9+/=]+$/.test(cleaned);
+    function hideDescriptionModal(){descriptionModal.classList.add('hidden');descriptionContent.innerHTML='';descriptionMessage.classList.add('hidden');descriptionLoading.classList.add('hidden');downloadBtn.classList.add('hidden');if(currentDownloadBlob){URL.revokeObjectURL(URL.createObjectURL(currentDownloadBlob));currentDownloadBlob=null;currentDownloadFilename=null;}}
+
+    closeModalButton.addEventListener('click',()=>qrModal.classList.add('hidden'));
+    qrModal.addEventListener('click',(e)=>{if(e.target===qrModal)qrModal.classList.add('hidden');});
+    closeDescriptionModalButton.addEventListener('click',hideDescriptionModal);
+    descriptionModal.addEventListener('click',(e)=>{if(e.target===descriptionModal)hideDescriptionModal();});
+    downloadSingleQrBtn.addEventListener('click',()=>{const canvas=enlargedQrContainer.querySelector('canvas');if(canvas&&currentQrFilename)downloadQrCode(canvas,currentQrFilename);else showStatus('QR Code tidak ditemukan.','error');});
+    downloadBtn.addEventListener('click',()=>{if(currentDownloadBlob){const a=document.createElement('a');a.href=URL.createObjectURL(currentDownloadBlob);a.download=currentDownloadFilename;document.body.appendChild(a);a.click();document.body.removeChild(a);}});
+
+    async function handleEditCard(e){
+        const cell=e.target;if(!cell.classList.contains('editable'))return;
+        cell.contentEditable='false';cell.classList.remove('editable');
+        cell.removeEventListener('keydown',handleEnter);cell.removeEventListener('blur',handleEditCard);
+        const newText=cell.textContent.trim();const card=cell.closest('.link-card');
+        const linkId=card.dataset.id;const column=cell.dataset.column;
+        if(!linkId||!column){showStatus('Gagal menemukan ID atau kolom.','error');return;}
+        const updates={};updates[column]=newText;showStatus('Menyimpan perubahan...','success');
+        try{const{error}=await supabase.from('links').update(updates).eq('id',linkId);if(error)throw error;showStatus('Perubahan berhasil disimpan!','success');fetchLinks();}catch(error){showStatus(`Gagal menyimpan: ${error.message}`,'error');}
     }
+    function handleEnter(e){if(e.key==='Enter'){e.preventDefault();e.target.blur();}}
 
-    function getMimeFromBase64Sample(b64) {
-        try {
-            const cleaned = normalizeBase64(b64).slice(0, 2000);
-            if (!cleaned) return null;
-            const bin = atob(cleaned);
-            const c0 = bin.charCodeAt(0), c1 = bin.charCodeAt(1);
-            if (c0 === 0x89 && bin[1] === 'P' && bin[2] === 'N' && bin[3] === 'G') return 'image/png';
-            if (c0 === 0xFF && c1 === 0xD8) return 'image/jpeg';
-            if (bin.startsWith('GIF87a') || bin.startsWith('GIF89a')) return 'image/gif';
-            if (bin.trim().startsWith('<svg')) return 'image/svg+xml';
-            if (bin.indexOf('ftyp') !== -1) return 'video/mp4';
-            if (bin.toLowerCase().indexOf('webm') !== -1) return 'video/webm';
-            const prefix = normalizeBase64(b64).slice(0, 8);
-            if (prefix.startsWith('iVBOR') || prefix.startsWith('iVBORw0K')) return 'image/png';
-            if (prefix.startsWith('/9j/')) return 'image/jpeg';
-            if (prefix.startsWith('R0lG')) return 'image/gif';
-            return null;
-        } catch (e) { return null; }
-    }
-
-    function base64ToBlob(base64, mime) {
-        const binary = atob(base64);
-        const len = binary.length;
-        const arr = new Uint8Array(len);
-        for (let i = 0; i < len; i++) arr[i] = binary.charCodeAt(i);
-        return new Blob([arr], { type: mime || 'application/octet-stream' });
-    }
-
-    function setPreviewFromBase64(rawBase64, mimeHint, useBlobIfLarge = true) {
-        const cleaned = normalizeBase64(rawBase64);
-        if (!cleaned) { descriptionContent.innerHTML = '<p class="text-red-500">Data base64 kosong.</p>'; return; }
-        let mime = mimeHint || getMimeFromBase64Sample(cleaned);
-        if (!mime) {
-            if (cleaned.startsWith('iVBOR') || cleaned.startsWith('iVBORw0K')) mime = 'image/png';
-            else if (cleaned.startsWith('/9j/')) mime = 'image/jpeg';
-            else if (cleaned.startsWith('R0lG')) mime = 'image/gif';
-        }
-        descriptionContent.innerHTML = '';
-        const threshold = 1024 * 300;
-        const approximateSize = Math.ceil((cleaned.length * 3) / 4);
-        let blob = null;
-
-        if (useBlobIfLarge && approximateSize > threshold) {
-            try {
-                blob = base64ToBlob(cleaned, mime);
-                const objectUrl = URL.createObjectURL(blob);
-                if (mime && mime.startsWith('image/')) {
-                    const img = document.createElement('img');
-                    img.src = objectUrl;
-                    img.className = 'media-preview rounded-md border border-gray-200';
-                    img.onload = () => URL.revokeObjectURL(objectUrl);
-                    descriptionContent.appendChild(img);
-                } else if (mime && mime.startsWith('video/')) {
-                    const video = document.createElement('video');
-                    video.src = objectUrl; video.controls = true;
-                    video.className = 'video-preview rounded-md border border-gray-200';
-                    video.onloadeddata = () => URL.revokeObjectURL(objectUrl);
-                    descriptionContent.appendChild(video);
-                } else {
-                    const a = document.createElement('a');
-                    a.href = objectUrl; a.download = 'file.bin';
-                    a.textContent = 'Unduh file (tipe media tidak terdeteksi)';
-                    a.className = 'underline text-blue-600';
-                    descriptionContent.appendChild(a);
-                }
-            } catch (err) { blob = null; }
-        }
-        if (!blob) {
-            const dataMime = mime || 'application/octet-stream';
-            const dataUrl = `data:${dataMime};base64,${cleaned}`;
-            if (dataMime.startsWith('image/')) {
-                const img = document.createElement('img');
-                img.src = dataUrl;
-                img.className = 'media-preview rounded-md border border-gray-200';
-                descriptionContent.appendChild(img);
-            } else if (dataMime.startsWith('video/')) {
-                const video = document.createElement('video');
-                video.src = dataUrl; video.controls = true;
-                video.className = 'video-preview rounded-md border border-gray-200';
-                video.setAttribute('playsinline', '');
-                descriptionContent.appendChild(video);
-            } else {
-                const pre = document.createElement('pre');
-                pre.textContent = cleaned.slice(0, 2000) + (cleaned.length > 2000 ? '\n\n... (terpotong) ...' : '');
-                pre.className = 'p-4 bg-gray-50 rounded-md text-sm max-h-96 overflow-auto w-full';
-                descriptionContent.appendChild(pre);
-            }
-        }
-        return { blob, mime };
-    }
-
-    async function showDescriptionModal(url, shiftCode, personName, linkName) {
-        descriptionModal.classList.remove('hidden');
-        descriptionContent.innerHTML = '';
-        descriptionMessage.classList.add('hidden');
-        descriptionLoading.classList.remove('hidden');
-        downloadBtn.classList.add('hidden');
-        try {
-            if (!url || !url.startsWith('http')) throw new Error('URL deskripsi tidak valid.');
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`Gagal memuat file dari URL. Status: ${response.status}`);
-            const encryptedText = await response.text();
-            const decrypted = decryptCaesar(encryptedText, shiftCode);
-            const probableBase64 = decrypted.trim();
-            const mimeHint = getMimeFromBase64Sample(probableBase64);
-            const previewResult = setPreviewFromBase64(probableBase64, mimeHint, true);
-            const blob = previewResult.blob;
-            const mime = previewResult.mime;
-            if (isBase64String(probableBase64)) {
-                const fileExt = mime ? mime.split('/')[1] : 'bin';
-                let baseFilename = `${personName || 'anonim'} - ${linkName || 'tanpa-nama'}`;
-                baseFilename = baseFilename.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
-                currentDownloadFilename = `${baseFilename}.${fileExt}`;
-                currentDownloadBlob = blob;
-            } else {
-                currentDownloadBlob = new Blob([decrypted], { type: 'text/plain' });
-                currentDownloadFilename = `${personName || 'anonim'} - ${linkName || 'tanpa-nama'}.txt`;
-            }
-            downloadBtn.textContent = 'Unduh Konten';
-            downloadBtn.classList.remove('hidden');
-            descriptionLoading.classList.add('hidden');
-        } catch (error) {
-            descriptionMessage.textContent = `Gagal memuat atau mendekripsi: ${error.message}`;
-            descriptionLoading.classList.add('hidden');
-            descriptionMessage.classList.remove('hidden');
+    async function handleDelete(e){
+        const button=e.target.closest('button');const card=button.closest('.link-card');
+        const linkId=card.dataset.id;if(!linkId){showStatus('Gagal menemukan ID tautan.','error');return;}
+        if(confirm('Apakah Anda yakin ingin menghapus tautan ini?')){
+            showStatus('Menghapus tautan...','success');
+            try{const{error}=await supabase.from('links').delete().eq('id',linkId);if(error)throw error;showStatus('Tautan berhasil dihapus!','success');card.remove();fetchLinks();}catch(error){showStatus(`Gagal menghapus: ${error.message}`,'error');}
         }
     }
 
-    function hideDescriptionModal() {
-        descriptionModal.classList.add('hidden');
-        descriptionContent.innerHTML = '';
-        descriptionMessage.classList.add('hidden');
-        descriptionLoading.classList.add('hidden');
-        downloadBtn.classList.add('hidden');
-        if (currentDownloadBlob) {
-            URL.revokeObjectURL(URL.createObjectURL(currentDownloadBlob));
-            currentDownloadBlob = null;
-            currentDownloadFilename = null;
-        }
-    }
+    async function fetchLinks(){
+        loadingIndicator&&loadingIndicator.classList.remove('hidden');
+        linksGrid.innerHTML='';allLinksData=[];
+        nameTagsContainer.innerHTML='';catTagsContainer.innerHTML='';
 
-    closeModalButton.addEventListener('click', () => qrModal.classList.add('hidden'));
-    qrModal.addEventListener('click', (e) => { if (e.target === qrModal) qrModal.classList.add('hidden'); });
-    closeDescriptionModalButton.addEventListener('click', hideDescriptionModal);
-    descriptionModal.addEventListener('click', (e) => { if (e.target === descriptionModal) hideDescriptionModal(); });
+        try{
+            const{data,error}=await supabase.from('links').select('*, category').order('created_at',{ascending:false});
+            loadingIndicator&&loadingIndicator.classList.add('hidden');
+            if(error){showStatus(`Error: ${error.message}`);return;}
+            if(!data||data.length===0){resultCountEl.textContent='';return;}
 
-    downloadSingleQrBtn.addEventListener('click', () => {
-        const canvas = enlargedQrContainer.querySelector('canvas');
-        if (canvas && currentQrFilename) downloadQrCode(canvas, currentQrFilename);
-        else showStatus('QR Code tidak ditemukan.', 'error');
-    });
+            allLinksData=data;
 
-    downloadBtn.addEventListener('click', () => {
-        if (currentDownloadBlob) {
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(currentDownloadBlob);
-            a.download = currentDownloadFilename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-    });
+            // --- Name tags ---
+            const nameCounts={};
+            data.forEach(link=>{const n=link.person_name;if(n)nameCounts[n]=(nameCounts[n]||0)+1;});
+            const uniqueNames=Object.keys(nameCounts).sort((a,b)=>a.localeCompare(b,'id',{sensitivity:'base'}));
 
-    function filterLinks() {
-        const searchTerm = searchInput.value.toLowerCase().trim();
-        const cards = linksGrid.querySelectorAll('.link-card');
-        cards.forEach(card => {
-            const cardText = (card.dataset.searchtext || '').toLowerCase();
-            card.style.display = cardText.includes(searchTerm) ? '' : 'none';
-        });
-        document.querySelectorAll('.name-tag').forEach(t => t.classList.remove('active'));
-        if (searchTerm) {
-            const activeTag = Array.from(document.querySelectorAll('.name-tag')).find(t => t.dataset.name === searchTerm);
-            if (activeTag) activeTag.classList.add('active');
-        }
-        clearSearchBtn.classList.toggle('visible', !!searchTerm);
-    }
-    searchInput.addEventListener('input', filterLinks);
-    clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; filterLinks(); searchInput.focus(); });
+            const nameLabel=document.createElement('span');
+            nameLabel.className='filter-label';
+            nameLabel.innerHTML='<i class="fa-solid fa-user"></i> Nama';
+            nameTagsContainer.appendChild(nameLabel);
 
-    async function handleEditCard(e) {
-        const cell = e.target;
-        if (!cell.classList.contains('editable')) return;
-        cell.contentEditable = 'false';
-        cell.classList.remove('editable');
-        cell.removeEventListener('keydown', handleEnter);
-        cell.removeEventListener('blur', handleEditCard);
-        const newText = cell.textContent.trim();
-        const card = cell.closest('.link-card');
-        const linkId = card.dataset.id;
-        const column = cell.dataset.column;
-        if (!linkId || !column) { showStatus('Gagal menemukan ID atau kolom.', 'error'); return; }
-        const updates = {};
-        updates[column] = newText;
-        showStatus('Menyimpan perubahan...', 'success');
-        try {
-            const { error } = await supabase.from('links').update(updates).eq('id', linkId);
-            if (error) throw error;
-            showStatus('Perubahan berhasil disimpan!', 'success');
-            if (column === 'url' || column === 'shift_code') fetchLinks();
-        } catch (error) {
-            showStatus(`Gagal menyimpan: ${error.message}`, 'error');
-        }
-    }
-
-    function handleEnter(e) {
-        if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
-    }
-
-    async function handleDelete(e) {
-        const button = e.target.closest('button');
-        const card = button.closest('.link-card');
-        const linkId = card.dataset.id;
-        if (!linkId) { showStatus('Gagal menemukan ID tautan.', 'error'); return; }
-        if (confirm('Apakah Anda yakin ingin menghapus tautan ini?')) {
-            showStatus('Menghapus tautan...', 'success');
-            try {
-                const { error } = await supabase.from('links').delete().eq('id', linkId);
-                if (error) throw error;
-                showStatus('Tautan berhasil dihapus!', 'success');
-                card.remove();
-                fetchLinks();
-            } catch (error) {
-                showStatus(`Gagal menghapus: ${error.message}`, 'error');
-            }
-        }
-    }
-
-    async function fetchLinks() {
-        loadingIndicator && loadingIndicator.classList.remove('hidden');
-        linksGrid.innerHTML = '';
-        allLinksData = [];
-        nameTagsContainer.innerHTML = '';
-
-        try {
-            const { data, error } = await supabase.from('links').select('*, category').order('created_at', { ascending: false });
-            loadingIndicator && loadingIndicator.classList.add('hidden');
-            if (error) { showStatus(`Error: ${error.message}`); return; }
-            if (!data || data.length === 0) return;
-
-            allLinksData = data;
-
-            const nameCounts = {};
-            data.forEach(link => {
-                const n = link.person_name;
-                if (n) nameCounts[n] = (nameCounts[n] || 0) + 1;
-            });
-            const uniqueNames = Object.keys(nameCounts).sort((a, b) => a.localeCompare(b, 'id', { sensitivity: 'base' }));
-
-            uniqueNames.forEach(name => {
-                const tag = document.createElement('span');
-                tag.className = 'name-tag';
-                tag.dataset.name = name.toLowerCase();
-                tag.innerHTML = `${name} <span class="tag-count">${nameCounts[name]}</span>`;
-                tag.title = `Filter "${name}" (${nameCounts[name]} item)`;
-                tag.addEventListener('click', () => {
-                    const isActive = tag.classList.contains('active');
-                    document.querySelectorAll('.name-tag').forEach(t => t.classList.remove('active'));
-                    if (isActive) { searchInput.value = ''; } else { searchInput.value = name; tag.classList.add('active'); }
-                    filterLinks();
+            uniqueNames.forEach(name=>{
+                const tag=document.createElement('span');
+                tag.className='filter-tag';
+                tag.dataset.name=name.toLowerCase();
+                tag.innerHTML=`${name} <span class="tag-count">${nameCounts[name]}</span>`;
+                tag.title=`Filter "${name}" (${nameCounts[name]} item)`;
+                if(activeNameFilter===name.toLowerCase())tag.classList.add('active');
+                tag.addEventListener('click',()=>{
+                    if(activeNameFilter===name.toLowerCase()){activeNameFilter=null;}
+                    else{activeNameFilter=name.toLowerCase();}
+                    applyFilters();
                 });
                 nameTagsContainer.appendChild(tag);
             });
 
-            if (uniqueNames.length === 0) {
-                nameTagsContainer.innerHTML = '<span class="text-gray-500 text-sm" style="white-space:nowrap;">Belum ada nama orang terdaftar</span>';
+            if(uniqueNames.length===0){
+                const empty=document.createElement('span');
+                empty.className='text-gray-400 text-sm';empty.style.whiteSpace='nowrap';empty.style.padding='0.4rem';
+                empty.textContent='Belum ada nama';nameTagsContainer.appendChild(empty);
             }
 
-            // Update scroll fades after tags rendered
-            requestAnimationFrame(() => updateScrollFades());
+            requestAnimationFrame(()=>updateNameFades());
 
-            data.forEach(link => {
-                const card = document.createElement('div');
-                card.classList.add('link-card');
-                card.dataset.id = link.id;
-                card.dataset.searchtext = `${link.name || ''} ${link.person_name || ''} ${link.category || ''} ${link.url || ''} ${link.shift_code || ''} ${link.created_at || ''}`;
+            // --- Category tags (initial build via rebuildCatTags called in applyFilters) ---
 
-                const formattedDate = link.created_at ? new Date(link.created_at).toLocaleString() : '-';
-                const qrData = `${link.url || ''} || ${link.shift_code || ''}`;
-                const category = link.category || 'Belum Dikategorikan';
+            // --- Cards ---
+            data.forEach(link=>{
+                const card=document.createElement('div');
+                card.classList.add('link-card');card.dataset.id=link.id;
+                const category=link.category||'Belum Dikategorikan';
+                card.dataset.searchtext=`${link.name||''} ${link.person_name||''} ${category} ${link.url||''} ${link.shift_code||''} ${link.created_at||''}`;
+                card.dataset.personname=(link.person_name||'').toLowerCase();
+                card.dataset.category=category.toLowerCase();
 
-                let qrFilenameBase = `${link.person_name || 'anonim'} - ${link.name || 'tanpa-nama'}`;
-                qrFilenameBase = qrFilenameBase.replace(/[^a-zA-Z0-9\s-.]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
-                const smallQrId = `qr-${link.id}`;
+                const formattedDate=link.created_at?new Date(link.created_at).toLocaleString():'-';
+                const qrData=`${link.url||''} || ${link.shift_code||''}`;
+                let qrFilenameBase=`${link.person_name||'anonim'} - ${link.name||'tanpa-nama'}`;
+                qrFilenameBase=qrFilenameBase.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');
+                const smallQrId=`qr-${link.id}`;
 
-                card.innerHTML = `
+                card.innerHTML=`
                     <button class="card-info-btn" title="Lihat URL & Kode Shift">!</button>
                     <div class="link-card-qr" title="Klik untuk memperbesar QR">
                       <canvas id="${smallQrId}" style="width:100px;height:100px;"></canvas>
                     </div>
                     <div class="link-card-body">
-                      <div class="link-card-title" data-column="name">${link.name || '-'}</div>
-                      <div class="link-card-person" data-column="person_name">${link.person_name || '-'}</div>
+                      <div class="link-card-title" data-column="name">${link.name||'-'}</div>
+                      <div class="link-card-person" data-column="person_name">${link.person_name||'-'}</div>
                       <div class="link-card-category" data-column="category">${category}</div>
                       <div class="link-card-meta"><i class="fa-regular fa-clock" style="margin-right:0.2rem;"></i>${formattedDate}</div>
                     </div>
@@ -1425,79 +807,47 @@
                 `;
 
                 linksGrid.appendChild(card);
+                QRCode.toCanvas(document.getElementById(smallQrId),qrData,{errorCorrectionLevel:'L',margin:1,width:100,color:{dark:'#000000',light:'#ffffff'}});
 
-                QRCode.toCanvas(document.getElementById(smallQrId), qrData, {
-                    errorCorrectionLevel: 'L', margin: 1, width: 100,
-                    color: { dark: '#000000', light: '#ffffff' }
+                card.querySelector('.card-info-btn').addEventListener('click',(e)=>{e.stopPropagation();openInfoPopup(link.id,link.name,link.url,link.shift_code);});
+
+                card.querySelector('.link-card-qr').addEventListener('click',()=>{
+                    enlargedQrContainer.innerHTML='';
+                    generateQrCodeWithPadding(qrData,256,12).then(canvas=>{enlargedQrContainer.appendChild(canvas);canvas.style.borderRadius='0.375rem';canvas.style.display='block';currentQrFilename=`${qrFilenameBase}.png`;qrModal.classList.remove('hidden');});
                 });
 
-                // Info button
-                const infoBtn = card.querySelector('.card-info-btn');
-                infoBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    openInfoPopup(link.id, link.name, link.url, link.shift_code);
-                });
-
-                // QR enlarge
-                const qrClickArea = card.querySelector('.link-card-qr');
-                qrClickArea.addEventListener('click', () => {
-                    enlargedQrContainer.innerHTML = '';
-                    generateQrCodeWithPadding(qrData, 256, 12).then(canvas => {
-                        enlargedQrContainer.appendChild(canvas);
-                        canvas.style.borderRadius = '0.375rem';
-                        canvas.style.display = 'block';
-                        currentQrFilename = `${qrFilenameBase}.png`;
-                        qrModal.classList.remove('hidden');
-                    });
-                });
-
-                // View button
-                const viewBtn = card.querySelector('.view-description-btn');
-                if (viewBtn) {
-                    viewBtn.addEventListener('click', () => {
-                        const urlParam = encodeURIComponent(link.url || '');
-                        const shiftParam = encodeURIComponent(link.shift_code || '');
-                        const personParam = encodeURIComponent(link.person_name || '');
-                        const nameParam = encodeURIComponent(link.name || '');
-                        const targetUrl = `dekripsi.html?url=${urlParam}&shift=${shiftParam}&person=${personParam}&name=${nameParam}`;
-                        window.open(targetUrl, '_blank');
+                const viewBtn=card.querySelector('.view-description-btn');
+                if(viewBtn){
+                    viewBtn.addEventListener('click',()=>{
+                        const targetUrl=`dekripsi.html?url=${encodeURIComponent(link.url||'')}&shift=${encodeURIComponent(link.shift_code||'')}&person=${encodeURIComponent(link.person_name||'')}&name=${encodeURIComponent(link.name||'')}`;
+                        window.open(targetUrl,'_blank');
                     });
                 }
 
-                // Delete button
-                const deleteBtn = card.querySelector('.delete-btn');
-                deleteBtn.addEventListener('click', handleDelete);
+                card.querySelector('.delete-btn').addEventListener('click',handleDelete);
 
-                // Triple-click edit on card fields
-                const editableCells = card.querySelectorAll('[data-column]');
-                editableCells.forEach(cell => {
-                    cell.addEventListener('click', (e) => {
-                        const now = Date.now();
-                        const diff = now - lastClickTime;
-                        clickCount = (diff < 300 && clickCount < 3) ? clickCount + 1 : 1;
-                        lastClickTime = now;
-                        if (clickCount === 3) {
-                            e.preventDefault();
-                            cell.contentEditable = 'true';
-                            cell.classList.add('editable');
-                            cell.focus();
-                            cell.removeEventListener('blur', handleEditCard);
-                            cell.removeEventListener('keydown', handleEnter);
-                            cell.addEventListener('blur', handleEditCard);
-                            cell.addEventListener('keydown', handleEnter);
+                card.querySelectorAll('[data-column]').forEach(cell=>{
+                    cell.addEventListener('click',(e)=>{
+                        const now=Date.now();const diff=now-lastClickTime;
+                        clickCount=(diff<300&&clickCount<3)?clickCount+1:1;lastClickTime=now;
+                        if(clickCount===3){
+                            e.preventDefault();cell.contentEditable='true';cell.classList.add('editable');cell.focus();
+                            cell.removeEventListener('blur',handleEditCard);cell.removeEventListener('keydown',handleEnter);
+                            cell.addEventListener('blur',handleEditCard);cell.addEventListener('keydown',handleEnter);
                         }
                     });
                 });
             });
 
-        } catch (err) {
-            loadingIndicator && loadingIndicator.classList.add('hidden');
-            showStatus(`Terjadi kesalahan: ${err.message}`, 'error');
+            applyFilters();
+
+        }catch(err){
+            loadingIndicator&&loadingIndicator.classList.add('hidden');
+            showStatus(`Terjadi kesalahan: ${err.message}`,'error');
         }
     }
 
-    document.addEventListener('DOMContentLoaded', fetchLinks);
+    document.addEventListener('DOMContentLoaded',fetchLinks);
   </script>
-
 </body>
 </html>
