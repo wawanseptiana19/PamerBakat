@@ -166,12 +166,37 @@
         #pageContent {
           transition: filter 0.25s ease;
         }
-        #nameTags {
+
+        /* NAME TAGS - horizontal scrollable */
+        #nameTagsWrapper {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        #nameTagsScroller {
             display: flex;
             flex-direction: row;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 0.5rem;
-            margin-bottom: 1rem;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 0.5rem;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+        #nameTagsScroller::-webkit-scrollbar {
+            height: 4px;
+        }
+        #nameTagsScroller::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #nameTagsScroller::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        #nameTagsScroller::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
         .name-tag {
             padding: 0.4rem 0.9rem;
@@ -186,6 +211,8 @@
             display: flex;
             align-items: center;
             gap: 0.35rem;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
         .name-tag:hover {
             border-color: #3b82f6;
@@ -208,6 +235,36 @@
         .name-tag.active .tag-count {
             background: rgba(255,255,255,0.25);
         }
+
+        /* Scroll hint fade edges */
+        #nameTagsWrapper::before,
+        #nameTagsWrapper::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0.5rem;
+            width: 2rem;
+            z-index: 2;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        #nameTagsWrapper::before {
+            left: 0;
+            background: linear-gradient(to right, #f3f4f6, transparent);
+            opacity: 0;
+        }
+        #nameTagsWrapper::after {
+            right: 0;
+            background: linear-gradient(to left, #f3f4f6, transparent);
+            opacity: 0;
+        }
+        #nameTagsWrapper.fade-left::before {
+            opacity: 1;
+        }
+        #nameTagsWrapper.fade-right::after {
+            opacity: 1;
+        }
+
         #sidebar {
             position: fixed;
             top: 0;
@@ -469,6 +526,57 @@
             color: #cbd5e1;
             margin-top: 0.75rem;
         }
+
+        /* SEARCH BOX in header */
+        #searchWrapper {
+            position: relative;
+            width: 100%;
+            max-width: 280px;
+        }
+        #searchWrapper input {
+            width: 100%;
+            padding: 0.55rem 2.2rem 0.55rem 2.2rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 0.625rem;
+            font-size: 0.85rem;
+            background: #f8fafc;
+            transition: all 0.2s;
+            outline: none;
+        }
+        #searchWrapper input:focus {
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        #searchWrapper .search-icon {
+            position: absolute;
+            left: 0.7rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.85rem;
+            pointer-events: none;
+        }
+        #searchWrapper .clear-btn {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 0.2rem;
+            border: none;
+            background: none;
+            font-size: 0.8rem;
+            transition: color 0.15s;
+            display: none;
+        }
+        #searchWrapper .clear-btn:hover {
+            color: #475569;
+        }
+        #searchWrapper .clear-btn.visible {
+            display: block;
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -512,8 +620,21 @@
 
   <div id="pageContent">
   <div class="px-4 sm:px-6 py-6">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white shadow-md rounded-lg p-6 mb-6">
-      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-0">Daftar Tautan</h1>
+    <!-- HEADER with search -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white shadow-md rounded-lg p-6 mb-4 gap-4">
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Daftar Tautan</h1>
+      <div id="searchWrapper">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="searchInput" placeholder="Cari tautan...">
+        <button id="clearSearchBtn" class="clear-btn" title="Hapus pencarian">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- NAME TAGS horizontal scroll -->
+    <div id="nameTagsWrapper">
+      <div id="nameTagsScroller"></div>
     </div>
 
     <div class="px-0">
@@ -590,16 +711,6 @@
         <i class="fa-solid fa-plus text-gray-700 w-5 h-5"></i>
         Tambah Konten
     </a>
-    <div class="relative mb-4">
-      <input type="text" id="searchInput" placeholder="Cari..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-8">
-      <button id="clearSearchBtn" class="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none hidden">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-    <h3 class="text-md font-semibold text-gray-800 mb-2">Filter Nama</h3>
-    <div id="nameTags"></div>
   </div>
 
   <!-- LOGIN SCRIPT -->
@@ -740,7 +851,8 @@
     const downloadSingleQrBtn = document.getElementById('downloadSingleQrBtn');
     const enlargedQrContainer = document.getElementById('enlargedQrContainer');
     const downloadAllQrBtn = document.getElementById('downloadAllQrBtn');
-    const nameTagsContainer = document.getElementById('nameTags');
+    const nameTagsContainer = document.getElementById('nameTagsScroller');
+    const nameTagsWrapper = document.getElementById('nameTagsWrapper');
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
     const closeSidebarEl = document.getElementById('closeSidebar');
@@ -760,6 +872,49 @@
     let allLinksData = [];
     let currentQrFilename = null;
     let currentInfoCardId = null;
+
+    // --- Scroll fade edges for name tags ---
+    function updateScrollFades() {
+        const el = nameTagsContainer;
+        if (!el) return;
+        const canScrollLeft = el.scrollLeft > 2;
+        const canScrollRight = el.scrollLeft < (el.scrollWidth - el.clientWidth - 2);
+        nameTagsWrapper.classList.toggle('fade-left', canScrollLeft);
+        nameTagsWrapper.classList.toggle('fade-right', canScrollRight);
+    }
+
+    nameTagsContainer.addEventListener('scroll', updateScrollFades);
+    window.addEventListener('resize', updateScrollFades);
+
+    // Mouse drag horizontal scroll for name tags
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragScrollLeft = 0;
+
+    nameTagsContainer.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        dragStartX = e.pageX - nameTagsContainer.offsetLeft;
+        dragScrollLeft = nameTagsContainer.scrollLeft;
+        nameTagsContainer.style.cursor = 'grabbing';
+        nameTagsContainer.style.userSelect = 'none';
+    });
+    nameTagsContainer.addEventListener('mouseleave', () => {
+        isDragging = false;
+        nameTagsContainer.style.cursor = '';
+        nameTagsContainer.style.userSelect = '';
+    });
+    nameTagsContainer.addEventListener('mouseup', () => {
+        isDragging = false;
+        nameTagsContainer.style.cursor = '';
+        nameTagsContainer.style.userSelect = '';
+    });
+    nameTagsContainer.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.pageX - nameTagsContainer.offsetLeft;
+        const walk = (x - dragStartX) * 1.5;
+        nameTagsContainer.scrollLeft = dragScrollLeft - walk;
+    });
 
     // --- Info Popup ---
     function openInfoPopup(linkId, linkName, url, shiftCode) {
@@ -843,13 +998,11 @@
         e.stopPropagation();
         sidebar.classList.add('open');
         sidebarToggle.style.display = 'none';
-        pageContent.classList.add('blurred');
     }
 
     function closeSidebarFunc() {
         sidebar.classList.remove('open');
         sidebarToggle.style.display = 'block';
-        pageContent.classList.remove('blurred');
     }
 
     sidebarToggle.addEventListener('click', openSidebar);
@@ -1144,10 +1297,10 @@
             const activeTag = Array.from(document.querySelectorAll('.name-tag')).find(t => t.dataset.name === searchTerm);
             if (activeTag) activeTag.classList.add('active');
         }
-        clearSearchBtn.classList.toggle('hidden', !searchTerm);
+        clearSearchBtn.classList.toggle('visible', !!searchTerm);
     }
     searchInput.addEventListener('input', filterLinks);
-    clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; filterLinks(); });
+    clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; filterLinks(); searchInput.focus(); });
 
     async function handleEditCard(e) {
         const cell = e.target;
@@ -1234,14 +1387,16 @@
             });
 
             if (uniqueNames.length === 0) {
-                nameTagsContainer.innerHTML = '<span class="text-gray-500 text-sm">Belum ada nama orang terdaftar</span>';
+                nameTagsContainer.innerHTML = '<span class="text-gray-500 text-sm" style="white-space:nowrap;">Belum ada nama orang terdaftar</span>';
             }
+
+            // Update scroll fades after tags rendered
+            requestAnimationFrame(() => updateScrollFades());
 
             data.forEach(link => {
                 const card = document.createElement('div');
                 card.classList.add('link-card');
                 card.dataset.id = link.id;
-                // searchtext for filtering (includes url, shift, etc)
                 card.dataset.searchtext = `${link.name || ''} ${link.person_name || ''} ${link.category || ''} ${link.url || ''} ${link.shift_code || ''} ${link.created_at || ''}`;
 
                 const formattedDate = link.created_at ? new Date(link.created_at).toLocaleString() : '-';
@@ -1313,7 +1468,7 @@
                 const deleteBtn = card.querySelector('.delete-btn');
                 deleteBtn.addEventListener('click', handleDelete);
 
-                // Triple-click edit on card fields (name, person_name, category)
+                // Triple-click edit on card fields
                 const editableCells = card.querySelectorAll('[data-column]');
                 editableCells.forEach(cell => {
                     cell.addEventListener('click', (e) => {
