@@ -240,6 +240,56 @@
         #searchWrapper .clear-btn.visible { display: block; }
 
         #resultCount { font-size: 0.78rem; color: #94a3b8; font-weight: 500; margin-bottom: 0.75rem; padding-left: 0.1rem; }
+
+        /* ===== PAGINATION ===== */
+        .pagination-container {
+            display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+            margin-top: 1.5rem; padding: 1.25rem; background: white;
+            border-radius: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+        }
+        .pagination-row {
+            display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+            justify-content: center;
+        }
+        .pagination-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;
+            padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.82rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; border: 1.5px solid #e2e8f0;
+            background: white; color: #475569; min-width: 2.5rem;
+        }
+        .pagination-btn:hover:not(:disabled) { border-color: #3b82f6; color: #1e40af; background: #eff6ff; }
+        .pagination-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .pagination-btn.active {
+            background: #3b82f6; color: white; border-color: #3b82f6;
+            box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+        }
+        .pagination-btn.active:hover { background: #2563eb; }
+        .pagination-btn.nav-btn { padding: 0.5rem 1.2rem; }
+        .pagination-btn.nav-btn i { font-size: 0.7rem; }
+        .pagination-ellipsis {
+            padding: 0.5rem 0.4rem; font-size: 0.82rem; color: #94a3b8;
+            font-weight: 700; letter-spacing: 0.1em; user-select: none;
+        }
+        .pagination-jump {
+            display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: #64748b;
+        }
+        .pagination-jump label { font-weight: 500; white-space: nowrap; }
+        .pagination-jump input {
+            width: 3.5rem; padding: 0.4rem 0.5rem; border: 1.5px solid #e2e8f0;
+            border-radius: 0.5rem; font-size: 0.82rem; text-align: center;
+            outline: none; transition: all 0.2s; background: #f8fafc;
+        }
+        .pagination-jump input:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+        .pagination-jump button {
+            padding: 0.4rem 0.75rem; border-radius: 0.5rem; font-size: 0.78rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; border: 1.5px solid #3b82f6;
+            background: #3b82f6; color: white;
+        }
+        .pagination-jump button:hover { background: #2563eb; }
+        .pagination-info {
+            font-size: 0.75rem; color: #94a3b8; font-weight: 500;
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -318,6 +368,19 @@
       </div>
 
       <div id="links-grid"></div>
+
+      <!-- PAGINATION -->
+      <div id="paginationContainer" class="pagination-container" style="display:none;">
+        <div class="pagination-row" id="paginationButtons"></div>
+        <div class="pagination-row">
+          <div class="pagination-jump">
+            <label for="jumpPageInput">Ke halaman:</label>
+            <input type="number" id="jumpPageInput" min="1" placeholder="..." />
+            <button id="jumpPageBtn"><i class="fa-solid fa-arrow-right"></i> Go</button>
+          </div>
+        </div>
+        <div class="pagination-info" id="paginationInfo"></div>
+      </div>
     </div>
   </div>
 
@@ -426,6 +489,11 @@
     const infoPopupTitle=document.getElementById('infoPopupTitle');
     const infoUrlValue=document.getElementById('infoUrlValue');
     const infoShiftValue=document.getElementById('infoShiftValue');
+    const paginationContainer=document.getElementById('paginationContainer');
+    const paginationButtons=document.getElementById('paginationButtons');
+    const paginationInfo=document.getElementById('paginationInfo');
+    const jumpPageInput=document.getElementById('jumpPageInput');
+    const jumpPageBtn=document.getElementById('jumpPageBtn');
 
     let lastClickTime=0,clickCount=0;
     let currentDownloadBlob=null,currentDownloadFilename=null;
@@ -433,6 +501,11 @@
     let currentQrFilename=null,currentInfoCardId=null;
     let activeNameFilter=null;
     let activeCatFilter=null;
+
+    // ===== PAGINATION STATE =====
+    const ITEMS_PER_PAGE = 9;
+    let currentPage = 1;
+    let filteredLinksData = []; // links after filter applied
 
     // --- Scroll fade ---
     function setupScrollFades(scroller,wrapper){
@@ -461,7 +534,6 @@
     setupDragScroll(nameTagsContainer);
     setupDragScroll(catTagsContainer);
 
-    // --- Recalculate category counts based on active name filter ---
     function getCatCountsForCurrentNameFilter(){
         const catCounts={};
         const filtered=activeNameFilter
@@ -474,7 +546,6 @@
         return catCounts;
     }
 
-    // --- Rebuild category tags ---
     function rebuildCatTags(){
         catTagsContainer.innerHTML='';
         const catCounts=getCatCountsForCurrentNameFilter();
@@ -503,13 +574,13 @@
                 tag.addEventListener('click',()=>{
                     if(activeCatFilter===cat.toLowerCase()){activeCatFilter=null;}
                     else{activeCatFilter=cat.toLowerCase();}
+                    currentPage=1;
                     applyFilters();
                 });
                 catTagsContainer.appendChild(tag);
             });
         }
 
-        // Check if current activeCatFilter still exists
         if(activeCatFilter && !uniqueCats.some(c=>c.toLowerCase()===activeCatFilter)){
             activeCatFilter=null;
         }
@@ -517,43 +588,261 @@
         requestAnimationFrame(()=>updateCatFades());
     }
 
-    // --- Combined filter ---
-    function applyFilters(){
+    // ===== GET FILTERED DATA (without rendering) =====
+    function getFilteredData(){
         const searchTerm=searchInput.value.toLowerCase().trim();
-        const cards=linksGrid.querySelectorAll('.link-card');
-        let visibleCount=0;
-
-        // Rebuild category tags with updated counts
-        rebuildCatTags();
-
-        cards.forEach(card=>{
-            const text=(card.dataset.searchtext||'').toLowerCase();
-            const cardName=(card.dataset.personname||'').toLowerCase();
-            const cardCat=(card.dataset.category||'').toLowerCase();
+        return allLinksData.filter(link=>{
+            const text=`${link.name||''} ${link.person_name||''} ${link.category||'Belum Dikategorikan'} ${link.url||''} ${link.shift_code||''} ${link.created_at||''}`.toLowerCase();
+            const cardName=(link.person_name||'').toLowerCase();
+            const cardCat=(link.category||'Belum Dikategorikan').toLowerCase();
             let show=true;
             if(searchTerm&&!text.includes(searchTerm))show=false;
             if(activeNameFilter&&cardName!==activeNameFilter)show=false;
             if(activeCatFilter&&cardCat!==activeCatFilter)show=false;
-            card.style.display=show?'':'none';
-            if(show)visibleCount++;
+            return show;
         });
+    }
+
+    // ===== RENDER CARDS FOR CURRENT PAGE =====
+    function renderCurrentPage(){
+        linksGrid.innerHTML='';
+        const totalFiltered=filteredLinksData.length;
+        const totalPages=Math.ceil(totalFiltered/ITEMS_PER_PAGE);
+
+        if(currentPage>totalPages&&totalPages>0) currentPage=totalPages;
+        if(currentPage<1) currentPage=1;
+
+        const startIdx=(currentPage-1)*ITEMS_PER_PAGE;
+        const endIdx=Math.min(startIdx+ITEMS_PER_PAGE, totalFiltered);
+        const pageData=filteredLinksData.slice(startIdx, endIdx);
+
+        pageData.forEach(link=>{
+            const card=createCardElement(link);
+            linksGrid.appendChild(card);
+            const smallQrId=`qr-${link.id}`;
+            const qrData=`${link.url||''} || ${link.shift_code||''}`;
+            const canvasEl=document.getElementById(smallQrId);
+            if(canvasEl){
+                QRCode.toCanvas(canvasEl,qrData,{errorCorrectionLevel:'L',margin:1,width:100,color:{dark:'#000000',light:'#ffffff'}});
+            }
+        });
+
+        renderPagination(totalFiltered, totalPages);
+    }
+
+    // ===== CREATE CARD ELEMENT =====
+    function createCardElement(link){
+        const card=document.createElement('div');
+        card.classList.add('link-card');card.dataset.id=link.id;
+        const category=link.category||'Belum Dikategorikan';
+        card.dataset.searchtext=`${link.name||''} ${link.person_name||''} ${category} ${link.url||''} ${link.shift_code||''} ${link.created_at||''}`;
+        card.dataset.personname=(link.person_name||'').toLowerCase();
+        card.dataset.category=category.toLowerCase();
+
+        const formattedDate=link.created_at?new Date(link.created_at).toLocaleString():'-';
+        const qrData=`${link.url||''} || ${link.shift_code||''}`;
+        let qrFilenameBase=`${link.person_name||'anonim'} - ${link.name||'tanpa-nama'}`;
+        qrFilenameBase=qrFilenameBase.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');
+        const smallQrId=`qr-${link.id}`;
+
+        card.innerHTML=`
+            <button class="card-info-btn" title="Lihat URL & Kode Shift">!</button>
+            <div class="link-card-qr" title="Klik untuk memperbesar QR">
+              <canvas id="${smallQrId}" style="width:100px;height:100px;"></canvas>
+            </div>
+            <div class="link-card-body">
+              <div class="link-card-title" data-column="name">${link.name||'-'}</div>
+              <div class="link-card-person" data-column="person_name">${link.person_name||'-'}</div>
+              <div class="link-card-category" data-column="category">${category}</div>
+              <div class="link-card-meta"><i class="fa-regular fa-clock" style="margin-right:0.2rem;"></i>${formattedDate}</div>
+            </div>
+            <div class="link-card-actions">
+              <button class="card-btn-view view-description-btn"><i class="fa-solid fa-eye" style="margin-right:0.3rem;"></i>Lihat</button>
+              <button class="card-btn-delete delete-btn"><i class="fa-solid fa-trash-can" style="margin-right:0.3rem;"></i>Hapus</button>
+            </div>
+        `;
+
+        card.querySelector('.card-info-btn').addEventListener('click',(e)=>{e.stopPropagation();openInfoPopup(link.id,link.name,link.url,link.shift_code);});
+
+        card.querySelector('.link-card-qr').addEventListener('click',()=>{
+            enlargedQrContainer.innerHTML='';
+            generateQrCodeWithPadding(qrData,256,12).then(canvas=>{enlargedQrContainer.appendChild(canvas);canvas.style.borderRadius='0.375rem';canvas.style.display='block';currentQrFilename=`${qrFilenameBase}.png`;qrModal.classList.remove('hidden');});
+        });
+
+        const viewBtn=card.querySelector('.view-description-btn');
+        if(viewBtn){
+            viewBtn.addEventListener('click',()=>{
+                const targetUrl=`dekripsi.html?url=${encodeURIComponent(link.url||'')}&shift=${encodeURIComponent(link.shift_code||'')}&person=${encodeURIComponent(link.person_name||'')}&name=${encodeURIComponent(link.name||'')}`;
+                window.open(targetUrl,'_blank');
+            });
+        }
+
+        card.querySelector('.delete-btn').addEventListener('click',handleDelete);
+
+        card.querySelectorAll('[data-column]').forEach(cell=>{
+            cell.addEventListener('click',(e)=>{
+                const now=Date.now();const diff=now-lastClickTime;
+                clickCount=(diff<300&&clickCount<3)?clickCount+1:1;lastClickTime=now;
+                if(clickCount===3){
+                    e.preventDefault();cell.contentEditable='true';cell.classList.add('editable');cell.focus();
+                    cell.removeEventListener('blur',handleEditCard);cell.removeEventListener('keydown',handleEnter);
+                    cell.addEventListener('blur',handleEditCard);cell.addEventListener('keydown',handleEnter);
+                }
+            });
+        });
+
+        return card;
+    }
+
+    // ===== RENDER PAGINATION =====
+    function renderPagination(totalItems, totalPages){
+        if(totalPages<=1){
+            paginationContainer.style.display='none';
+            return;
+        }
+        paginationContainer.style.display='';
+        paginationButtons.innerHTML='';
+
+        // First button
+        const firstBtn=document.createElement('button');
+        firstBtn.className='pagination-btn nav-btn';
+        firstBtn.innerHTML='<i class="fa-solid fa-angles-left"></i>';
+        firstBtn.title='Halaman pertama';
+        firstBtn.disabled=(currentPage===1);
+        firstBtn.addEventListener('click',()=>{currentPage=1;renderCurrentPage();scrollToTop();});
+        paginationButtons.appendChild(firstBtn);
+
+        // Prev button
+        const prevBtn=document.createElement('button');
+        prevBtn.className='pagination-btn nav-btn';
+        prevBtn.innerHTML='<i class="fa-solid fa-chevron-left"></i> Sblm';
+        prevBtn.disabled=(currentPage===1);
+        prevBtn.addEventListener('click',()=>{if(currentPage>1){currentPage--;renderCurrentPage();scrollToTop();}});
+        paginationButtons.appendChild(prevBtn);
+
+        // Page number buttons with ellipsis
+        const pageNumbers=getPageNumbers(currentPage, totalPages);
+        pageNumbers.forEach(p=>{
+            if(p==='...'){
+                const ell=document.createElement('span');
+                ell.className='pagination-ellipsis';
+                ell.textContent='···';
+                paginationButtons.appendChild(ell);
+            } else {
+                const btn=document.createElement('button');
+                btn.className='pagination-btn'+(p===currentPage?' active':'');
+                btn.textContent=p;
+                btn.addEventListener('click',()=>{currentPage=p;renderCurrentPage();scrollToTop();});
+                paginationButtons.appendChild(btn);
+            }
+        });
+
+        // Next button
+        const nextBtn=document.createElement('button');
+        nextBtn.className='pagination-btn nav-btn';
+        nextBtn.innerHTML='Slnjt <i class="fa-solid fa-chevron-right"></i>';
+        nextBtn.disabled=(currentPage===totalPages);
+        nextBtn.addEventListener('click',()=>{if(currentPage<totalPages){currentPage++;renderCurrentPage();scrollToTop();}});
+        paginationButtons.appendChild(nextBtn);
+
+        // Last button
+        const lastBtn=document.createElement('button');
+        lastBtn.className='pagination-btn nav-btn';
+        lastBtn.innerHTML='<i class="fa-solid fa-angles-right"></i>';
+        lastBtn.title='Halaman terakhir';
+        lastBtn.disabled=(currentPage===totalPages);
+        lastBtn.addEventListener('click',()=>{currentPage=totalPages;renderCurrentPage();scrollToTop();});
+        paginationButtons.appendChild(lastBtn);
+
+        // Jump input
+        jumpPageInput.max=totalPages;
+        jumpPageInput.value='';
+        jumpPageInput.placeholder=`1-${totalPages}`;
+
+        // Info text
+        const startItem=(currentPage-1)*ITEMS_PER_PAGE+1;
+        const endItem=Math.min(currentPage*ITEMS_PER_PAGE, totalItems);
+        paginationInfo.textContent=`Halaman ${currentPage} dari ${totalPages} — Menampilkan ${startItem}–${endItem} dari ${totalItems} tautan`;
+    }
+
+    // Generate smart page numbers with ellipsis
+    function getPageNumbers(current, total){
+        const delta=2;
+        const range=[];
+        const rangeWithDots=[];
+
+        for(let i=1;i<=total;i++){
+            if(i===1||i===total||
+               (i>=current-delta&&i<=current+delta)){
+                range.push(i);
+            }
+        }
+
+        let prev=null;
+        for(const i of range){
+            if(prev!==null){
+                if(i-prev===2){
+                    rangeWithDots.push(prev+1);
+                } else if(i-prev>2){
+                    rangeWithDots.push('...');
+                }
+            }
+            rangeWithDots.push(i);
+            prev=i;
+        }
+        return rangeWithDots;
+    }
+
+    function scrollToTop(){
+        window.scrollTo({top:0, behavior:'smooth'});
+    }
+
+    // Jump page handler
+    jumpPageBtn.addEventListener('click',()=>{
+        const totalPages=Math.ceil(filteredLinksData.length/ITEMS_PER_PAGE);
+        const val=parseInt(jumpPageInput.value);
+        if(isNaN(val)||val<1||val>totalPages){
+            showStatus(`Masukkan nomor halaman antara 1 dan ${totalPages}`,'error');
+            return;
+        }
+        currentPage=val;
+        renderCurrentPage();
+        scrollToTop();
+    });
+    jumpPageInput.addEventListener('keydown',(e)=>{
+        if(e.key==='Enter'){e.preventDefault();jumpPageBtn.click();}
+    });
+
+    // ===== COMBINED FILTER =====
+    function applyFilters(){
+        const searchTerm=searchInput.value.toLowerCase().trim();
+
+        rebuildCatTags();
+
+        filteredLinksData=getFilteredData();
 
         // Update name tag active states
         document.querySelectorAll('#nameTagsScroller .filter-tag').forEach(t=>{
             t.classList.toggle('active',activeNameFilter&&t.dataset.name===activeNameFilter);
         });
-        // Cat tag active states are handled in rebuildCatTags
 
         clearSearchBtn.classList.toggle('visible',!!searchTerm);
         renderActiveFilters();
 
-        const totalCards=cards.length;
+        const totalFiltered=filteredLinksData.length;
         const hasAnyFilter=searchTerm||activeNameFilter||activeCatFilter;
         if(hasAnyFilter){
-            resultCountEl.textContent=`Menampilkan ${visibleCount} dari ${totalCards} tautan`;
+            resultCountEl.textContent=`Menampilkan ${totalFiltered} dari ${allLinksData.length} tautan`;
         }else{
-            resultCountEl.textContent=totalCards>0?`Total ${totalCards} tautan`:'';
+            resultCountEl.textContent=allLinksData.length>0?`Total ${allLinksData.length} tautan`:'';
         }
+
+        // Clamp current page
+        const totalPages=Math.ceil(totalFiltered/ITEMS_PER_PAGE);
+        if(currentPage>totalPages&&totalPages>0) currentPage=totalPages;
+        if(currentPage<1) currentPage=1;
+
+        renderCurrentPage();
     }
 
     function renderActiveFilters(){
@@ -567,7 +856,7 @@
             const displayName=allLinksData.find(l=>(l.person_name||'').toLowerCase()===activeNameFilter)?.person_name||activeNameFilter;
             chip.innerHTML=`<i class="fa-solid fa-user" style="font-size:0.6rem;"></i> ${displayName} <span class="chip-x">✕</span>`;
             chip.title='Klik untuk hapus filter nama';
-            chip.addEventListener('click',()=>{activeNameFilter=null;applyFilters();});
+            chip.addEventListener('click',()=>{activeNameFilter=null;currentPage=1;applyFilters();});
             activeFiltersContainer.appendChild(chip);
         }
         if(activeCatFilter){
@@ -576,20 +865,20 @@
             const displayCat=allLinksData.find(l=>(l.category||'Belum Dikategorikan').toLowerCase()===activeCatFilter)?.category||activeCatFilter;
             chip.innerHTML=`<i class="fa-solid fa-tag" style="font-size:0.6rem;"></i> ${displayCat||'Belum Dikategorikan'} <span class="chip-x">✕</span>`;
             chip.title='Klik untuk hapus filter kategori';
-            chip.addEventListener('click',()=>{activeCatFilter=null;applyFilters();});
+            chip.addEventListener('click',()=>{activeCatFilter=null;currentPage=1;applyFilters();});
             activeFiltersContainer.appendChild(chip);
         }
         if(activeNameFilter&&activeCatFilter){
             const clearChip=document.createElement('span');
             clearChip.className='clear-all-chip';
             clearChip.innerHTML='<i class="fa-solid fa-xmark" style="font-size:0.6rem;"></i> Hapus Semua';
-            clearChip.addEventListener('click',()=>{activeNameFilter=null;activeCatFilter=null;searchInput.value='';applyFilters();});
+            clearChip.addEventListener('click',()=>{activeNameFilter=null;activeCatFilter=null;searchInput.value='';currentPage=1;applyFilters();});
             activeFiltersContainer.appendChild(clearChip);
         }
     }
 
-    searchInput.addEventListener('input',applyFilters);
-    clearSearchBtn.addEventListener('click',()=>{searchInput.value='';applyFilters();searchInput.focus();});
+    searchInput.addEventListener('input',()=>{currentPage=1;applyFilters();});
+    clearSearchBtn.addEventListener('click',()=>{searchInput.value='';currentPage=1;applyFilters();searchInput.focus();});
 
     // --- Info Popup ---
     function openInfoPopup(linkId,linkName,url,shiftCode){
@@ -722,14 +1011,15 @@
         const linkId=card.dataset.id;if(!linkId){showStatus('Gagal menemukan ID tautan.','error');return;}
         if(confirm('Apakah Anda yakin ingin menghapus tautan ini?')){
             showStatus('Menghapus tautan...','success');
-            try{const{error}=await supabase.from('links').delete().eq('id',linkId);if(error)throw error;showStatus('Tautan berhasil dihapus!','success');card.remove();fetchLinks();}catch(error){showStatus(`Gagal menghapus: ${error.message}`,'error');}
+            try{const{error}=await supabase.from('links').delete().eq('id',linkId);if(error)throw error;showStatus('Tautan berhasil dihapus!','success');fetchLinks();}catch(error){showStatus(`Gagal menghapus: ${error.message}`,'error');}
         }
     }
 
     async function fetchLinks(){
         loadingIndicator&&loadingIndicator.classList.remove('hidden');
-        linksGrid.innerHTML='';allLinksData=[];
+        linksGrid.innerHTML='';allLinksData=[];filteredLinksData=[];
         nameTagsContainer.innerHTML='';catTagsContainer.innerHTML='';
+        paginationContainer.style.display='none';
 
         try{
             const{data,error}=await supabase.from('links').select('*, category').order('created_at',{ascending:false});
@@ -759,6 +1049,7 @@
                 tag.addEventListener('click',()=>{
                     if(activeNameFilter===name.toLowerCase()){activeNameFilter=null;}
                     else{activeNameFilter=name.toLowerCase();}
+                    currentPage=1;
                     applyFilters();
                 });
                 nameTagsContainer.appendChild(tag);
@@ -771,73 +1062,6 @@
             }
 
             requestAnimationFrame(()=>updateNameFades());
-
-            // --- Category tags (initial build via rebuildCatTags called in applyFilters) ---
-
-            // --- Cards ---
-            data.forEach(link=>{
-                const card=document.createElement('div');
-                card.classList.add('link-card');card.dataset.id=link.id;
-                const category=link.category||'Belum Dikategorikan';
-                card.dataset.searchtext=`${link.name||''} ${link.person_name||''} ${category} ${link.url||''} ${link.shift_code||''} ${link.created_at||''}`;
-                card.dataset.personname=(link.person_name||'').toLowerCase();
-                card.dataset.category=category.toLowerCase();
-
-                const formattedDate=link.created_at?new Date(link.created_at).toLocaleString():'-';
-                const qrData=`${link.url||''} || ${link.shift_code||''}`;
-                let qrFilenameBase=`${link.person_name||'anonim'} - ${link.name||'tanpa-nama'}`;
-                qrFilenameBase=qrFilenameBase.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');
-                const smallQrId=`qr-${link.id}`;
-
-                card.innerHTML=`
-                    <button class="card-info-btn" title="Lihat URL & Kode Shift">!</button>
-                    <div class="link-card-qr" title="Klik untuk memperbesar QR">
-                      <canvas id="${smallQrId}" style="width:100px;height:100px;"></canvas>
-                    </div>
-                    <div class="link-card-body">
-                      <div class="link-card-title" data-column="name">${link.name||'-'}</div>
-                      <div class="link-card-person" data-column="person_name">${link.person_name||'-'}</div>
-                      <div class="link-card-category" data-column="category">${category}</div>
-                      <div class="link-card-meta"><i class="fa-regular fa-clock" style="margin-right:0.2rem;"></i>${formattedDate}</div>
-                    </div>
-                    <div class="link-card-actions">
-                      <button class="card-btn-view view-description-btn"><i class="fa-solid fa-eye" style="margin-right:0.3rem;"></i>Lihat</button>
-                      <button class="card-btn-delete delete-btn"><i class="fa-solid fa-trash-can" style="margin-right:0.3rem;"></i>Hapus</button>
-                    </div>
-                `;
-
-                linksGrid.appendChild(card);
-                QRCode.toCanvas(document.getElementById(smallQrId),qrData,{errorCorrectionLevel:'L',margin:1,width:100,color:{dark:'#000000',light:'#ffffff'}});
-
-                card.querySelector('.card-info-btn').addEventListener('click',(e)=>{e.stopPropagation();openInfoPopup(link.id,link.name,link.url,link.shift_code);});
-
-                card.querySelector('.link-card-qr').addEventListener('click',()=>{
-                    enlargedQrContainer.innerHTML='';
-                    generateQrCodeWithPadding(qrData,256,12).then(canvas=>{enlargedQrContainer.appendChild(canvas);canvas.style.borderRadius='0.375rem';canvas.style.display='block';currentQrFilename=`${qrFilenameBase}.png`;qrModal.classList.remove('hidden');});
-                });
-
-                const viewBtn=card.querySelector('.view-description-btn');
-                if(viewBtn){
-                    viewBtn.addEventListener('click',()=>{
-                        const targetUrl=`dekripsi.html?url=${encodeURIComponent(link.url||'')}&shift=${encodeURIComponent(link.shift_code||'')}&person=${encodeURIComponent(link.person_name||'')}&name=${encodeURIComponent(link.name||'')}`;
-                        window.open(targetUrl,'_blank');
-                    });
-                }
-
-                card.querySelector('.delete-btn').addEventListener('click',handleDelete);
-
-                card.querySelectorAll('[data-column]').forEach(cell=>{
-                    cell.addEventListener('click',(e)=>{
-                        const now=Date.now();const diff=now-lastClickTime;
-                        clickCount=(diff<300&&clickCount<3)?clickCount+1:1;lastClickTime=now;
-                        if(clickCount===3){
-                            e.preventDefault();cell.contentEditable='true';cell.classList.add('editable');cell.focus();
-                            cell.removeEventListener('blur',handleEditCard);cell.removeEventListener('keydown',handleEnter);
-                            cell.addEventListener('blur',handleEditCard);cell.addEventListener('keydown',handleEnter);
-                        }
-                    });
-                });
-            });
 
             applyFilters();
 
