@@ -1,3 +1,6 @@
+
+
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -7,77 +10,171 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
     window.createClient = createClient;
   </script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <style>
-    *{box-sizing:border-box;}
-    body{font-family:'Inter',sans-serif;background:#f0f2f5;margin:0;padding:0;min-height:100vh;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:'Inter',sans-serif;
+      background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);
+      min-height:100vh;color:#e2e8f0;
+      overflow-x:hidden;
+    }
+
+    /* Animated background particles */
+    body::before{
+      content:'';position:fixed;inset:0;z-index:0;
+      background:
+        radial-gradient(ellipse 600px 600px at 20% 20%, rgba(59,130,246,.08) 0%, transparent 70%),
+        radial-gradient(ellipse 500px 500px at 80% 80%, rgba(139,92,246,.06) 0%, transparent 70%),
+        radial-gradient(ellipse 400px 400px at 50% 50%, rgba(16,185,129,.04) 0%, transparent 70%);
+      pointer-events:none;
+    }
 
     .main-container{
-      width:100%;max-width:900px;margin:0 auto;
-      padding:1rem 1rem 6rem;
+      position:relative;z-index:1;
+      width:100%;max-width:960px;margin:0 auto;
+      padding:1.5rem 1rem 6rem;
     }
     @media(min-width:768px){
-      .main-container{padding:2rem 2rem 4rem;}
+      .main-container{padding:2.5rem 2rem 4rem;}
     }
 
+    /* Glass Card */
     .card{
-      background:#fff;border-radius:1rem;
-      box-shadow:0 1px 3px rgba(0,0,0,.08),0 4px 14px rgba(0,0,0,.04);
-      padding:1.25rem;margin-bottom:1.25rem;
+      background:rgba(255,255,255,.04);
+      backdrop-filter:blur(20px);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:1.25rem;
+      padding:1.5rem;
+      margin-bottom:1.25rem;
+      transition:all .3s ease;
+    }
+    .card:hover{
+      background:rgba(255,255,255,.06);
+      border-color:rgba(255,255,255,.12);
     }
     @media(min-width:768px){
       .card{padding:2rem;}
     }
 
-    .status-bar{
-      display:flex;align-items:center;gap:.5rem;
-      background:#f8fafc;border:1px solid #e2e8f0;
-      border-radius:.625rem;padding:.625rem 1rem;
-      font-size:.8125rem;color:#475569;
+    .card-header{
+      display:flex;align-items:center;gap:.75rem;
+    }
+    .card-icon{
+      width:2.75rem;height:2.75rem;border-radius:.75rem;
+      display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;
+    }
+    .card-icon.blue{background:linear-gradient(135deg,#3b82f6,#6366f1);}
+    .card-icon.green{background:linear-gradient(135deg,#10b981,#06b6d4);}
+    .card-icon.purple{background:linear-gradient(135deg,#8b5cf6,#a855f7);}
+
+    .page-title{
+      font-size:1.5rem;font-weight:800;
+      background:linear-gradient(135deg,#f1f5f9,#cbd5e1);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text;
+      line-height:1.3;
+    }
+    @media(min-width:768px){.page-title{font-size:1.75rem;}}
+
+    .page-subtitle{
+      font-size:.8125rem;color:#94a3b8;margin-top:.125rem;
     }
 
+    /* Status Bar */
+    .status-bar{
+      display:flex;align-items:center;gap:.625rem;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:.75rem;padding:.75rem 1rem;
+      font-size:.8125rem;color:#94a3b8;
+      transition:all .3s ease;
+    }
+    .status-bar.success{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.06);}
+    .status-bar.error{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.06);}
+
+    /* Preview */
     .preview-area{
       display:flex;flex-direction:column;align-items:center;
       gap:1rem;width:100%;
     }
     .preview-area img,
     .preview-area video{
-      width:100%;max-width:640px;border-radius:.75rem;
-      box-shadow:0 2px 12px rgba(0,0,0,.08);
+      width:100%;max-width:720px;border-radius:1rem;
+      box-shadow:0 8px 32px rgba(0,0,0,.4);
+      border:1px solid rgba(255,255,255,.06);
     }
     .preview-label{
-      font-size:.875rem;font-weight:600;color:#334155;
+      font-size:.9375rem;font-weight:600;color:#e2e8f0;
       text-align:center;word-break:break-word;
+      padding:.5rem 1rem;
+      background:rgba(255,255,255,.04);
+      border-radius:.5rem;
     }
 
+    /* Buttons */
     .btn{
       display:inline-flex;align-items:center;justify-content:center;
-      gap:.5rem;padding:.625rem 1.25rem;border-radius:.5rem;
+      gap:.5rem;padding:.75rem 1.5rem;border-radius:.75rem;
       font-size:.8125rem;font-weight:600;
       text-decoration:none;border:none;cursor:pointer;
-      transition:all .15s ease;
+      transition:all .2s ease;position:relative;overflow:hidden;
     }
-    .btn-gray{background:#f1f5f9;color:#334155;border:1px solid #e2e8f0;}
-    .btn-gray:hover{background:#e2e8f0;}
-    .btn-green{background:#10b981;color:#fff;box-shadow:0 2px 8px rgba(16,185,129,.3);}
-    .btn-green:hover{background:#059669;}
-    .btn-blue{background:#3b82f6;color:#fff;box-shadow:0 2px 8px rgba(59,130,246,.3);}
-    .btn-blue:hover{background:#2563eb;}
-    .btn-group{display:flex;flex-wrap:wrap;justify-content:center;gap:.625rem;margin-top:1rem;}
+    .btn::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(135deg,rgba(255,255,255,.1),transparent);
+      opacity:0;transition:opacity .2s;
+    }
+    .btn:hover::after{opacity:1;}
 
+    .btn-glass{
+      background:rgba(255,255,255,.06);color:#e2e8f0;
+      border:1px solid rgba(255,255,255,.1);
+    }
+    .btn-glass:hover{background:rgba(255,255,255,.1);transform:translateY(-1px);}
+
+    .btn-green{
+      background:linear-gradient(135deg,#10b981,#059669);color:#fff;
+      box-shadow:0 4px 16px rgba(16,185,129,.3);
+    }
+    .btn-green:hover{box-shadow:0 6px 24px rgba(16,185,129,.4);transform:translateY(-1px);}
+
+    .btn-blue{
+      background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;
+      box-shadow:0 4px 16px rgba(59,130,246,.3);
+    }
+    .btn-blue:hover{box-shadow:0 6px 24px rgba(59,130,246,.4);transform:translateY(-1px);}
+
+    .btn-purple{
+      background:linear-gradient(135deg,#8b5cf6,#a855f7);color:#fff;
+      box-shadow:0 4px 16px rgba(139,92,246,.3);
+    }
+    .btn-purple:hover{box-shadow:0 6px 24px rgba(139,92,246,.4);transform:translateY(-1px);}
+
+    .btn-group{display:flex;flex-wrap:wrap;justify-content:center;gap:.75rem;margin-top:1.25rem;}
+
+    /* Meta */
     .meta-row{
-      display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;
-      margin-top:1rem;font-size:.8125rem;color:#64748b;
+      display:flex;flex-wrap:wrap;justify-content:center;gap:1.25rem;
+      margin-top:1.25rem;font-size:.8125rem;color:#94a3b8;
     }
-    .meta-item{display:flex;align-items:center;gap:.375rem;}
+    .meta-item{
+      display:flex;align-items:center;gap:.375rem;
+      background:rgba(255,255,255,.03);
+      padding:.5rem .875rem;border-radius:.5rem;
+      border:1px solid rgba(255,255,255,.06);
+    }
 
+    /* Frames Grid */
     .frames-grid{
-      display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
       gap:.75rem;margin-top:1rem;
     }
     @media(min-width:768px){
@@ -85,120 +182,259 @@
     }
     .frame-thumb{
       width:100%;aspect-ratio:16/9;object-fit:cover;
-      border-radius:.5rem;cursor:pointer;
-      box-shadow:0 1px 4px rgba(0,0,0,.08);
-      transition:transform .15s ease,box-shadow .15s ease;
+      border-radius:.75rem;cursor:pointer;
+      box-shadow:0 2px 8px rgba(0,0,0,.3);
+      border:2px solid transparent;
+      transition:all .2s ease;
     }
-    .frame-thumb:hover{transform:scale(1.03);box-shadow:0 4px 12px rgba(0,0,0,.15);}
+    .frame-thumb:hover{
+      transform:scale(1.04);
+      box-shadow:0 8px 24px rgba(0,0,0,.4);
+      border-color:rgba(59,130,246,.4);
+    }
+    .frame-thumb.active-frame{
+      border-color:#3b82f6;
+      box-shadow:0 0 0 3px rgba(59,130,246,.3), 0 8px 24px rgba(0,0,0,.4);
+      transform:scale(1.04);
+    }
+
+    /* Frame counter badge */
+    .frame-counter{
+      display:inline-flex;align-items:center;gap:.5rem;
+      background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);
+      color:#93c5fd;padding:.5rem 1rem;border-radius:.5rem;
+      font-size:.8125rem;font-weight:600;margin-top:.75rem;
+    }
+
+    /* Progress bar for frame extraction */
+    .progress-wrap{
+      width:100%;max-width:400px;margin:1rem auto;
+    }
+    .progress-bar-bg{
+      height:.375rem;background:rgba(255,255,255,.06);
+      border-radius:1rem;overflow:hidden;
+    }
+    .progress-bar-fill{
+      height:100%;width:0;
+      background:linear-gradient(90deg,#3b82f6,#8b5cf6);
+      border-radius:1rem;transition:width .1s ease;
+    }
+    .progress-text{
+      text-align:center;font-size:.75rem;color:#64748b;margin-top:.375rem;
+    }
 
     /* ── Sidebar ── */
     #sidebar{
-      position:fixed;top:0;right:-340px;width:320px;height:100%;
-      background:#fff;box-shadow:-4px 0 20px rgba(0,0,0,.1);
-      transition:right .3s cubic-bezier(.4,0,.2,1);
-      z-index:1000;padding:1.25rem;overflow-y:auto;
-      border-radius:0;
+      position:fixed;top:0;right:-360px;width:340px;height:100%;
+      background:rgba(15,23,42,.95);
+      backdrop-filter:blur(24px);
+      border-left:1px solid rgba(255,255,255,.08);
+      box-shadow:-8px 0 40px rgba(0,0,0,.4);
+      transition:right .35s cubic-bezier(.4,0,.2,1);
+      z-index:1000;padding:1.5rem;overflow-y:auto;
     }
     @media(max-width:400px){
-      #sidebar{width:calc(100% - 3rem);right:calc(-100% + 3rem);}
+      #sidebar{width:calc(100% - 2rem);right:calc(-100% + 2rem);}
     }
     #sidebar.open{right:0;}
 
-    /* ── Sidebar Toggle: kotak, kanan bawah ── */
     #sidebarToggle{
-      position:fixed;bottom:1.25rem;right:1.25rem;z-index:1001;
-      width:3rem;height:3rem;
-      border-radius:.5rem;
-      background:linear-gradient(135deg,#3b82f6,#2563eb);
+      position:fixed;bottom:1.5rem;right:1.5rem;z-index:1001;
+      width:3.25rem;height:3.25rem;
+      border-radius:.875rem;
+      background:linear-gradient(135deg,#3b82f6,#6366f1);
       color:#fff;border:none;cursor:pointer;
-      box-shadow:0 4px 14px rgba(59,130,246,.4);
+      box-shadow:0 8px 24px rgba(59,130,246,.4);
       display:flex;align-items:center;justify-content:center;
       font-size:1.25rem;
-      transition:opacity .2s ease, transform .2s ease;
+      transition:all .25s ease;
     }
-    #sidebarToggle:hover{box-shadow:0 6px 20px rgba(59,130,246,.5);}
+    #sidebarToggle:hover{
+      box-shadow:0 12px 32px rgba(59,130,246,.5);
+      transform:translateY(-2px);
+    }
     #sidebarToggle:active{transform:scale(.92);}
     #sidebarToggle.hidden-btn{
       opacity:0;pointer-events:none;transform:scale(.8);
     }
 
-    .sidebar-section{margin-bottom:1.5rem;}
-    .sidebar-heading{font-size:1rem;font-weight:700;color:#1e293b;margin-bottom:.75rem;}
-    .sidebar-desc{font-size:.75rem;color:#64748b;margin-bottom:.75rem;line-height:1.5;}
+    .sidebar-section{margin-bottom:2rem;}
+    .sidebar-heading{
+      font-size:1rem;font-weight:700;color:#f1f5f9;
+      margin-bottom:.75rem;
+      display:flex;align-items:center;gap:.5rem;
+    }
+    .sidebar-desc{font-size:.75rem;color:#64748b;margin-bottom:1rem;line-height:1.6;}
 
+    #qrWrapper{
+      background:rgba(255,255,255,.03);
+      padding:1rem;border-radius:1rem;
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,.06);
+      transition:all .2s ease;
+    }
+    #qrWrapper:hover{
+      background:rgba(255,255,255,.06);
+      border-color:rgba(255,255,255,.12);
+    }
     #qrWrapper canvas{width:100%;height:auto;border-radius:.5rem;}
 
-    .category-group{margin-bottom:1rem;}
-    .category-heading{font-size:.8125rem;font-weight:700;color:#1e293b;margin-bottom:.375rem;padding-bottom:.25rem;border-bottom:2px solid #e2e8f0;}
+    .category-group{margin-bottom:1.25rem;}
+    .category-heading{
+      font-size:.8125rem;font-weight:700;color:#94a3b8;
+      margin-bottom:.5rem;padding-bottom:.375rem;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      text-transform:uppercase;letter-spacing:.05em;
+    }
     .related-sublist{list-style:none;padding:0;margin:0;}
     .related-sublist li{
-      padding:.625rem .75rem;border-radius:.5rem;
-      cursor:pointer;font-size:.8125rem;color:#475569;
-      transition:background .15s ease;margin-bottom:.25rem;
+      padding:.75rem .875rem;border-radius:.625rem;
+      cursor:pointer;font-size:.8125rem;color:#94a3b8;
+      transition:all .15s ease;margin-bottom:.25rem;
+      border:1px solid transparent;
     }
-    .related-sublist li:hover{background:#f1f5f9;color:#1e293b;}
+    .related-sublist li:hover{
+      background:rgba(255,255,255,.06);
+      color:#e2e8f0;
+      border-color:rgba(255,255,255,.08);
+    }
 
     body.sidebar-open .main-container{
-      filter:blur(4px) saturate(.95);
-      transition:filter .25s ease;
+      filter:blur(6px) brightness(.7);
+      transition:filter .3s ease;
       pointer-events:none;user-select:none;
     }
 
     #sidebarDimmer{
-      position:fixed;inset:0;background:rgba(0,0,0,.3);
+      position:fixed;inset:0;
+      background:rgba(0,0,0,.5);
       z-index:999;opacity:0;pointer-events:none;
       transition:opacity .3s ease;
+      backdrop-filter:blur(2px);
     }
     #sidebarDimmer.active{opacity:1;pointer-events:auto;}
 
+    /* Locked Overlay */
     #lockedOverlay{
-      position:fixed;inset:0;background:rgba(15,23,42,.8);
+      position:fixed;inset:0;
+      background:rgba(15,23,42,.92);
       z-index:99999;display:none;align-items:center;justify-content:center;
-      padding:1rem;color:#fff;backdrop-filter:blur(8px);
+      padding:1rem;color:#fff;backdrop-filter:blur(12px);
     }
     #lockedBox{
-      background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
-      border-radius:1rem;padding:2rem;width:100%;max-width:420px;
-      text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.4);
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:1.25rem;padding:2.5rem;width:100%;max-width:420px;
+      text-align:center;
+      box-shadow:0 16px 64px rgba(0,0,0,.5);
     }
-    #lockedBox h2{font-size:1.25rem;font-weight:700;margin-bottom:.5rem;}
-    #lockedBox p{font-size:.875rem;opacity:.8;}
+    #lockedBox h2{font-size:1.375rem;font-weight:800;margin-bottom:.625rem;}
+    #lockedBox p{font-size:.875rem;color:#94a3b8;line-height:1.6;}
 
     body.blurred .main-container{
-      filter:blur(6px) saturate(.95);
-      transition:filter .25s ease;
+      filter:blur(8px) brightness(.6);
+      transition:filter .3s ease;
       pointer-events:none;user-select:none;
     }
 
+    /* Image Modal */
     #imageModal{
       display:none;position:fixed;z-index:2000;inset:0;
-      background:rgba(0,0,0,.92);align-items:center;justify-content:center;
-      padding:1rem;backdrop-filter:blur(4px);
+      background:rgba(0,0,0,.95);
+      align-items:center;justify-content:center;
+      padding:1rem;backdrop-filter:blur(8px);
+      flex-direction:column;gap:1rem;
     }
     .modal-content{
-      max-width:90%;max-height:85vh;border-radius:.75rem;
-      box-shadow:0 8px 40px rgba(0,0,0,.5);
+      max-width:92%;max-height:80vh;border-radius:1rem;
+      box-shadow:0 16px 64px rgba(0,0,0,.6);
     }
     .close-btn{
       position:absolute;top:1rem;right:1.5rem;
       color:#fff;font-size:2rem;font-weight:700;
-      cursor:pointer;opacity:.7;transition:opacity .15s;
-      line-height:1;
+      cursor:pointer;opacity:.6;transition:opacity .15s;
+      line-height:1;z-index:10;
+      width:2.5rem;height:2.5rem;
+      display:flex;align-items:center;justify-content:center;
+      border-radius:.5rem;
+      background:rgba(255,255,255,.06);
     }
-    .close-btn:hover{opacity:1;}
+    .close-btn:hover{opacity:1;background:rgba(255,255,255,.12);}
+
+    /* Modal nav buttons for frames */
+    .modal-nav{
+      position:absolute;top:50%;transform:translateY(-50%);
+      width:3rem;height:3rem;border-radius:.75rem;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      transition:all .2s ease;z-index:10;
+      backdrop-filter:blur(8px);
+    }
+    .modal-nav:hover{
+      background:rgba(255,255,255,.15);
+      border-color:rgba(255,255,255,.2);
+    }
+    .modal-nav.prev{left:1rem;}
+    .modal-nav.next{right:1rem;}
+    .modal-nav:disabled{opacity:.2;cursor:default;pointer-events:none;}
+
+    .modal-counter{
+      position:absolute;top:1rem;left:50%;transform:translateX(-50%);
+      background:rgba(0,0,0,.6);backdrop-filter:blur(8px);
+      padding:.375rem 1rem;border-radius:2rem;
+      font-size:.8125rem;font-weight:600;color:#e2e8f0;
+      border:1px solid rgba(255,255,255,.08);
+      z-index:10;
+    }
+
     .modal-download-btn{
       position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);
-      background:#10b981;color:#fff;padding:.625rem 1.5rem;
-      border:none;border-radius:.5rem;cursor:pointer;
+      background:linear-gradient(135deg,#10b981,#059669);
+      color:#fff;padding:.75rem 2rem;
+      border:none;border-radius:.75rem;cursor:pointer;
       font-size:.875rem;font-weight:600;
-      box-shadow:0 4px 12px rgba(16,185,129,.3);
-      transition:background .15s;
+      box-shadow:0 4px 16px rgba(16,185,129,.3);
+      transition:all .2s;
+      display:flex;align-items:center;gap:.5rem;
+      z-index:10;
     }
-    .modal-download-btn:hover{background:#059669;}
+    .modal-download-btn:hover{
+      box-shadow:0 8px 24px rgba(16,185,129,.4);
+      transform:translateX(-50%) translateY(-2px);
+    }
+
+    /* Keyboard hint */
+    .kbd-hint{
+      display:flex;align-items:center;justify-content:center;gap:.5rem;
+      margin-top:1rem;font-size:.75rem;color:#475569;
+    }
+    .kbd{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-width:1.5rem;height:1.5rem;padding:0 .375rem;
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+      border-radius:.25rem;font-size:.6875rem;font-weight:600;color:#94a3b8;
+    }
 
     .hidden{display:none!important;}
     @keyframes spin{to{transform:rotate(360deg);}}
     .animate-spin{animation:spin 1s linear infinite;}
+
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+    .fade-in{animation:fadeIn .4s ease forwards;}
+
+    @keyframes pulse-glow{
+      0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.3);}
+      50%{box-shadow:0 0 0 8px rgba(59,130,246,0);}
+    }
+    .pulse-glow{animation:pulse-glow 2s ease-in-out infinite;}
+
+    /* Scrollbar */
+    ::-webkit-scrollbar{width:6px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px;}
+    ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.2);}
   </style>
 </head>
 <body>
@@ -212,18 +448,29 @@
   </button>
 
   <div id="sidebar">
-    <div class="flex items-center justify-between mb-4">
-      <span class="text-lg font-bold text-gray-800">Menu</span>
-      <button id="sidebarClose" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
+    <div class="flex items-center justify-between mb-6">
+      <span class="text-lg font-bold text-white flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="20" height="20" class="text-blue-400">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"/>
+        </svg>
+        Menu
+      </span>
+      <button id="sidebarClose" class="text-gray-500 hover:text-white text-2xl leading-none transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5">&times;</button>
     </div>
 
     <div id="qrSection" class="sidebar-section hidden">
-      <h2 class="sidebar-heading">QR Code Akses Cepat</h2>
-      <p class="sidebar-desc">QR ini berisi URL file enkripsi dan kode shift.</p>
-      <div id="qrWrapper" class="bg-gray-50 p-4 rounded-xl cursor-pointer border border-gray-100 hover:shadow-md transition-shadow">
+      <h2 class="sidebar-heading">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" height="16" class="text-blue-400">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z"/>
+        </svg>
+        QR Code Akses Cepat
+      </h2>
+      <p class="sidebar-desc">QR ini berisi URL file enkripsi dan kode shift untuk akses cepat.</p>
+      <div id="qrWrapper">
         <canvas id="qrCanvas"></canvas>
       </div>
-      <div class="mt-3 text-center">
+      <div class="mt-3">
         <button id="downloadQrBtn" class="btn btn-green w-full">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
@@ -234,32 +481,49 @@
     </div>
 
     <div id="relatedSection" class="sidebar-section hidden">
-      <h2 class="sidebar-heading">Konten Terkait</h2>
-      <div id="relatedList" class="text-sm text-gray-700"></div>
+      <h2 class="sidebar-heading">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" height="16" class="text-purple-400">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L12 12.75 6.429 9.75m11.142 0 4.179 2.25-9.75 5.25-9.75-5.25 4.179-2.25"/>
+        </svg>
+        Konten Terkait
+      </h2>
+      <div id="relatedList" class="text-sm"></div>
     </div>
   </div>
 
   <div class="main-container">
 
-    <div class="card">
-      <h1 class="text-xl md:text-2xl font-bold text-gray-800 mb-1">Hasil Dekripsi &amp; Preview</h1>
-      <p class="text-sm text-gray-500">Pratinjau konten Anda yang terdekripsi.</p>
+    <!-- Header Card -->
+    <div class="card fade-in">
+      <div class="card-header">
+        <div class="card-icon blue">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="20" height="20" class="text-white">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="page-title">Hasil Dekripsi &amp; Preview</h1>
+          <p class="page-subtitle">Pratinjau konten Anda yang telah terdekripsi</p>
+        </div>
+      </div>
     </div>
 
-    <div class="card">
+    <!-- Status Card -->
+    <div class="card fade-in" style="animation-delay:.05s">
       <div id="status" class="status-bar">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-gray-400">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-gray-500">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
         </svg>
         Memuat...
       </div>
     </div>
 
-    <div class="card">
+    <!-- Preview Card -->
+    <div class="card fade-in" style="animation-delay:.1s">
       <div id="preview" class="preview-area"></div>
 
       <div class="btn-group">
-        <a id="downloadOriginalBtn" class="btn btn-gray hidden">
+        <a id="downloadOriginalBtn" class="btn btn-glass hidden">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
           </svg>
@@ -275,21 +539,21 @@
 
       <div id="meta" class="meta-row hidden">
         <div class="meta-item">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="14" height="14" class="text-blue-500">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="14" height="14" class="text-blue-400">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/>
           </svg>
           <span id="fileSize" class="font-medium">Ukuran: -</span>
         </div>
         <div class="meta-item">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="14" height="14" class="text-green-500">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c0 .621 0 1.125-.504 1.125-1.125V11.25m-9-9h1.5a3.375 3.375 0 0 1 3.375 3.375v1.5a1.125 1.125 0 0 0-1.125 1.125h-1.5a3.375 3.375 0 0 1-3.375-3.375V2.25Z"/>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="14" height="14" class="text-green-400">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a4.5 4.5 0 0 0-4.5-4.5Z"/>
           </svg>
           <span id="detectedMime">Tipe: -</span>
         </div>
       </div>
 
       <div class="btn-group hidden" id="videoActions">
-        <button id="showFramesBtn" class="btn btn-blue">
+        <button id="showFramesBtn" class="btn btn-purple">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" height="16">
             <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/>
           </svg>
@@ -298,23 +562,70 @@
       </div>
     </div>
 
-    <div id="framesPreview" class="card hidden">
-      <h2 class="text-lg font-bold text-gray-800 mb-3">Semua Frame Video</h2>
-      <div class="frames-grid"></div>
+    <!-- Frames Card -->
+    <div id="framesPreview" class="card hidden fade-in">
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-1">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="20" height="20" class="text-purple-400">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-2.625 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-1.5A1.125 1.125 0 0 1 18 18.375M20.625 4.5H3.375m17.25 0c.621 0 1.125.504 1.125 1.125M20.625 4.5h-1.5C18.504 4.5 18 5.004 18 5.625m3.75 0v1.5c0 .621-.504 1.125-1.125 1.125M3.375 4.5c-.621 0-1.125.504-1.125 1.125M3.375 4.5h1.5C5.496 4.5 6 5.004 6 5.625m-2.625 0v1.5c0 .621.504 1.125 1.125 1.125m0 0h12m-12 0a1.125 1.125 0 0 1-1.125 1.125M12 8.25c.621 0 1.125.504 1.125 1.125"/>
+          </svg>
+          Semua Frame Video
+        </h2>
+        <div id="frameCounterBadge" class="frame-counter hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909"/>
+          </svg>
+          <span id="frameCountText">0 frame</span>
+        </div>
+      </div>
+      <div id="progressWrap" class="progress-wrap hidden">
+        <div class="progress-bar-bg"><div id="progressFill" class="progress-bar-fill"></div></div>
+        <div id="progressText" class="progress-text">Mengekstrak frame...</div>
+      </div>
+      <div class="kbd-hint">
+        <span>Gunakan</span>
+        <span class="kbd">←</span>
+        <span class="kbd">→</span>
+        <span>untuk navigasi frame di preview</span>
+      </div>
+      <div class="frames-grid" id="framesGrid"></div>
     </div>
   </div>
 
+  <!-- Locked Overlay -->
   <div id="lockedOverlay" role="dialog" aria-modal="true">
     <div id="lockedBox" role="document">
+      <div style="margin-bottom:1rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="48" height="48" style="margin:0 auto;opacity:.6;">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/>
+        </svg>
+      </div>
       <h2>Akses Terkunci</h2>
       <p>Login terlebih dahulu untuk melihat konten ini.</p>
     </div>
   </div>
 
+  <!-- Image Modal with navigation -->
   <div id="imageModal">
     <span class="close-btn">&times;</span>
+    <div class="modal-counter hidden" id="modalCounter">1 / 1</div>
+    <button class="modal-nav prev hidden" id="modalPrev" aria-label="Previous">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="20" height="20">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
+      </svg>
+    </button>
+    <button class="modal-nav next hidden" id="modalNext" aria-label="Next">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="20" height="20">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+      </svg>
+    </button>
     <img class="modal-content" id="modalImage" alt="Preview">
-    <a id="modalDownloadBtn" class="modal-download-btn" download>Download</a>
+    <a id="modalDownloadBtn" class="modal-download-btn" download>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+      </svg>
+      Download
+    </a>
   </div>
 
   <script>
@@ -372,6 +683,7 @@
 
     function bytesToMB(n){
       if(typeof n!=='number'||isNaN(n))return'-';
+      if(n<1024*1024)return(n/1024).toFixed(1)+' KB';
       return(n/(1024*1024)).toFixed(2)+' MB';
     }
 
@@ -420,8 +732,6 @@
           grouped[category].forEach(item=>{
             const li=document.createElement('li');
             li.textContent=`${item.person_name||'Anonim'} — ${item.name||'Tanpa Judul'}`;
-            li.dataset.url=item.url;li.dataset.shift=item.shift_code;
-            li.dataset.person=item.person_name;li.dataset.name=item.name;
             li.addEventListener('click',()=>{
               window.location.href=`dekripsi.html?url=${encodeURIComponent(item.url)}&shift=${encodeURIComponent(item.shift_code)}&person=${encodeURIComponent(item.person_name)}&name=${encodeURIComponent(item.name)}`;
             });
@@ -432,7 +742,7 @@
         });
         relatedSection.classList.remove('hidden');
       }catch(err){
-        relatedList.innerHTML='<p class="text-red-500 text-xs">Gagal memuat konten terkait.</p>';
+        relatedList.innerHTML='<p class="text-red-400 text-xs">Gagal memuat konten terkait.</p>';
         relatedSection.classList.remove('hidden');
       }
     }
@@ -450,6 +760,106 @@
       return finalCanvas;
     }
 
+    /* ══════════ Modal / Frame Navigation State ══════════ */
+    const modal=document.getElementById('imageModal');
+    const modalImage=document.getElementById('modalImage');
+    const modalDownloadBtn=document.getElementById('modalDownloadBtn');
+    const modalPrev=document.getElementById('modalPrev');
+    const modalNext=document.getElementById('modalNext');
+    const modalCounter=document.getElementById('modalCounter');
+
+    let frameImages=[];      // array of {src, filename}
+    let currentFrameIndex=-1;
+    let isFrameMode=false;
+
+    function openModalSingle(src,filename){
+      isFrameMode=false;
+      currentFrameIndex=-1;
+      modal.style.display='flex';
+      modalImage.src=src;
+      modalDownloadBtn.href=src;
+      modalDownloadBtn.download=filename||'image.png';
+      modalPrev.classList.add('hidden');
+      modalNext.classList.add('hidden');
+      modalCounter.classList.add('hidden');
+    }
+
+    function openModalFrame(index){
+      if(frameImages.length===0)return;
+      isFrameMode=true;
+      currentFrameIndex=Math.max(0,Math.min(index,frameImages.length-1));
+      modal.style.display='flex';
+      modalPrev.classList.remove('hidden');
+      modalNext.classList.remove('hidden');
+      modalCounter.classList.remove('hidden');
+      updateModalFrame();
+    }
+
+    function updateModalFrame(){
+      const f=frameImages[currentFrameIndex];
+      if(!f)return;
+      modalImage.src=f.src;
+      modalDownloadBtn.href=f.src;
+      modalDownloadBtn.download=f.filename;
+      modalCounter.textContent=`${currentFrameIndex+1} / ${frameImages.length}`;
+      modalPrev.disabled=currentFrameIndex<=0;
+      modalNext.disabled=currentFrameIndex>=frameImages.length-1;
+
+      // highlight active thumb
+      document.querySelectorAll('.frame-thumb').forEach((t,i)=>{
+        t.classList.toggle('active-frame',i===currentFrameIndex);
+      });
+      // scroll active thumb into view
+      const activeThumb=document.querySelectorAll('.frame-thumb')[currentFrameIndex];
+      if(activeThumb)activeThumb.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'});
+    }
+
+    function navigateFrame(dir){
+      if(!isFrameMode)return;
+      const next=currentFrameIndex+dir;
+      if(next<0||next>=frameImages.length)return;
+      currentFrameIndex=next;
+      updateModalFrame();
+    }
+
+    function closeModal(){
+      modal.style.display='none';
+      isFrameMode=false;
+      currentFrameIndex=-1;
+      document.querySelectorAll('.frame-thumb').forEach(t=>t.classList.remove('active-frame'));
+    }
+
+    document.querySelector('.close-btn').addEventListener('click',closeModal);
+    modal.addEventListener('click',e=>{if(e.target===modal)closeModal();});
+    modalPrev.addEventListener('click',()=>navigateFrame(-1));
+    modalNext.addEventListener('click',()=>navigateFrame(1));
+
+    // Keyboard navigation
+    document.addEventListener('keydown',e=>{
+      if(modal.style.display==='flex'){
+        if(e.key==='Escape')closeModal();
+        if(isFrameMode){
+          if(e.key==='ArrowLeft'||e.key==='a'){e.preventDefault();navigateFrame(-1);}
+          if(e.key==='ArrowRight'||e.key==='d'){e.preventDefault();navigateFrame(1);}
+          if(e.key==='ArrowUp'){e.preventDefault();navigateFrame(-1);}
+          if(e.key==='ArrowDown'){e.preventDefault();navigateFrame(1);}
+        }
+      }
+    });
+
+    // Touch swipe for modal
+    let touchStartX=0;
+    modal.addEventListener('touchstart',e=>{touchStartX=e.changedTouches[0].clientX;},{passive:true});
+    modal.addEventListener('touchend',e=>{
+      if(!isFrameMode)return;
+      const diff=e.changedTouches[0].clientX-touchStartX;
+      if(Math.abs(diff)>50){
+        if(diff<0)navigateFrame(1);
+        else navigateFrame(-1);
+      }
+    },{passive:true});
+
+    /* ══════════ Main Load & Decrypt ══════════ */
     async function loadAndDecrypt(url,shift,person,name){
       const statusEl=document.getElementById('status');
       const previewEl=document.getElementById('preview');
@@ -460,21 +870,26 @@
       const downloadDecryptedBtn=document.getElementById('downloadDecryptedBtn');
       const showFramesBtn=document.getElementById('showFramesBtn');
       const framesPreview=document.getElementById('framesPreview');
-      const framesContainer=framesPreview.querySelector('.frames-grid');
+      const framesGrid=document.getElementById('framesGrid');
       const videoActions=document.getElementById('videoActions');
+      const progressWrap=document.getElementById('progressWrap');
+      const progressFill=document.getElementById('progressFill');
+      const progressTextEl=document.getElementById('progressText');
+      const frameCounterBadge=document.getElementById('frameCounterBadge');
+      const frameCountText=document.getElementById('frameCountText');
 
       let objectUrl=null,currentBlob=null,detectedMime=null,videoEl=null,imageEl=null,decryptedContent='';
 
       if(!url){statusEl.textContent='Parameter url tidak ditemukan.';return;}
 
-      statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-blue-500 animate-spin"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Memuat file...`;
+      statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-blue-400 animate-spin"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Memuat file terenkripsi...`;
 
       try{
         const res=await fetch(url);
         if(!res.ok)throw new Error(`Gagal memuat file: ${res.status}`);
         const encryptedText=await res.text();
 
-        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-blue-500 animate-spin"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Mendekripsi...`;
+        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-blue-400 animate-spin"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Mendekripsi konten...`;
 
         decryptedContent=decryptCaesar(encryptedText,shift);
         const probableBase64=decryptedContent.trim();
@@ -495,45 +910,73 @@
             videoEl=document.createElement('video');
             videoEl.controls=true;videoEl.playsInline=true;
             videoEl.src=objectUrl;videoEl.loop=true;
+            videoEl.style.cssText='width:100%;max-width:720px;border-radius:1rem;box-shadow:0 8px 32px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.06);';
             previewEl.appendChild(createLabel(`${person} — ${name}`));
             previewEl.appendChild(videoEl);
             videoActions.classList.remove('hidden');
 
             showFramesBtn.addEventListener('click',async()=>{
-              if(framesContainer.innerHTML)return;
+              if(framesGrid.innerHTML)return;
               framesPreview.classList.remove('hidden');
-              statusEl.textContent='Mengekstrak frame...';
-              videoEl.pause();
+              progressWrap.classList.remove('hidden');
+              showFramesBtn.disabled=true;
+              showFramesBtn.style.opacity='.5';
+
               const canvas=document.createElement('canvas');
               const ctx=canvas.getContext('2d');
+
+              // Wait for video metadata
+              await new Promise(resolve=>{
+                if(videoEl.readyState>=1)resolve();
+                else videoEl.addEventListener('loadedmetadata',resolve,{once:true});
+              });
+
               canvas.width=videoEl.videoWidth;canvas.height=videoEl.videoHeight;
-              const duration=videoEl.duration;const fps=30;
-              const frameCount=Math.floor(duration*fps);
-              const frameInterval=1/fps;
-              for(let i=0;i<frameCount;i++){
+              const duration=videoEl.duration;
+              const fps=Math.min(30, Math.ceil(duration * 2)); // reasonable frame count
+              const totalFrames=Math.min(Math.floor(duration*fps), 300); // cap at 300
+              const frameInterval=duration/totalFrames;
+
+              frameImages=[];
+
+              for(let i=0;i<totalFrames;i++){
                 videoEl.currentTime=i*frameInterval;
                 await new Promise(resolve=>videoEl.addEventListener('seeked',resolve,{once:true}));
                 ctx.drawImage(videoEl,0,0,canvas.width,canvas.height);
+                const dataUrl=canvas.toDataURL('image/jpeg',0.85);
+                const filename=`frame_${String(i+1).padStart(4,'0')}.jpg`;
+                frameImages.push({src:dataUrl,filename});
+
                 const img=document.createElement('img');
-                img.src=canvas.toDataURL('image/jpeg');
-                img.className='frame-thumb';img.alt=`Frame ${i+1}`;
-                framesContainer.appendChild(img);
+                img.src=dataUrl;
+                img.className='frame-thumb fade-in';
+                img.alt=`Frame ${i+1}`;
+                img.style.animationDelay=`${(i%12)*0.03}s`;
+
+                const idx=i;
+                img.addEventListener('click',()=>openModalFrame(idx));
+                framesGrid.appendChild(img);
+
+                // Update progress
+                const pct=Math.round(((i+1)/totalFrames)*100);
+                progressFill.style.width=pct+'%';
+                progressTextEl.textContent=`Mengekstrak frame ${i+1} dari ${totalFrames} (${pct}%)`;
               }
-              statusEl.textContent='Ekstraksi frame selesai.';
-              document.querySelectorAll('.frame-thumb').forEach((img,index)=>{
-                img.addEventListener('click',()=>{
-                  modal.style.display='flex';
-                  modalImage.src=img.src;
-                  modalDownloadBtn.href=img.src;
-                  modalDownloadBtn.download=`frame_${index+1}.jpg`;
-                });
-              });
+
+              progressWrap.classList.add('hidden');
+              frameCounterBadge.classList.remove('hidden');
+              frameCountText.textContent=`${frameImages.length} frame`;
+
+              statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-green-400"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Selesai — ${frameImages.length} frame diekstrak.`;
+              statusEl.className='status-bar success';
             });
 
           }else if(detectedMime.startsWith('image/')){
             previewEl.innerHTML='';
             imageEl=document.createElement('img');
             imageEl.src=objectUrl;imageEl.alt=`${person} — ${name}`;
+            imageEl.style.cursor='pointer';
+            imageEl.addEventListener('click',()=>openModalSingle(objectUrl,name||'image'));
             previewEl.appendChild(createLabel(`${person} — ${name}`));
             previewEl.appendChild(imageEl);
 
@@ -541,7 +984,7 @@
             previewEl.innerHTML='';
             previewEl.appendChild(createLabel(`${person} — ${name}`));
             const pre=document.createElement('pre');
-            pre.className='mt-3 p-4 bg-gray-50 rounded-lg text-xs max-h-64 overflow-auto';
+            pre.style.cssText='margin-top:.75rem;padding:1rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:.75rem;font-size:.75rem;max-height:16rem;overflow:auto;color:#94a3b8;';
             pre.textContent=`[Preview base64 (dipotong)]\n${cleaned.slice(0,1500)}${cleaned.length>1500?'\n\n... (terpotong) ...':''}`;
             previewEl.appendChild(pre);
           }
@@ -553,12 +996,13 @@
           previewEl.innerHTML='';
           previewEl.appendChild(createLabel(`${person} — ${name}`));
           const pre=document.createElement('pre');
-          pre.className='mt-3 p-4 bg-gray-50 rounded-lg text-sm whitespace-pre-wrap';
+          pre.style.cssText='margin-top:.75rem;padding:1rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:.75rem;font-size:.8125rem;white-space:pre-wrap;color:#cbd5e1;';
           pre.textContent=decryptedContent;
           previewEl.appendChild(pre);
         }
 
-        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-green-500"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Selesai.`;
+        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-green-400"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Dekripsi berhasil.`;
+        statusEl.className='status-bar success';
 
         const blobPB=new Blob([encryptedText],{type:'application/octet-stream'});
         const tmpUrlPB=URL.createObjectURL(blobPB);
@@ -582,10 +1026,7 @@
           qrCanvas.getContext('2d').drawImage(paddedCanvas,0,0);
 
           document.getElementById('qrWrapper').addEventListener('click',()=>{
-            modal.style.display='flex';
-            modalImage.src=paddedCanvas.toDataURL('image/png');
-            modalDownloadBtn.href=paddedCanvas.toDataURL('image/png');
-            modalDownloadBtn.download=qrFilename;
+            openModalSingle(paddedCanvas.toDataURL('image/png'),qrFilename);
           });
 
           document.getElementById('downloadQrBtn').onclick=()=>{
@@ -603,7 +1044,8 @@
         });
 
       }catch(err){
-        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-red-500"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.731 0 2.813-1.874 1.948-3.374L13.949 3.374c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg> Gagal: ${err.message}`;
+        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-red-400"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.731 0 2.813-1.874 1.948-3.374L13.949 3.374c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg> Gagal: ${err.message}`;
+        statusEl.className='status-bar error';
       }
     }
 
@@ -614,12 +1056,6 @@
       await loadAndDecrypt(url,shift,person,name);
       await fetchRelatedLinks(person);
     }
-
-    const modal=document.getElementById('imageModal');
-    const modalImage=document.getElementById('modalImage');
-    const modalDownloadBtn=document.getElementById('modalDownloadBtn');
-    document.querySelector('.close-btn').addEventListener('click',()=>modal.style.display='none');
-    modal.addEventListener('click',e=>{if(e.target===modal)modal.style.display='none';});
 
     (function initAccessCheck(){
       if(isLoggedIn()){hideLockedOverlay();ensureAndRunMain();}
@@ -654,6 +1090,12 @@
     });
     sidebarClose.addEventListener('click',closeSidebar);
     sidebarDimmer.addEventListener('click',closeSidebar);
+
+    // Close sidebar with Escape
+    document.addEventListener('keydown',e=>{
+      if(e.key==='Escape'&&sidebar.classList.contains('open'))closeSidebar();
+    });
   </script>
 </body>
 </html>
+```
