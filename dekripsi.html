@@ -1,14 +1,16 @@
 
+
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Dekripsi & Preview — Dekripsi</title>
+  <title>Dekripsi & Preview — Majalah</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
     window.createClient = createClient;
@@ -16,157 +18,259 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
-    body{
-      font-family:'Inter',sans-serif;
-      background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);
-      min-height:100vh;color:#e2e8f0;
-      overflow-x:hidden;
+
+    :root{
+      --cream: #FAF7F2;
+      --warm-white: #FFFDF9;
+      --paper: #F5F0E8;
+      --ink: #1A1A1A;
+      --ink-light: #3D3D3D;
+      --ink-muted: #6B6B6B;
+      --ink-faint: #9E9E9E;
+      --accent: #8B2500;
+      --accent-light: #C44D2A;
+      --gold: #B8860B;
+      --gold-light: #D4A843;
+      --border: #E0D5C5;
+      --border-light: #EDE7DC;
+      --shadow: rgba(26,26,26,.08);
+      --shadow-md: rgba(26,26,26,.12);
     }
 
-    /* Animated background particles */
+    body{
+      font-family:'Source Serif 4','Georgia',serif;
+      background:var(--cream);
+      min-height:100vh;
+      color:var(--ink);
+      overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+    }
+
+    /* Top decorative bar */
     body::before{
-      content:'';position:fixed;inset:0;z-index:0;
-      background:
-        radial-gradient(ellipse 600px 600px at 20% 20%, rgba(59,130,246,.08) 0%, transparent 70%),
-        radial-gradient(ellipse 500px 500px at 80% 80%, rgba(139,92,246,.06) 0%, transparent 70%),
-        radial-gradient(ellipse 400px 400px at 50% 50%, rgba(16,185,129,.04) 0%, transparent 70%);
-      pointer-events:none;
+      content:'';display:block;width:100%;height:4px;
+      background:linear-gradient(90deg,var(--accent),var(--gold),var(--accent));
+    }
+
+    /* Magazine Masthead */
+    .masthead{
+      text-align:center;
+      padding:2.5rem 1rem 1.5rem;
+      border-bottom:2px solid var(--ink);
+      margin:0 auto;
+      max-width:960px;
+    }
+    .masthead-brand{
+      font-family:'Playfair Display',serif;
+      font-size:3rem;font-weight:900;
+      letter-spacing:-.02em;
+      color:var(--ink);
+      text-transform:uppercase;
+      line-height:1;
+    }
+    @media(min-width:768px){.masthead-brand{font-size:4rem;}}
+    .masthead-tagline{
+      font-family:'Inter',sans-serif;
+      font-size:.6875rem;
+      text-transform:uppercase;
+      letter-spacing:.25em;
+      color:var(--ink-muted);
+      margin-top:.5rem;
+    }
+    .masthead-date{
+      font-family:'Inter',sans-serif;
+      font-size:.625rem;
+      letter-spacing:.15em;
+      color:var(--ink-faint);
+      margin-top:.375rem;
+      text-transform:uppercase;
+    }
+
+    /* Thin rule */
+    .rule{
+      border:none;
+      border-top:1px solid var(--border);
+      margin:0 auto;max-width:960px;
+    }
+    .rule-thick{border-top-width:2px;border-color:var(--ink);}
+    .rule-double{
+      border:none;height:4px;max-width:960px;margin:0 auto;
+      border-top:2px solid var(--ink);
+      border-bottom:1px solid var(--ink);
+      background:transparent;
     }
 
     .main-container{
       position:relative;z-index:1;
       width:100%;max-width:960px;margin:0 auto;
-      padding:1.5rem 1rem 6rem;
+      padding:0 1rem 6rem;
     }
     @media(min-width:768px){
-      .main-container{padding:2.5rem 2rem 4rem;}
+      .main-container{padding:0 2rem 4rem;}
     }
 
-    /* Glass Card */
+    /* Section headings — magazine style */
+    .section-label{
+      font-family:'Inter',sans-serif;
+      font-size:.625rem;
+      text-transform:uppercase;
+      letter-spacing:.2em;
+      color:var(--accent);
+      font-weight:700;
+      display:inline-block;
+      border:1.5px solid var(--accent);
+      padding:.25rem .75rem;
+      margin-bottom:.75rem;
+    }
+
+    /* Card — editorial panel */
     .card{
-      background:rgba(255,255,255,.04);
-      backdrop-filter:blur(20px);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:1.25rem;
-      padding:1.5rem;
-      margin-bottom:1.25rem;
-      transition:all .3s ease;
+      background:var(--warm-white);
+      border:1px solid var(--border-light);
+      padding:1.75rem 1.5rem;
+      margin-top:1.5rem;
+      position:relative;
+      transition:box-shadow .3s ease;
     }
     .card:hover{
-      background:rgba(255,255,255,.06);
-      border-color:rgba(255,255,255,.12);
+      box-shadow:0 4px 24px var(--shadow);
     }
     @media(min-width:768px){
-      .card{padding:2rem;}
+      .card{padding:2.5rem 2rem;}
+    }
+
+    /* Drop cap style for first card */
+    .card-headline{
+      font-family:'Playfair Display',serif;
+      font-size:1.75rem;font-weight:800;
+      color:var(--ink);
+      line-height:1.2;
+      margin-bottom:.25rem;
+    }
+    @media(min-width:768px){.card-headline{font-size:2.25rem;}}
+
+    .card-subtitle{
+      font-family:'Inter',sans-serif;
+      font-size:.8125rem;color:var(--ink-muted);
+      font-weight:400;
+      letter-spacing:.02em;
     }
 
     .card-header{
-      display:flex;align-items:center;gap:.75rem;
+      display:flex;align-items:flex-start;gap:1rem;
     }
-    .card-icon{
-      width:2.75rem;height:2.75rem;border-radius:.75rem;
+    .card-icon-editorial{
+      width:3rem;height:3rem;
       display:flex;align-items:center;justify-content:center;
       flex-shrink:0;
+      color:var(--accent);
     }
-    .card-icon.blue{background:linear-gradient(135deg,#3b82f6,#6366f1);}
-    .card-icon.green{background:linear-gradient(135deg,#10b981,#06b6d4);}
-    .card-icon.purple{background:linear-gradient(135deg,#8b5cf6,#a855f7);}
 
-    .page-title{
-      font-size:1.5rem;font-weight:800;
-      background:linear-gradient(135deg,#f1f5f9,#cbd5e1);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-      background-clip:text;
-      line-height:1.3;
+    /* Decorative corner flourish */
+    .card::before{
+      content:'';position:absolute;top:0;left:0;
+      width:2rem;height:2rem;
+      border-top:2px solid var(--accent);
+      border-left:2px solid var(--accent);
+      pointer-events:none;
     }
-    @media(min-width:768px){.page-title{font-size:1.75rem;}}
-
-    .page-subtitle{
-      font-size:.8125rem;color:#94a3b8;margin-top:.125rem;
+    .card::after{
+      content:'';position:absolute;bottom:0;right:0;
+      width:2rem;height:2rem;
+      border-bottom:2px solid var(--accent);
+      border-right:2px solid var(--accent);
+      pointer-events:none;
     }
 
     /* Status Bar */
     .status-bar{
       display:flex;align-items:center;gap:.625rem;
-      background:rgba(255,255,255,.03);
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:.75rem;padding:.75rem 1rem;
-      font-size:.8125rem;color:#94a3b8;
+      background:var(--paper);
+      border:1px solid var(--border);
+      padding:.75rem 1rem;
+      font-family:'Inter',sans-serif;
+      font-size:.8125rem;color:var(--ink-muted);
       transition:all .3s ease;
     }
-    .status-bar.success{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.06);}
-    .status-bar.error{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.06);}
+    .status-bar.success{
+      border-color:var(--gold);
+      background:linear-gradient(135deg,#FFF9E6,#FFFDF0);
+      color:#5C4800;
+    }
+    .status-bar.error{
+      border-color:#C44D2A;
+      background:#FFF0EC;
+      color:#8B2500;
+    }
 
     /* Preview */
     .preview-area{
       display:flex;flex-direction:column;align-items:center;
-      gap:1rem;width:100%;
+      gap:1.25rem;width:100%;
     }
     .preview-area img,
     .preview-area video{
-      width:100%;max-width:720px;border-radius:1rem;
-      box-shadow:0 8px 32px rgba(0,0,0,.4);
-      border:1px solid rgba(255,255,255,.06);
+      width:100%;max-width:720px;
+      box-shadow:0 2px 20px var(--shadow-md);
+      border:1px solid var(--border);
     }
     .preview-label{
-      font-size:.9375rem;font-weight:600;color:#e2e8f0;
+      font-family:'Playfair Display',serif;
+      font-size:1.125rem;font-weight:600;color:var(--ink);
       text-align:center;word-break:break-word;
       padding:.5rem 1rem;
-      background:rgba(255,255,255,.04);
-      border-radius:.5rem;
+      font-style:italic;
     }
 
-    /* Buttons */
+    /* Buttons — editorial */
     .btn{
       display:inline-flex;align-items:center;justify-content:center;
-      gap:.5rem;padding:.75rem 1.5rem;border-radius:.75rem;
-      font-size:.8125rem;font-weight:600;
+      gap:.5rem;padding:.75rem 1.5rem;
+      font-family:'Inter',sans-serif;
+      font-size:.75rem;font-weight:600;
       text-decoration:none;border:none;cursor:pointer;
-      transition:all .2s ease;position:relative;overflow:hidden;
+      transition:all .2s ease;position:relative;
+      text-transform:uppercase;letter-spacing:.08em;
     }
-    .btn::after{
-      content:'';position:absolute;inset:0;
-      background:linear-gradient(135deg,rgba(255,255,255,.1),transparent);
-      opacity:0;transition:opacity .2s;
-    }
-    .btn:hover::after{opacity:1;}
 
-    .btn-glass{
-      background:rgba(255,255,255,.06);color:#e2e8f0;
-      border:1px solid rgba(255,255,255,.1);
+    .btn-editorial{
+      background:var(--warm-white);color:var(--ink);
+      border:1.5px solid var(--ink);
     }
-    .btn-glass:hover{background:rgba(255,255,255,.1);transform:translateY(-1px);}
-
-    .btn-green{
-      background:linear-gradient(135deg,#10b981,#059669);color:#fff;
-      box-shadow:0 4px 16px rgba(16,185,129,.3);
+    .btn-editorial:hover{
+      background:var(--ink);color:var(--warm-white);
     }
-    .btn-green:hover{box-shadow:0 6px 24px rgba(16,185,129,.4);transform:translateY(-1px);}
 
-    .btn-blue{
-      background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;
-      box-shadow:0 4px 16px rgba(59,130,246,.3);
+    .btn-accent{
+      background:var(--accent);color:#fff;
+      border:1.5px solid var(--accent);
     }
-    .btn-blue:hover{box-shadow:0 6px 24px rgba(59,130,246,.4);transform:translateY(-1px);}
-
-    .btn-purple{
-      background:linear-gradient(135deg,#8b5cf6,#a855f7);color:#fff;
-      box-shadow:0 4px 16px rgba(139,92,246,.3);
+    .btn-accent:hover{
+      background:#6E1D00;border-color:#6E1D00;
     }
-    .btn-purple:hover{box-shadow:0 6px 24px rgba(139,92,246,.4);transform:translateY(-1px);}
 
-    .btn-group{display:flex;flex-wrap:wrap;justify-content:center;gap:.75rem;margin-top:1.25rem;}
+    .btn-gold{
+      background:var(--gold);color:#fff;
+      border:1.5px solid var(--gold);
+    }
+    .btn-gold:hover{
+      background:#8B6508;border-color:#8B6508;
+    }
+
+    .btn-group{display:flex;flex-wrap:wrap;justify-content:center;gap:.75rem;margin-top:1.5rem;}
 
     /* Meta */
     .meta-row{
-      display:flex;flex-wrap:wrap;justify-content:center;gap:1.25rem;
-      margin-top:1.25rem;font-size:.8125rem;color:#94a3b8;
+      display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;
+      margin-top:1.5rem;
+      font-family:'Inter',sans-serif;
+      font-size:.75rem;color:var(--ink-muted);
     }
     .meta-item{
       display:flex;align-items:center;gap:.375rem;
-      background:rgba(255,255,255,.03);
-      padding:.5rem .875rem;border-radius:.5rem;
-      border:1px solid rgba(255,255,255,.06);
+      padding:.5rem .875rem;
+      border:1px solid var(--border);
+      background:var(--paper);
     }
 
     /* Frames Grid */
@@ -180,56 +284,59 @@
     }
     .frame-thumb{
       width:100%;aspect-ratio:16/9;object-fit:cover;
-      border-radius:.75rem;cursor:pointer;
-      box-shadow:0 2px 8px rgba(0,0,0,.3);
-      border:2px solid transparent;
+      cursor:pointer;
+      box-shadow:0 1px 4px var(--shadow);
+      border:1px solid var(--border);
       transition:all .2s ease;
+      filter:grayscale(0);
     }
     .frame-thumb:hover{
-      transform:scale(1.04);
-      box-shadow:0 8px 24px rgba(0,0,0,.4);
-      border-color:rgba(59,130,246,.4);
+      transform:scale(1.03);
+      box-shadow:0 4px 16px var(--shadow-md);
+      border-color:var(--accent);
     }
     .frame-thumb.active-frame{
-      border-color:#3b82f6;
-      box-shadow:0 0 0 3px rgba(59,130,246,.3), 0 8px 24px rgba(0,0,0,.4);
-      transform:scale(1.04);
+      border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(139,37,0,.2), 0 4px 16px var(--shadow-md);
+      transform:scale(1.03);
     }
 
-    /* Frame counter badge */
     .frame-counter{
       display:inline-flex;align-items:center;gap:.5rem;
-      background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);
-      color:#93c5fd;padding:.5rem 1rem;border-radius:.5rem;
-      font-size:.8125rem;font-weight:600;margin-top:.75rem;
+      font-family:'Inter',sans-serif;
+      background:var(--paper);border:1px solid var(--border);
+      color:var(--ink-muted);padding:.5rem 1rem;
+      font-size:.75rem;font-weight:600;
+      text-transform:uppercase;letter-spacing:.08em;
     }
 
-    /* Progress bar for frame extraction */
+    /* Progress */
     .progress-wrap{
       width:100%;max-width:400px;margin:1rem auto;
     }
     .progress-bar-bg{
-      height:.375rem;background:rgba(255,255,255,.06);
-      border-radius:1rem;overflow:hidden;
+      height:.375rem;background:var(--border-light);
+      overflow:hidden;
     }
     .progress-bar-fill{
       height:100%;width:0;
-      background:linear-gradient(90deg,#3b82f6,#8b5cf6);
-      border-radius:1rem;transition:width .1s ease;
+      background:linear-gradient(90deg,var(--accent),var(--gold));
+      transition:width .1s ease;
     }
     .progress-text{
-      text-align:center;font-size:.75rem;color:#64748b;margin-top:.375rem;
+      text-align:center;
+      font-family:'Inter',sans-serif;
+      font-size:.6875rem;color:var(--ink-faint);margin-top:.375rem;
     }
 
     /* ── Sidebar ── */
     #sidebar{
       position:fixed;top:0;right:-360px;width:340px;height:100%;
-      background:rgba(15,23,42,.95);
-      backdrop-filter:blur(24px);
-      border-left:1px solid rgba(255,255,255,.08);
-      box-shadow:-8px 0 40px rgba(0,0,0,.4);
+      background:var(--warm-white);
+      border-left:2px solid var(--ink);
+      box-shadow:-4px 0 32px var(--shadow);
       transition:right .35s cubic-bezier(.4,0,.2,1);
-      z-index:1000;padding:1.5rem;overflow-y:auto;
+      z-index:1000;padding:1.75rem 1.5rem;overflow-y:auto;
     }
     @media(max-width:400px){
       #sidebar{width:calc(100% - 2rem);right:calc(-100% + 2rem);}
@@ -238,18 +345,18 @@
 
     #sidebarToggle{
       position:fixed;bottom:1.5rem;right:1.5rem;z-index:1001;
-      width:3.25rem;height:3.25rem;
-      border-radius:.875rem;
-      background:linear-gradient(135deg,#3b82f6,#6366f1);
-      color:#fff;border:none;cursor:pointer;
-      box-shadow:0 8px 24px rgba(59,130,246,.4);
+      width:3rem;height:3rem;
+      background:var(--ink);
+      color:var(--warm-white);border:none;cursor:pointer;
+      box-shadow:0 4px 16px var(--shadow-md);
       display:flex;align-items:center;justify-content:center;
       font-size:1.25rem;
       transition:all .25s ease;
     }
     #sidebarToggle:hover{
-      box-shadow:0 12px 32px rgba(59,130,246,.5);
+      background:var(--accent);
       transform:translateY(-2px);
+      box-shadow:0 8px 24px var(--shadow-md);
     }
     #sidebarToggle:active{transform:scale(.92);}
     #sidebarToggle.hidden-btn{
@@ -258,79 +365,104 @@
 
     .sidebar-section{margin-bottom:2rem;}
     .sidebar-heading{
-      font-size:1rem;font-weight:700;color:#f1f5f9;
+      font-family:'Playfair Display',serif;
+      font-size:1.125rem;font-weight:700;color:var(--ink);
       margin-bottom:.75rem;
       display:flex;align-items:center;gap:.5rem;
+      padding-bottom:.5rem;
+      border-bottom:1px solid var(--border);
     }
-    .sidebar-desc{font-size:.75rem;color:#64748b;margin-bottom:1rem;line-height:1.6;}
+    .sidebar-desc{
+      font-family:'Inter',sans-serif;
+      font-size:.75rem;color:var(--ink-faint);margin-bottom:1rem;line-height:1.6;
+    }
 
     #qrWrapper{
-      background:rgba(255,255,255,.03);
-      padding:1rem;border-radius:1rem;
-      cursor:pointer;
-      border:1px solid rgba(255,255,255,.06);
+      background:var(--paper);
+      padding:1rem;cursor:pointer;
+      border:1px solid var(--border);
       transition:all .2s ease;
+      text-align:center;
     }
     #qrWrapper:hover{
-      background:rgba(255,255,255,.06);
-      border-color:rgba(255,255,255,.12);
+      border-color:var(--ink-faint);
+      box-shadow:0 2px 12px var(--shadow);
     }
-    #qrWrapper canvas{width:100%;height:auto;border-radius:.5rem;}
+    #qrWrapper canvas{width:100%;height:auto;}
 
     .category-group{margin-bottom:1.25rem;}
     .category-heading{
-      font-size:.8125rem;font-weight:700;color:#94a3b8;
+      font-family:'Inter',sans-serif;
+      font-size:.625rem;font-weight:700;color:var(--accent);
       margin-bottom:.5rem;padding-bottom:.375rem;
-      border-bottom:1px solid rgba(255,255,255,.08);
-      text-transform:uppercase;letter-spacing:.05em;
+      border-bottom:1px solid var(--border);
+      text-transform:uppercase;letter-spacing:.15em;
     }
     .related-sublist{list-style:none;padding:0;margin:0;}
     .related-sublist li{
-      padding:.75rem .875rem;border-radius:.625rem;
-      cursor:pointer;font-size:.8125rem;color:#94a3b8;
-      transition:all .15s ease;margin-bottom:.25rem;
-      border:1px solid transparent;
+      padding:.625rem .75rem;
+      cursor:pointer;
+      font-family:'Source Serif 4',serif;
+      font-size:.875rem;color:var(--ink-light);
+      transition:all .15s ease;margin-bottom:.125rem;
+      border-left:2px solid transparent;
     }
     .related-sublist li:hover{
-      background:rgba(255,255,255,.06);
-      color:#e2e8f0;
-      border-color:rgba(255,255,255,.08);
+      background:var(--paper);
+      color:var(--accent);
+      border-left-color:var(--accent);
     }
 
-    body.sidebar-open .main-container{
-      filter:blur(6px) brightness(.7);
+    body.sidebar-open .main-container,
+    body.sidebar-open .masthead{
+      filter:blur(4px) brightness(.95);
       transition:filter .3s ease;
       pointer-events:none;user-select:none;
     }
 
     #sidebarDimmer{
       position:fixed;inset:0;
-      background:rgba(0,0,0,.5);
+      background:rgba(26,26,26,.25);
       z-index:999;opacity:0;pointer-events:none;
       transition:opacity .3s ease;
-      backdrop-filter:blur(2px);
     }
     #sidebarDimmer.active{opacity:1;pointer-events:auto;}
 
     /* Locked Overlay */
     #lockedOverlay{
       position:fixed;inset:0;
-      background:rgba(15,23,42,.92);
+      background:rgba(250,247,242,.96);
       z-index:99999;display:none;align-items:center;justify-content:center;
-      padding:1rem;color:#fff;backdrop-filter:blur(12px);
+      padding:1rem;color:var(--ink);
     }
     #lockedBox{
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.1);
-      border-radius:1.25rem;padding:2.5rem;width:100%;max-width:420px;
+      background:var(--warm-white);
+      border:2px solid var(--ink);
+      padding:3rem 2.5rem;width:100%;max-width:420px;
       text-align:center;
-      box-shadow:0 16px 64px rgba(0,0,0,.5);
+      position:relative;
     }
-    #lockedBox h2{font-size:1.375rem;font-weight:800;margin-bottom:.625rem;}
-    #lockedBox p{font-size:.875rem;color:#94a3b8;line-height:1.6;}
+    #lockedBox::before{
+      content:'';position:absolute;top:0;left:0;
+      width:2rem;height:2rem;
+      border-top:3px solid var(--accent);
+      border-left:3px solid var(--accent);
+    }
+    #lockedBox::after{
+      content:'';position:absolute;bottom:0;right:0;
+      width:2rem;height:2rem;
+      border-bottom:3px solid var(--accent);
+      border-right:3px solid var(--accent);
+    }
+    #lockedBox h2{
+      font-family:'Playfair Display',serif;
+      font-size:1.5rem;font-weight:800;margin-bottom:.625rem;
+    }
+    #lockedBox p{font-size:.875rem;color:var(--ink-muted);line-height:1.6;}
 
-    body.blurred .main-container{
-      filter:blur(8px) brightness(.6);
+    body.blurred .main-container,
+    body.blurred .masthead{
+      filter:blur(8px) brightness(.9);
       transition:filter .3s ease;
       pointer-events:none;user-select:none;
     }
@@ -338,41 +470,38 @@
     /* Image Modal */
     #imageModal{
       display:none;position:fixed;z-index:2000;inset:0;
-      background:rgba(0,0,0,.95);
+      background:rgba(26,26,26,.92);
       align-items:center;justify-content:center;
-      padding:1rem;backdrop-filter:blur(8px);
+      padding:1rem;
       flex-direction:column;gap:1rem;
     }
     .modal-content{
-      max-width:92%;max-height:80vh;border-radius:1rem;
-      box-shadow:0 16px 64px rgba(0,0,0,.6);
+      max-width:92%;max-height:80vh;
+      box-shadow:0 16px 64px rgba(0,0,0,.4);
+      border:2px solid rgba(255,255,255,.1);
     }
     .close-btn{
       position:absolute;top:1rem;right:1.5rem;
-      color:#fff;font-size:2rem;font-weight:700;
+      color:#fff;font-size:2rem;font-weight:300;
       cursor:pointer;opacity:.6;transition:opacity .15s;
       line-height:1;z-index:10;
       width:2.5rem;height:2.5rem;
       display:flex;align-items:center;justify-content:center;
-      border-radius:.5rem;
-      background:rgba(255,255,255,.06);
+      font-family:'Inter',sans-serif;
     }
-    .close-btn:hover{opacity:1;background:rgba(255,255,255,.12);}
+    .close-btn:hover{opacity:1;}
 
-    /* Modal nav buttons for frames */
     .modal-nav{
       position:absolute;top:50%;transform:translateY(-50%);
-      width:3rem;height:3rem;border-radius:.75rem;
+      width:3rem;height:3rem;
       background:rgba(255,255,255,.08);
-      border:1px solid rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.15);
       color:#fff;cursor:pointer;
       display:flex;align-items:center;justify-content:center;
       transition:all .2s ease;z-index:10;
-      backdrop-filter:blur(8px);
     }
     .modal-nav:hover{
-      background:rgba(255,255,255,.15);
-      border-color:rgba(255,255,255,.2);
+      background:rgba(255,255,255,.18);
     }
     .modal-nav.prev{left:1rem;}
     .modal-nav.next{right:1rem;}
@@ -380,39 +509,42 @@
 
     .modal-counter{
       position:absolute;top:1rem;left:50%;transform:translateX(-50%);
-      background:rgba(0,0,0,.6);backdrop-filter:blur(8px);
-      padding:.375rem 1rem;border-radius:2rem;
-      font-size:.8125rem;font-weight:600;color:#e2e8f0;
-      border:1px solid rgba(255,255,255,.08);
-      z-index:10;
+      background:rgba(0,0,0,.5);
+      padding:.375rem 1rem;
+      font-family:'Inter',sans-serif;
+      font-size:.75rem;font-weight:600;color:#fff;
+      z-index:10;letter-spacing:.05em;
     }
 
     .modal-download-btn{
       position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);
-      background:linear-gradient(135deg,#10b981,#059669);
+      background:var(--accent);
       color:#fff;padding:.75rem 2rem;
-      border:none;border-radius:.75rem;cursor:pointer;
-      font-size:.875rem;font-weight:600;
-      box-shadow:0 4px 16px rgba(16,185,129,.3);
+      border:none;cursor:pointer;
+      font-family:'Inter',sans-serif;
+      font-size:.75rem;font-weight:600;
+      text-transform:uppercase;letter-spacing:.08em;
       transition:all .2s;
       display:flex;align-items:center;gap:.5rem;
       z-index:10;
     }
     .modal-download-btn:hover{
-      box-shadow:0 8px 24px rgba(16,185,129,.4);
+      background:#6E1D00;
       transform:translateX(-50%) translateY(-2px);
     }
 
-    /* Keyboard hint */
     .kbd-hint{
       display:flex;align-items:center;justify-content:center;gap:.5rem;
-      margin-top:1rem;font-size:.75rem;color:#475569;
+      margin-top:1rem;
+      font-family:'Inter',sans-serif;
+      font-size:.6875rem;color:var(--ink-faint);
     }
     .kbd{
       display:inline-flex;align-items:center;justify-content:center;
       min-width:1.5rem;height:1.5rem;padding:0 .375rem;
-      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
-      border-radius:.25rem;font-size:.6875rem;font-weight:600;color:#94a3b8;
+      background:var(--paper);border:1px solid var(--border);
+      font-size:.625rem;font-weight:600;color:var(--ink-muted);
+      font-family:'Inter',sans-serif;
     }
 
     .hidden{display:none!important;}
@@ -420,19 +552,59 @@
     .animate-spin{animation:spin 1s linear infinite;}
 
     @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
-    .fade-in{animation:fadeIn .4s ease forwards;}
+    .fade-in{animation:fadeIn .5s ease forwards;}
 
-    @keyframes pulse-glow{
-      0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.3);}
-      50%{box-shadow:0 0 0 8px rgba(59,130,246,0);}
+    /* Editorial ornament */
+    .ornament{
+      text-align:center;
+      font-size:1.25rem;
+      color:var(--border);
+      margin:1.5rem 0;
+      letter-spacing:.5em;
     }
-    .pulse-glow{animation:pulse-glow 2s ease-in-out infinite;}
+
+    /* Column layout for content */
+    .editorial-intro{
+      font-family:'Source Serif 4',serif;
+      font-size:1rem;
+      color:var(--ink-light);
+      line-height:1.8;
+      max-width:600px;
+      margin:0 auto;
+      text-align:center;
+      font-style:italic;
+    }
+
+    /* Pull quote style for status */
+    .pull-quote{
+      font-family:'Playfair Display',serif;
+      font-size:1rem;
+      font-style:italic;
+      color:var(--ink-light);
+      text-align:center;
+      padding:1rem 2rem;
+      border-left:3px solid var(--accent);
+      border-right:3px solid var(--accent);
+      margin:1rem auto;
+      max-width:500px;
+    }
 
     /* Scrollbar */
     ::-webkit-scrollbar{width:6px;}
-    ::-webkit-scrollbar-track{background:transparent;}
-    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px;}
-    ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.2);}
+    ::-webkit-scrollbar-track{background:var(--cream);}
+    ::-webkit-scrollbar-thumb{background:var(--border);border-radius:0;}
+    ::-webkit-scrollbar-thumb:hover{background:var(--ink-faint);}
+
+    /* Print-friendly look */
+    .folio{
+      font-family:'Inter',sans-serif;
+      font-size:.625rem;
+      text-transform:uppercase;
+      letter-spacing:.2em;
+      color:var(--ink-faint);
+      text-align:center;
+      padding:1rem 0;
+    }
   </style>
 </head>
 <body>
@@ -440,37 +612,34 @@
   <div id="sidebarDimmer"></div>
 
   <button id="sidebarToggle" aria-label="Toggle sidebar">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="22" height="22">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20">
       <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
     </svg>
   </button>
 
   <div id="sidebar">
-    <div class="flex items-center justify-between mb-6">
-      <span class="text-lg font-bold text-white flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="20" height="20" class="text-blue-400">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"/>
-        </svg>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+      <span style="font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--ink);">
         Menu
       </span>
-      <button id="sidebarClose" class="text-gray-500 hover:text-white text-2xl leading-none transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5">&times;</button>
+      <button id="sidebarClose" style="color:var(--ink-faint);font-size:1.75rem;cursor:pointer;border:none;background:none;font-weight:300;line-height:1;font-family:'Inter',sans-serif;">&times;</button>
     </div>
 
     <div id="qrSection" class="sidebar-section hidden">
       <h2 class="sidebar-heading">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" height="16" class="text-blue-400">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" height="18" style="color:var(--accent);">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z"/>
           <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z"/>
         </svg>
-        QR Code Akses Cepat
+        QR Code
       </h2>
       <p class="sidebar-desc">QR ini berisi URL file enkripsi dan kode shift untuk akses cepat.</p>
       <div id="qrWrapper">
         <canvas id="qrCanvas"></canvas>
       </div>
-      <div class="mt-3">
-        <button id="downloadQrBtn" class="btn btn-green w-full">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16">
+      <div style="margin-top:.75rem;">
+        <button id="downloadQrBtn" class="btn btn-accent" style="width:100%;">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
           </svg>
           Unduh QR Code
@@ -480,36 +649,43 @@
 
     <div id="relatedSection" class="sidebar-section hidden">
       <h2 class="sidebar-heading">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" height="16" class="text-purple-400">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L12 12.75 6.429 9.75m11.142 0 4.179 2.25-9.75 5.25-9.75-5.25 4.179-2.25"/>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="18" height="18" style="color:var(--gold);">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/>
         </svg>
         Konten Terkait
       </h2>
-      <div id="relatedList" class="text-sm"></div>
+      <div id="relatedList"></div>
     </div>
   </div>
 
+  <!-- Masthead -->
+  <header class="masthead">
+    <div class="masthead-brand">Dekripsi</div>
+    <div class="masthead-tagline">Preview &amp; Decrypt Your Encrypted Content</div>
+    <div class="masthead-date" id="currentDate"></div>
+  </header>
+
+  <hr class="rule rule-double">
+
   <div class="main-container">
 
-    <!-- Header Card -->
-    <div class="card fade-in">
-      <div class="card-header">
-        <div class="card-icon blue">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="20" height="20" class="text-white">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/>
-          </svg>
-        </div>
-        <div>
-          <h1 class="page-title">Hasil Dekripsi &amp; Preview</h1>
-          <p class="page-subtitle">Pratinjau konten Anda yang telah terdekripsi</p>
-        </div>
-      </div>
+    <!-- Editorial Intro -->
+    <div class="card fade-in" style="margin-top:1.5rem;text-align:center;">
+      <span class="section-label">Dekripsi</span>
+      <h1 class="card-headline" style="margin-top:.5rem;">Hasil Dekripsi &amp; Preview</h1>
+      <p class="editorial-intro" style="margin-top:.75rem;">
+        Konten Anda yang terenkripsi telah berhasil didekripsi dan siap untuk dipratinjau. 
+        Nikmati pengalaman melihat file Anda dalam tampilan majalah yang elegan.
+      </p>
     </div>
+
+    <div class="ornament">◆ ◆ ◆</div>
 
     <!-- Status Card -->
     <div class="card fade-in" style="animation-delay:.05s">
-      <div id="status" class="status-bar">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-gray-500">
+      <span class="section-label">Status</span>
+      <div id="status" class="status-bar" style="margin-top:.75rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4" style="color:var(--ink-faint);">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
         </svg>
         Memuat...
@@ -518,17 +694,18 @@
 
     <!-- Preview Card -->
     <div class="card fade-in" style="animation-delay:.1s">
-      <div id="preview" class="preview-area"></div>
+      <span class="section-label">Pratinjau</span>
+      <div id="preview" class="preview-area" style="margin-top:1rem;"></div>
 
       <div class="btn-group">
-        <a id="downloadOriginalBtn" class="btn btn-glass hidden">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16">
+        <a id="downloadOriginalBtn" class="btn btn-editorial hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
           </svg>
           Unduh .pb
         </a>
-        <a id="downloadDecryptedBtn" class="btn btn-green hidden">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16">
+        <a id="downloadDecryptedBtn" class="btn btn-accent hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
           </svg>
           Unduh Dekripsi
@@ -537,13 +714,13 @@
 
       <div id="meta" class="meta-row hidden">
         <div class="meta-item">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="14" height="14" class="text-blue-400">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14" style="color:var(--accent);">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/>
           </svg>
-          <span id="fileSize" class="font-medium">Ukuran: -</span>
+          <span id="fileSize" style="font-weight:500;">Ukuran: -</span>
         </div>
         <div class="meta-item">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="14" height="14" class="text-green-400">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14" style="color:var(--gold);">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a4.5 4.5 0 0 0-4.5-4.5Z"/>
           </svg>
           <span id="detectedMime">Tipe: -</span>
@@ -551,8 +728,8 @@
       </div>
 
       <div class="btn-group hidden" id="videoActions">
-        <button id="showFramesBtn" class="btn btn-purple">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" height="16">
+        <button id="showFramesBtn" class="btn btn-gold">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14">
             <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/>
           </svg>
           Tampilkan Semua Frame
@@ -562,13 +739,13 @@
 
     <!-- Frames Card -->
     <div id="framesPreview" class="card hidden fade-in">
-      <div class="flex items-center justify-between flex-wrap gap-2 mb-1">
-        <h2 class="text-lg font-bold text-white flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="20" height="20" class="text-purple-400">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-2.625 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-1.5A1.125 1.125 0 0 1 18 18.375M20.625 4.5H3.375m17.25 0c.621 0 1.125.504 1.125 1.125M20.625 4.5h-1.5C18.504 4.5 18 5.004 18 5.625m3.75 0v1.5c0 .621-.504 1.125-1.125 1.125M3.375 4.5c-.621 0-1.125.504-1.125 1.125M3.375 4.5h1.5C5.496 4.5 6 5.004 6 5.625m-2.625 0v1.5c0 .621.504 1.125 1.125 1.125m0 0h12m-12 0a1.125 1.125 0 0 1-1.125 1.125M12 8.25c.621 0 1.125.504 1.125 1.125"/>
-          </svg>
-          Semua Frame Video
-        </h2>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:.75rem;">
+        <div>
+          <span class="section-label">Galeri</span>
+          <h2 style="font-family:'Playfair Display',serif;font-size:1.375rem;font-weight:700;color:var(--ink);margin-top:.5rem;">
+            Semua Frame Video
+          </h2>
+        </div>
         <div id="frameCounterBadge" class="frame-counter hidden">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14">
             <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909"/>
@@ -588,13 +765,17 @@
       </div>
       <div class="frames-grid" id="framesGrid"></div>
     </div>
+
+    <div class="ornament">— ✦ —</div>
+
+    <div class="folio">Halaman dekripsi — Konten terenkripsi &amp; dilindungi</div>
   </div>
 
   <!-- Locked Overlay -->
   <div id="lockedOverlay" role="dialog" aria-modal="true">
     <div id="lockedBox" role="document">
-      <div style="margin-bottom:1rem;">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="48" height="48" style="margin:0 auto;opacity:.6;">
+      <div style="margin-bottom:1.25rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" width="48" height="48" style="margin:0 auto;color:var(--accent);opacity:.5;">
           <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/>
         </svg>
       </div>
@@ -603,23 +784,23 @@
     </div>
   </div>
 
-  <!-- Image Modal with navigation -->
+  <!-- Image Modal -->
   <div id="imageModal">
     <span class="close-btn">&times;</span>
     <div class="modal-counter hidden" id="modalCounter">1 / 1</div>
     <button class="modal-nav prev hidden" id="modalPrev" aria-label="Previous">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="20" height="20">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="20" height="20">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
       </svg>
     </button>
     <button class="modal-nav next hidden" id="modalNext" aria-label="Next">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="20" height="20">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="20" height="20">
         <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
       </svg>
     </button>
     <img class="modal-content" id="modalImage" alt="Preview">
     <a id="modalDownloadBtn" class="modal-download-btn" download>
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
       </svg>
       Download
@@ -627,6 +808,13 @@
   </div>
 
   <script>
+    // Set current date in masthead
+    (function(){
+      const d=new Date();
+      const opts={weekday:'long',year:'numeric',month:'long',day:'numeric'};
+      document.getElementById('currentDate').textContent=d.toLocaleDateString('id-ID',opts);
+    })();
+
     function q(name){
       return new URLSearchParams(window.location.search).get(name)||'';
     }
@@ -740,7 +928,7 @@
         });
         relatedSection.classList.remove('hidden');
       }catch(err){
-        relatedList.innerHTML='<p class="text-red-400 text-xs">Gagal memuat konten terkait.</p>';
+        relatedList.innerHTML='<p style="color:var(--accent);font-size:.75rem;">Gagal memuat konten terkait.</p>';
         relatedSection.classList.remove('hidden');
       }
     }
@@ -766,7 +954,7 @@
     const modalNext=document.getElementById('modalNext');
     const modalCounter=document.getElementById('modalCounter');
 
-    let frameImages=[];      // array of {src, filename}
+    let frameImages=[];
     let currentFrameIndex=-1;
     let isFrameMode=false;
 
@@ -802,12 +990,9 @@
       modalCounter.textContent=`${currentFrameIndex+1} / ${frameImages.length}`;
       modalPrev.disabled=currentFrameIndex<=0;
       modalNext.disabled=currentFrameIndex>=frameImages.length-1;
-
-      // highlight active thumb
       document.querySelectorAll('.frame-thumb').forEach((t,i)=>{
         t.classList.toggle('active-frame',i===currentFrameIndex);
       });
-      // scroll active thumb into view
       const activeThumb=document.querySelectorAll('.frame-thumb')[currentFrameIndex];
       if(activeThumb)activeThumb.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'});
     }
@@ -832,7 +1017,6 @@
     modalPrev.addEventListener('click',()=>navigateFrame(-1));
     modalNext.addEventListener('click',()=>navigateFrame(1));
 
-    // Keyboard navigation
     document.addEventListener('keydown',e=>{
       if(modal.style.display==='flex'){
         if(e.key==='Escape')closeModal();
@@ -845,7 +1029,6 @@
       }
     });
 
-    // Touch swipe for modal
     let touchStartX=0;
     modal.addEventListener('touchstart',e=>{touchStartX=e.changedTouches[0].clientX;},{passive:true});
     modal.addEventListener('touchend',e=>{
@@ -880,14 +1063,14 @@
 
       if(!url){statusEl.textContent='Parameter url tidak ditemukan.';return;}
 
-      statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-blue-400 animate-spin"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Memuat file terenkripsi...`;
+      statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 animate-spin" style="color:var(--gold);"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Memuat file terenkripsi...`;
 
       try{
         const res=await fetch(url);
         if(!res.ok)throw new Error(`Gagal memuat file: ${res.status}`);
         const encryptedText=await res.text();
 
-        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-blue-400 animate-spin"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Mendekripsi konten...`;
+        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 animate-spin" style="color:var(--gold);"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Mendekripsi konten...`;
 
         decryptedContent=decryptCaesar(encryptedText,shift);
         const probableBase64=decryptedContent.trim();
@@ -908,7 +1091,7 @@
             videoEl=document.createElement('video');
             videoEl.controls=true;videoEl.playsInline=true;
             videoEl.src=objectUrl;videoEl.loop=true;
-            videoEl.style.cssText='width:100%;max-width:720px;border-radius:1rem;box-shadow:0 8px 32px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.06);';
+            videoEl.style.cssText='width:100%;max-width:720px;box-shadow:0 2px 20px rgba(26,26,26,.12);border:1px solid var(--border);';
             previewEl.appendChild(createLabel(`${person} — ${name}`));
             previewEl.appendChild(videoEl);
             videoActions.classList.remove('hidden');
@@ -923,7 +1106,6 @@
               const canvas=document.createElement('canvas');
               const ctx=canvas.getContext('2d');
 
-              // Wait for video metadata
               await new Promise(resolve=>{
                 if(videoEl.readyState>=1)resolve();
                 else videoEl.addEventListener('loadedmetadata',resolve,{once:true});
@@ -931,8 +1113,8 @@
 
               canvas.width=videoEl.videoWidth;canvas.height=videoEl.videoHeight;
               const duration=videoEl.duration;
-              const fps=Math.min(30, Math.ceil(duration * 2)); // reasonable frame count
-              const totalFrames=Math.min(Math.floor(duration*fps), 300); // cap at 300
+              const fps=Math.min(30, Math.ceil(duration * 2));
+              const totalFrames=Math.min(Math.floor(duration*fps), 300);
               const frameInterval=duration/totalFrames;
 
               frameImages=[];
@@ -955,7 +1137,6 @@
                 img.addEventListener('click',()=>openModalFrame(idx));
                 framesGrid.appendChild(img);
 
-                // Update progress
                 const pct=Math.round(((i+1)/totalFrames)*100);
                 progressFill.style.width=pct+'%';
                 progressTextEl.textContent=`Mengekstrak frame ${i+1} dari ${totalFrames} (${pct}%)`;
@@ -965,7 +1146,7 @@
               frameCounterBadge.classList.remove('hidden');
               frameCountText.textContent=`${frameImages.length} frame`;
 
-              statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-green-400"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Selesai — ${frameImages.length} frame diekstrak.`;
+              statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4" style="color:var(--gold);"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Selesai — ${frameImages.length} frame diekstrak.`;
               statusEl.className='status-bar success';
             });
 
@@ -982,7 +1163,7 @@
             previewEl.innerHTML='';
             previewEl.appendChild(createLabel(`${person} — ${name}`));
             const pre=document.createElement('pre');
-            pre.style.cssText='margin-top:.75rem;padding:1rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:.75rem;font-size:.75rem;max-height:16rem;overflow:auto;color:#94a3b8;';
+            pre.style.cssText='margin-top:.75rem;padding:1rem;background:var(--paper);border:1px solid var(--border);font-size:.75rem;max-height:16rem;overflow:auto;color:var(--ink-muted);font-family:"Source Serif 4",serif;';
             pre.textContent=`[Preview base64 (dipotong)]\n${cleaned.slice(0,1500)}${cleaned.length>1500?'\n\n... (terpotong) ...':''}`;
             previewEl.appendChild(pre);
           }
@@ -994,12 +1175,12 @@
           previewEl.innerHTML='';
           previewEl.appendChild(createLabel(`${person} — ${name}`));
           const pre=document.createElement('pre');
-          pre.style.cssText='margin-top:.75rem;padding:1rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:.75rem;font-size:.8125rem;white-space:pre-wrap;color:#cbd5e1;';
+          pre.style.cssText='margin-top:.75rem;padding:1rem;background:var(--paper);border:1px solid var(--border);font-size:.875rem;white-space:pre-wrap;color:var(--ink-light);font-family:"Source Serif 4",serif;line-height:1.8;';
           pre.textContent=decryptedContent;
           previewEl.appendChild(pre);
         }
 
-        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-green-400"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Dekripsi berhasil.`;
+        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4" style="color:var(--gold);"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Dekripsi berhasil.`;
         statusEl.className='status-bar success';
 
         const blobPB=new Blob([encryptedText],{type:'application/octet-stream'});
@@ -1042,7 +1223,7 @@
         });
 
       }catch(err){
-        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-red-400"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.731 0 2.813-1.874 1.948-3.374L13.949 3.374c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg> Gagal: ${err.message}`;
+        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4" style="color:var(--accent);"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.731 0 2.813-1.874 1.948-3.374L13.949 3.374c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg> Gagal: ${err.message}`;
         statusEl.className='status-bar error';
       }
     }
@@ -1089,10 +1270,10 @@
     sidebarClose.addEventListener('click',closeSidebar);
     sidebarDimmer.addEventListener('click',closeSidebar);
 
-    // Close sidebar with Escape
     document.addEventListener('keydown',e=>{
       if(e.key==='Escape'&&sidebar.classList.contains('open'))closeSidebar();
     });
   </script>
 </body>
 </html>
+```
