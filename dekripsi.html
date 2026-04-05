@@ -645,17 +645,16 @@
 
     /* ══════════ AES-GCM Decrypt ══════════
        Format file terenkripsi: base64( IV[12 byte] + ciphertext )
-       Kunci dikirim lewat URL param: ?aeskey=<base64url-key>
+       Kunci diturunkan dari password tetap via SHA-256
     ══════════════════════════════════════ */
-    async function decryptAES(encryptedText, aesKeyB64){
-      // Import kunci AES-GCM 256-bit dari base64
-      const keyB64=aesKeyB64.replace(/-/g,'+').replace(/_/g,'/');
-      let keyPad=keyB64;
-      const p=keyPad.length%4;if(p===2)keyPad+='==';else if(p===3)keyPad+='=';
-      const keyData=Uint8Array.from(atob(keyPad),c=>c.charCodeAt(0));
-      const cryptoKey=await crypto.subtle.importKey(
-        'raw',keyData,{name:'AES-GCM'},false,['decrypt']
-      );
+    async function getAESKey(){
+      const enc=new TextEncoder();
+      const hash=await crypto.subtle.digest('SHA-256',enc.encode('dakota775'));
+      return crypto.subtle.importKey('raw',hash,{name:'AES-GCM'},false,['decrypt']);
+    }
+
+    async function decryptAES(encryptedText){
+      const cryptoKey=await getAESKey();
 
       // Data terenkripsi = base64( IV[12] + ciphertext )
       const encB64=encryptedText.trim().replace(/\s+/g,'');
@@ -894,7 +893,7 @@
     },{passive:true});
 
     /* ══════════ Main Load & Decrypt ══════════ */
-    async function loadAndDecrypt(url,shift,person,name,aeskey=''){
+    async function loadAndDecrypt(url,shift,person,name){
       const statusEl=document.getElementById('status');
       const previewEl=document.getElementById('preview');
       const metaEl=document.getElementById('meta');
@@ -928,8 +927,7 @@
         statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-blue-400 animate-spin"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Mendekripsi konten (${methodLabel})...`;
 
         if(useAES){
-          if(!aeskey)throw new Error('Parameter aeskey diperlukan untuk dekripsi AES (shift tidak ditemukan di URL).');
-          decryptedContent=await decryptAES(encryptedText,aeskey);
+          decryptedContent=await decryptAES(encryptedText);
         }else{
           decryptedContent=decryptCaesar(encryptedText,shift);
         }
@@ -1055,8 +1053,8 @@
         downloadDecryptedBtn.href=tmpUrlDecrypted;downloadDecryptedBtn.download=name||'decrypted_file';
         downloadDecryptedBtn.classList.remove('hidden');
 
-        if(url&&(shift!==null||aeskey)){
-          const qrData=shift!==null?`${url} || ${shift}`:`${url} || AES:${aeskey.slice(0,8)}...`;
+        if(url&&shift!==null){
+          const qrData=`${url} || ${shift}`;
           const safePerson=(person||'Anonim').replace(/[^a-zA-Z0-9 -]/g,'');
           const safeName=(name||'Konten').replace(/[^a-zA-Z0-9 -]/g,'');
           const qrFilename=`${safePerson} - ${safeName} - QR.png`.replace(/  +/g,' ').trim();
@@ -1096,10 +1094,9 @@
       const url=q('url');
       const shiftRaw=q('shift');          // string kosong '' kalau param tidak ada di URL
       const shift=shiftRaw!==''?shiftRaw:null;  // null = tidak ada shift → pakai AES
-      const aeskey=q('aeskey')||'';       // kunci AES dari URL param ?aeskey=...
       const person=q('person')||'';
       const name=q('name')||'';
-      await loadAndDecrypt(url,shift,person,name,aeskey);
+      await loadAndDecrypt(url,shift,person,name);
       await fetchRelatedLinks(person);
     }
 
