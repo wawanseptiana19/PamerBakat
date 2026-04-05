@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -464,7 +463,7 @@
         </svg>
         QR Code Akses Cepat
       </h2>
-      <p class="sidebar-desc">QR ini berisi URL file enkripsi dan kode shift untuk akses cepat.</p>
+      <p class="sidebar-desc">QR ini berisi URL file enkripsi dan kode shift (atau info AES) untuk akses cepat.</p>
       <div id="qrWrapper">
         <canvas id="qrCanvas"></canvas>
       </div>
@@ -642,6 +641,43 @@
         result+=String.fromCharCode(code);
       }
       return result;
+    }
+
+    /* ══════════ AES-GCM Decrypt ══════════
+       Format file terenkripsi: base64( IV[12 byte] + ciphertext )
+       Kunci dikirim lewat URL param: ?aeskey=<base64url-key>
+    ══════════════════════════════════════ */
+    async function decryptAES(encryptedText, aesKeyB64){
+      // Import kunci AES-GCM 256-bit dari base64
+      const keyB64=aesKeyB64.replace(/-/g,'+').replace(/_/g,'/');
+      let keyPad=keyB64;
+      const p=keyPad.length%4;if(p===2)keyPad+='==';else if(p===3)keyPad+='=';
+      const keyData=Uint8Array.from(atob(keyPad),c=>c.charCodeAt(0));
+      const cryptoKey=await crypto.subtle.importKey(
+        'raw',keyData,{name:'AES-GCM'},false,['decrypt']
+      );
+
+      // Data terenkripsi = base64( IV[12] + ciphertext )
+      const encB64=encryptedText.trim().replace(/\s+/g,'');
+      let encPad=encB64.replace(/-/g,'+').replace(/_/g,'/');
+      const ep=encPad.length%4;if(ep===2)encPad+='==';else if(ep===3)encPad+='=';
+      const combined=Uint8Array.from(atob(encPad),c=>c.charCodeAt(0));
+
+      if(combined.length<13)throw new Error('Data AES terlalu pendek atau format salah.');
+      const iv=combined.slice(0,12);
+      const ciphertext=combined.slice(12);
+
+      const decryptedBuffer=await crypto.subtle.decrypt({name:'AES-GCM',iv},cryptoKey,ciphertext);
+
+      // Coba decode sebagai UTF-8 text; kalau bukan teks, kembalikan sebagai base64
+      try{
+        return new TextDecoder('utf-8',{fatal:true}).decode(decryptedBuffer);
+      }catch(_){
+        // Bukan teks biasa → kembalikan sebagai base64 raw
+        const bytes=new Uint8Array(decryptedBuffer);
+        let bin='';for(let i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);
+        return btoa(bin);
+      }
     }
 
     function normalizeBase64(b64){
@@ -858,7 +894,7 @@
     },{passive:true});
 
     /* ══════════ Main Load & Decrypt ══════════ */
-    async function loadAndDecrypt(url,shift,person,name){
+    async function loadAndDecrypt(url,shift,person,name,aeskey=''){
       const statusEl=document.getElementById('status');
       const previewEl=document.getElementById('preview');
       const metaEl=document.getElementById('meta');
@@ -887,9 +923,16 @@
         if(!res.ok)throw new Error(`Gagal memuat file: ${res.status}`);
         const encryptedText=await res.text();
 
-        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-blue-400 animate-spin"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Mendekripsi konten...`;
+        const useAES=(shift===null);
+        const methodLabel=useAES?'AES-GCM':'Caesar';
+        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-blue-400 animate-spin"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Mendekripsi konten (${methodLabel})...`;
 
-        decryptedContent=decryptCaesar(encryptedText,shift);
+        if(useAES){
+          if(!aeskey)throw new Error('Parameter aeskey diperlukan untuk dekripsi AES (shift tidak ditemukan di URL).');
+          decryptedContent=await decryptAES(encryptedText,aeskey);
+        }else{
+          decryptedContent=decryptCaesar(encryptedText,shift);
+        }
         const probableBase64=decryptedContent.trim();
         const cleaned=normalizeBase64(probableBase64);
         const looksLikeBase64=cleaned&&/^[A-Za-z0-9+/=]+$/.test(cleaned);
@@ -1012,8 +1055,8 @@
         downloadDecryptedBtn.href=tmpUrlDecrypted;downloadDecryptedBtn.download=name||'decrypted_file';
         downloadDecryptedBtn.classList.remove('hidden');
 
-        if(url&&shift!==null){
-          const qrData=`${url} || ${shift}`;
+        if(url&&(shift!==null||aeskey)){
+          const qrData=shift!==null?`${url} || ${shift}`:`${url} || AES:${aeskey.slice(0,8)}...`;
           const safePerson=(person||'Anonim').replace(/[^a-zA-Z0-9 -]/g,'');
           const safeName=(name||'Konten').replace(/[^a-zA-Z0-9 -]/g,'');
           const qrFilename=`${safePerson} - ${safeName} - QR.png`.replace(/  +/g,' ').trim();
@@ -1050,8 +1093,13 @@
     async function ensureAndRunMain(){
       if(ensureAndRunMain._started)return;
       ensureAndRunMain._started=true;
-      const url=q('url'),shift=q('shift')||'0',person=q('person')||'',name=q('name')||'';
-      await loadAndDecrypt(url,shift,person,name);
+      const url=q('url');
+      const shiftRaw=q('shift');          // string kosong '' kalau param tidak ada di URL
+      const shift=shiftRaw!==''?shiftRaw:null;  // null = tidak ada shift → pakai AES
+      const aeskey=q('aeskey')||'';       // kunci AES dari URL param ?aeskey=...
+      const person=q('person')||'';
+      const name=q('name')||'';
+      await loadAndDecrypt(url,shift,person,name,aeskey);
       await fetchRelatedLinks(person);
     }
 
