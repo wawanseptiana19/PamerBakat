@@ -645,87 +645,102 @@
 
     /* ── AES-256-CBC Decrypt ── */
     async function decryptAES(encryptedText,password){
-      // Format: Base64( "Salted__" + salt(8) + ciphertext ) — OpenSSL compatible
-      // OR plain base64 ciphertext with prepended IV(16)+ciphertext
-      // We support both OpenSSL EVP_BytesToKey format and raw IV+ciphertext format.
-      const raw=Uint8Array.from(atob(encryptedText.trim()),c=>c.charCodeAt(0));
+      const b64=encryptedText.replace(/\s+/g,'');
+      let raw;
+      try{raw=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));}
+      catch(e){throw new Error('Base64 tidak valid: '+e.message);}
 
       let key,iv,ciphertext;
+      const passBytes=new TextEncoder().encode(password);
 
-      if(raw.length>8&&String.fromCharCode(...raw.slice(0,8))==='Salted__'){
-        // OpenSSL format: "Salted__" + salt(8) + ciphertext
+      const header=String.fromCharCode(...raw.slice(0,8));
+      if(header==='Salted__'){
+        // Format OpenSSL: "Salted__" + salt(8) + ciphertext
         const salt=raw.slice(8,16);
         ciphertext=raw.slice(16);
-        const passBytes=new TextEncoder().encode(password);
-        // EVP_BytesToKey with MD5, 1 iteration, 48 bytes (32 key + 16 IV)
-        const keyiv=await evpBytesToKey(passBytes,salt,48);
+        const keyiv=evpBytesToKey(passBytes,salt,48); // sync now
         key=keyiv.slice(0,32);
         iv=keyiv.slice(32,48);
       }else{
-        // Raw format: IV(16 bytes) + ciphertext
+        // Format raw: IV(16 bytes) + ciphertext
         iv=raw.slice(0,16);
         ciphertext=raw.slice(16);
-        const passBytes=new TextEncoder().encode(password);
-        const keyMaterial=await crypto.subtle.importKey('raw',passBytes,{name:'PBKDF2'},false,['deriveBits']);
-        const keyBits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:new Uint8Array(16),iterations:1,hash:'SHA-256'},keyMaterial,256);
-        key=new Uint8Array(keyBits);
+        const keyiv=evpBytesToKey(passBytes,new Uint8Array(8),32);
+        key=keyiv.slice(0,32);
       }
 
       const cryptoKey=await crypto.subtle.importKey('raw',key,{name:'AES-CBC'},false,['decrypt']);
-      const decrypted=await crypto.subtle.decrypt({name:'AES-CBC',iv},cryptoKey,ciphertext);
+      let decrypted;
+      try{
+        decrypted=await crypto.subtle.decrypt({name:'AES-CBC',iv},cryptoKey,ciphertext);
+      }catch(e){
+        throw new Error('Kunci/IV salah atau data rusak');
+      }
       return new Uint8Array(decrypted);
     }
 
+    /* Pure-JS MD5 — no parameter name collision */
+    function md5js(dataBytes){
+      function RL(v,n){return(v<<n)|(v>>>(32-n));}
+      function ADD(x,y){return(x+y)|0;}
+      const K=new Int32Array(64);
+      for(let i=0;i<64;i++)K[i]=Math.floor(Math.abs(Math.sin(i+1))*0x100000000)|0;
+      const S=[7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,
+               5, 9,14,20,5, 9,14,20,5, 9,14,20,5, 9,14,20,
+               4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,
+               6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21];
+      const bytes=Array.from(dataBytes);
+      const bitLen=bytes.length*8;
+      bytes.push(0x80);
+      while(bytes.length%64!==56)bytes.push(0);
+      for(let i=0;i<4;i++)bytes.push((bitLen>>>(i*8))&0xFF);
+      for(let i=0;i<4;i++)bytes.push(0);
+      let a0=0x67452301,b0=0xEFCDAB89|0,c0=0x98BADCFE|0,d0=0x10325476|0;
+      for(let blk=0;blk<bytes.length;blk+=64){
+        const W=new Int32Array(16);
+        for(let j=0;j<16;j++){
+          const o=blk+j*4;
+          W[j]=bytes[o]|(bytes[o+1]<<8)|(bytes[o+2]<<16)|(bytes[o+3]<<24);
+        }
+        let A=a0,B=b0,C=c0,D=d0;
+        for(let i=0;i<64;i++){
+          let F2,g;
+          if(i<16){F2=(B&C)|(~B&D);g=i;}
+          else if(i<32){F2=(D&B)|(~D&C);g=(5*i+1)%16;}
+          else if(i<48){F2=B^C^D;g=(3*i+5)%16;}
+          else{F2=C^(B|~D);g=(7*i)%16;}
+          F2=ADD(F2,ADD(A,ADD(K[i],W[g])));
+          A=D;D=C;C=B;B=ADD(B,RL(F2,S[i]));
+        }
+        a0=ADD(a0,A);b0=ADD(b0,B);c0=ADD(c0,C);d0=ADD(d0,D);
+      }
+      const out=new Uint8Array(16);
+      [a0,b0,c0,d0].forEach((v,i)=>{
+        out[i*4]=(v)&0xFF;out[i*4+1]=(v>>>8)&0xFF;
+        out[i*4+2]=(v>>>16)&0xFF;out[i*4+3]=(v>>>24)&0xFF;
+      });
+      return out;
+    }
+
+    /* EVP_BytesToKey: MD5-based KDF sama seperti openssl enc default */
     async function evpBytesToKey(password,salt,keyLen){
-      const md5=async(data)=>{
-        const buf=await crypto.subtle.digest('MD5',data).catch(()=>null);
-        if(buf)return new Uint8Array(buf);
-        // Fallback: pure-JS MD5
+      function md5of(data){
+        // WebCrypto tidak support MD5, pakai pure-JS
         return md5js(data);
-      };
+      }
       let result=new Uint8Array(0);
       let prev=new Uint8Array(0);
       while(result.length<keyLen){
         const input=new Uint8Array(prev.length+password.length+salt.length);
-        input.set(prev);input.set(password,prev.length);input.set(salt,prev.length+password.length);
-        prev=await md5(input);
+        input.set(prev,0);
+        input.set(password,prev.length);
+        input.set(salt,prev.length+password.length);
+        prev=md5of(input);
         const tmp=new Uint8Array(result.length+prev.length);
-        tmp.set(result);tmp.set(prev,result.length);
+        tmp.set(result,0);tmp.set(prev,result.length);
         result=tmp;
       }
       return result.slice(0,keyLen);
-    }
-
-    /* Pure-JS MD5 fallback (RFC 1321) */
-    function md5js(data){
-      function s(n,x){return(n<<x)|(n>>>(32-x));}
-      function add(a,b){return(a+b)|0;}
-      const T=new Uint32Array(64);
-      for(let i=0;i<64;i++)T[i]=Math.floor(4294967296*Math.abs(Math.sin(i+1)))>>>0;
-      const msg=Array.from(data);
-      const origLen=msg.length*8;
-      msg.push(0x80);
-      while((msg.length%64)!==56)msg.push(0);
-      msg.push(origLen&0xFF,(origLen>>>8)&0xFF,(origLen>>>16)&0xFF,(origLen>>>24)&0xFF,0,0,0,0);
-      let a=0x67452301,b=0xEFCDAB89,c=0x98BADCFE,d=0x10325476;
-      for(let i=0;i<msg.length;i+=64){
-        const M=[];
-        for(let j=0;j<16;j++)M[j]=(msg[i+j*4])|(msg[i+j*4+1]<<8)|(msg[i+j*4+2]<<16)|(msg[i+j*4+3]<<24);
-        let aa=a,bb=b,cc=c,dd=d;
-        const F=(x,y,z)=>(x&y)|(~x&z),G=(x,y,z)=>(x&z)|(y&~z),H=(x,y,z)=>x^y^z,I=(x,y,z)=>y^(x|~z);
-        const r=(fn,a,b,c,d,k,s,t)=>add(b,s(add(add(a,fn(b,c,d)),add(M[k]>>>0,T[t]))>>>0,s));
-        [[F,0,1,2,3,0,7,0],[F,3,0,1,2,1,12,1],[F,2,3,0,1,2,17,2],[F,1,2,3,0,3,22,3],[F,0,1,2,3,4,7,4],[F,3,0,1,2,5,12,5],[F,2,3,0,1,6,17,6],[F,1,2,3,0,7,22,7],[F,0,1,2,3,8,7,8],[F,3,0,1,2,9,12,9],[F,2,3,0,1,10,17,10],[F,1,2,3,0,11,22,11],[F,0,1,2,3,12,7,12],[F,3,0,1,2,13,12,13],[F,2,3,0,1,14,17,14],[F,1,2,3,0,15,22,15],[G,0,1,2,3,1,5,16],[G,3,0,1,2,6,9,17],[G,2,3,0,1,11,14,18],[G,1,2,3,0,0,20,19],[G,0,1,2,3,5,5,20],[G,3,0,1,2,10,9,21],[G,2,3,0,1,15,14,22],[G,1,2,3,0,4,20,23],[G,0,1,2,3,9,5,24],[G,3,0,1,2,14,9,25],[G,2,3,0,1,3,14,26],[G,1,2,3,0,8,20,27],[G,0,1,2,3,13,5,28],[G,3,0,1,2,2,9,29],[G,2,3,0,1,7,14,30],[G,1,2,3,0,12,20,31],[H,0,1,2,3,5,4,32],[H,3,0,1,2,8,11,33],[H,2,3,0,1,11,16,34],[H,1,2,3,0,14,23,35],[H,0,1,2,3,1,4,36],[H,3,0,1,2,4,11,37],[H,2,3,0,1,7,16,38],[H,1,2,3,0,10,23,39],[H,0,1,2,3,13,4,40],[H,3,0,1,2,0,11,41],[H,2,3,0,1,3,16,42],[H,1,2,3,0,6,23,43],[H,0,1,2,3,9,4,44],[H,3,0,1,2,12,11,45],[H,2,3,0,1,15,16,46],[H,1,2,3,0,2,23,47],[I,0,1,2,3,0,6,48],[I,3,0,1,2,7,10,49],[I,2,3,0,1,14,15,50],[I,1,2,3,0,5,21,51],[I,0,1,2,3,12,6,52],[I,3,0,1,2,3,10,53],[I,2,3,0,1,10,15,54],[I,1,2,3,0,1,21,55],[I,0,1,2,3,8,6,56],[I,3,0,1,2,15,10,57],[I,2,3,0,1,6,15,58],[I,1,2,3,0,13,21,59],[I,0,1,2,3,4,6,60],[I,3,0,1,2,11,10,61],[I,2,3,0,1,2,15,62],[I,1,2,3,0,9,21,63]].forEach(([fn,ai,bi,ci,di,k,sh,t])=>{
-          const vars=[a,b,c,d];vars[ai]=r(fn,vars[ai],vars[bi],vars[ci],vars[di],k,sh,t);[a,b,c,d]=vars;
-        });
-        a=add(a,aa);b=add(b,bb);c=add(c,cc);d=add(d,dd);
-      }
-      const res=new Uint8Array(16);
-      [a,b,c,d].forEach((v,i)=>{res[i*4]=v&0xFF;res[i*4+1]=(v>>>8)&0xFF;res[i*4+2]=(v>>>16)&0xFF;res[i*4+3]=(v>>>24)&0xFF;});
-      return res;
-    }
-
-    function isAesMode(shift){
-      return !shift||shift===''||shift==='-'||shift==='null'||shift==='0'&&window.location.search.indexOf('shift=')===-1;
     }
 
     function normalizeBase64(b64){
