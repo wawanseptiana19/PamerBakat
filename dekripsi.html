@@ -723,9 +723,8 @@
     }
 
     /* EVP_BytesToKey: MD5-based KDF sama seperti openssl enc default */
-    async function evpBytesToKey(password,salt,keyLen){
+    function evpBytesToKey(password,salt,keyLen){
       function md5of(data){
-        // WebCrypto tidak support MD5, pakai pure-JS
         return md5js(data);
       }
       let result=new Uint8Array(0);
