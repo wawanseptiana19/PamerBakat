@@ -103,7 +103,7 @@
     }
     .preview-area img,
     .preview-area video{
-      width:100%;max-width:720px;border-radius:1rem;
+      width:100%;max-width:380px;border-radius:1rem;
       box-shadow:0 8px 32px rgba(0,0,0,.4);
       border:1px solid rgba(255,255,255,.06);
     }
@@ -436,15 +436,9 @@
 </head>
 <body>
 
-  <div id="sidebarDimmer"></div>
+  <div id="sidebarDimmer" style="display:none!important"></div>
 
-  <button id="sidebarToggle" aria-label="Toggle sidebar">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="22" height="22">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
-    </svg>
-  </button>
-
-  <div id="sidebar">
+  <div id="sidebar" style="display:none!important">
     <div class="flex items-center justify-between mb-6">
       <span class="text-lg font-bold text-white flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="20" height="20" class="text-blue-400">
@@ -1136,7 +1130,7 @@
           previewEl.appendChild(pre);
         }
 
-        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-green-400"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Dekripsi berhasil.`;
+        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-green-400"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Siap diunduh.`;
         statusEl.className='status-bar success';
 
         const blobPB=new Blob([encryptedText],{type:'application/octet-stream'});
@@ -1174,7 +1168,8 @@
             a.download=qrFilename;a.click();
           };
 
-          document.getElementById('qrSection').classList.remove('hidden');
+          // qrSection hidden (sidebar removed)
+          // document.getElementById('qrSection').classList.remove('hidden');
         }
 
         window.addEventListener('beforeunload',()=>{
@@ -1209,35 +1204,21 @@
       });
     })();
 
-    /* ── Sidebar Logic ── */
+    /* ── Sidebar Logic (disabled) ── */
     const sidebar=document.getElementById('sidebar');
-    const sidebarToggle=document.getElementById('sidebarToggle');
+    const sidebarToggle=null;
     const sidebarClose=document.getElementById('sidebarClose');
     const sidebarDimmer=document.getElementById('sidebarDimmer');
 
-    function openSidebar(){
-      sidebar.classList.add('open');
-      sidebarDimmer.classList.add('active');
-      document.body.classList.add('sidebar-open');
-      sidebarToggle.classList.add('hidden-btn');
-    }
-    function closeSidebar(){
-      sidebar.classList.remove('open');
-      sidebarDimmer.classList.remove('active');
-      document.body.classList.remove('sidebar-open');
-      sidebarToggle.classList.remove('hidden-btn');
-    }
+    function openSidebar(){}
+    function closeSidebar(){}
 
-    sidebarToggle.addEventListener('click',()=>{
-      if(sidebar.classList.contains('open'))closeSidebar();
-      else openSidebar();
-    });
-    sidebarClose.addEventListener('click',closeSidebar);
-    sidebarDimmer.addEventListener('click',closeSidebar);
+    // sidebarToggle removed
+    if(sidebarClose)sidebarClose.addEventListener('click',closeSidebar);
+    if(sidebarDimmer)sidebarDimmer.addEventListener('click',closeSidebar);
 
-    // Close sidebar with Escape
     document.addEventListener('keydown',e=>{
-      if(e.key==='Escape'&&sidebar.classList.contains('open'))closeSidebar();
+      if(e.key==='Escape'&&sidebar&&sidebar.classList.contains('open'))closeSidebar();
     });
   </script>
 </body>
