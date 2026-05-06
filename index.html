@@ -1071,7 +1071,132 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded',fetchLinks);
+    // ===== REALTIME INDICATOR =====
+    function createRealtimeIndicator(){
+      const el=document.createElement('div');
+      el.id='realtimeIndicator';
+      el.style.cssText=`
+        position:fixed; bottom:1rem; left:1rem; z-index:1500;
+        display:flex; align-items:center; gap:0.45rem;
+        background:white; border:1.5px solid #e2e8f0; border-radius:9999px;
+        padding:0.35rem 0.75rem; font-size:0.72rem; font-weight:600;
+        color:#64748b; box-shadow:0 2px 8px rgba(0,0,0,0.08);
+        transition:all 0.3s ease; user-select:none;
+      `;
+      el.innerHTML=`
+        <span id="rtDot" style="width:8px;height:8px;border-radius:50%;background:#94a3b8;display:inline-block;transition:background 0.3s;"></span>
+        <span id="rtLabel">Menghubungkan…</span>
+      `;
+      document.body.appendChild(el);
+    }
+
+    function setRealtimeStatus(status){
+      const dot=document.getElementById('rtDot');
+      const label=document.getElementById('rtLabel');
+      if(!dot||!label)return;
+      if(status==='connected'){
+        dot.style.background='#22c55e';
+        dot.style.boxShadow='0 0 0 3px rgba(34,197,94,0.2)';
+        dot.style.animation='rtPulse 2s infinite';
+        label.textContent='Live';
+      } else if(status==='update'){
+        dot.style.background='#3b82f6';
+        dot.style.boxShadow='0 0 0 3px rgba(59,130,246,0.25)';
+        label.textContent='Memperbarui…';
+        setTimeout(()=>setRealtimeStatus('connected'),2000);
+      } else {
+        dot.style.background='#f59e0b';
+        dot.style.boxShadow='none';
+        dot.style.animation='none';
+        label.textContent='Terputus';
+      }
+    }
+
+    // Inject pulse keyframes
+    (function(){
+      const s=document.createElement('style');
+      s.textContent=`@keyframes rtPulse{0%,100%{opacity:1}50%{opacity:0.5}}`;
+      document.head.appendChild(s);
+    })();
+
+    // ===== REALTIME SUBSCRIPTION =====
+    function setupRealtime(){
+      const channel=supabase
+        .channel('links-realtime')
+        .on('postgres_changes',
+          {event:'*', schema:'public', table:'links'},
+          (payload)=>{
+            setRealtimeStatus('update');
+            const evt=payload.eventType;
+            if(evt==='INSERT'){
+              // tambahkan ke allLinksData di urutan terdepan
+              allLinksData.unshift(payload.new);
+              showStatus('📥 Data baru masuk!','success');
+            } else if(evt==='UPDATE'){
+              const idx=allLinksData.findIndex(l=>l.id===payload.new.id);
+              if(idx!==-1) allLinksData[idx]=payload.new;
+              showStatus('✏️ Data diperbarui','success');
+            } else if(evt==='DELETE'){
+              allLinksData=allLinksData.filter(l=>l.id!==payload.old.id);
+              showStatus('🗑️ Data dihapus','success');
+            }
+            // Rebuild filters & re-render tanpa fetch ulang
+            rebuildNameTags();
+            rebuildCatTags();
+            currentPage=1;
+            applyFilters();
+          }
+        )
+        .subscribe((status)=>{
+          if(status==='SUBSCRIBED') setRealtimeStatus('connected');
+          else if(status==='CLOSED'||status==='CHANNEL_ERROR') setRealtimeStatus('disconnected');
+        });
+      return channel;
+    }
+
+    // Rebuild name tags dari allLinksData terkini (tanpa fetch ulang)
+    function rebuildNameTags(){
+      nameTagsContainer.innerHTML='';
+      const nameCounts={};
+      allLinksData.forEach(link=>{const n=link.person_name;if(n)nameCounts[n]=(nameCounts[n]||0)+1;});
+      const uniqueNames=Object.keys(nameCounts).sort((a,b)=>a.localeCompare(b,'id',{sensitivity:'base'}));
+
+      const nameLabel=document.createElement('span');
+      nameLabel.className='filter-label';
+      nameLabel.innerHTML='<i class="fa-solid fa-user"></i> Nama';
+      nameTagsContainer.appendChild(nameLabel);
+
+      uniqueNames.forEach(name=>{
+        const tag=document.createElement('span');
+        tag.className='filter-tag';
+        tag.dataset.name=name.toLowerCase();
+        tag.innerHTML=`${name} <span class="tag-count">${nameCounts[name]}</span>`;
+        tag.title=`Filter "${name}" (${nameCounts[name]} item)`;
+        if(activeNameFilter===name.toLowerCase())tag.classList.add('active');
+        tag.addEventListener('click',()=>{
+          if(activeNameFilter===name.toLowerCase()){activeNameFilter=null;}
+          else{activeNameFilter=name.toLowerCase();}
+          currentPage=1;
+          applyFilters();
+        });
+        nameTagsContainer.appendChild(tag);
+      });
+
+      if(uniqueNames.length===0){
+        const empty=document.createElement('span');
+        empty.className='text-gray-400 text-sm';empty.style.whiteSpace='nowrap';empty.style.padding='0.4rem';
+        empty.textContent='Belum ada nama';nameTagsContainer.appendChild(empty);
+      }
+      if(activeNameFilter&&!uniqueNames.some(n=>n.toLowerCase()===activeNameFilter)) activeNameFilter=null;
+      requestAnimationFrame(()=>updateNameFades());
+    }
+
+    document.addEventListener('DOMContentLoaded',()=>{
+      createRealtimeIndicator();
+      fetchLinks().then(()=>{
+        setupRealtime();
+      });
+    });
   </script>
 </body>
 </html>
