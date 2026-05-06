@@ -127,6 +127,21 @@
                     </button>
                 </div>
 
+                <!-- GitHub Token Input -->
+                <div class="mb-3">
+                    <label for="githubTokenInput" class="block text-xs font-medium text-gray-600 mb-1">
+                        <i class="fas fa-shield-alt mr-1 text-green-500"></i> GitHub Personal Access Token
+                    </label>
+                    <div class="relative">
+                        <input id="githubTokenInput" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 pr-10 transition-colors">
+                        <button type="button" id="toggleTokenBtn" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none">
+                            <i id="toggleTokenIcon" class="fas fa-eye text-xs"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Token hanya tersimpan di memori, tidak disimpan ke kode.</p>
+                </div>
+
                 <!-- Repo List -->
                 <div id="repoList" class="max-h-36 overflow-y-auto border border-gray-200 rounded-lg mb-3 hidden">
                     <!-- repos populated here -->
@@ -184,7 +199,7 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        const GITHUB_TOKEN = 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';
+        let GITHUB_TOKEN = ''; // diisi dari input user saat runtime
         const GITHUB_API = 'https://api.github.com';
 
         // ─── UI ELEMENTS ─────────────────────────────────────────────────────────
@@ -202,6 +217,9 @@
         const modalTitle = document.getElementById('modal-title');
         const modalMessage = document.getElementById('modal-message');
         const modalCloseBtn = document.getElementById('modal-close-btn');
+        const githubTokenInput = document.getElementById('githubTokenInput');
+        const toggleTokenBtn = document.getElementById('toggleTokenBtn');
+        const toggleTokenIcon = document.getElementById('toggleTokenIcon');
         const loadReposBtn = document.getElementById('loadReposBtn');
         const repoList = document.getElementById('repoList');
         const createRepoBtn = document.getElementById('createRepoBtn');
@@ -305,8 +323,24 @@
             return ghUsername;
         }
 
+        // ─── TOGGLE TOKEN VISIBILITY ─────────────────────────────────────────────
+        toggleTokenBtn.addEventListener('click', () => {
+            const isPassword = githubTokenInput.type === 'password';
+            githubTokenInput.type = isPassword ? 'text' : 'password';
+            toggleTokenIcon.className = isPassword ? 'fas fa-eye-slash text-xs' : 'fas fa-eye text-xs';
+        });
+
+        // Helper: pastikan token sudah diisi sebelum request GitHub
+        function getToken() {
+            const t = githubTokenInput.value.trim();
+            if (!t) throw new Error('Masukkan GitHub Personal Access Token terlebih dahulu.');
+            GITHUB_TOKEN = t;
+            return t;
+        }
+
         // ─── LOAD REPOS ──────────────────────────────────────────────────────────
         loadReposBtn.addEventListener('click', async () => {
+            try { getToken(); } catch(e) { showModal('Peringatan', e.message); return; }
             loadReposBtn.disabled = true;
             loadReposBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Memuat...';
             try {
@@ -341,6 +375,7 @@
         createRepoBtn.addEventListener('click', async () => {
             const name = newRepoName.value.trim().replace(/\s+/g, '-');
             if (!name) { showModal('Peringatan', 'Masukkan nama repo terlebih dahulu.'); return; }
+            try { getToken(); } catch(e) { showModal('Peringatan', e.message); return; }
             createRepoBtn.disabled = true;
             createRepoBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>';
             try {
@@ -388,6 +423,7 @@
 
         // ─── ENCRYPT & UPLOAD ─────────────────────────────────────────────────────
         encryptBtn.addEventListener('click', async function () {
+            try { getToken(); } catch(e) { showModal('Peringatan', e.message); return; }
             const key = aesKey.value.trim();
             if (!key) { showModal('Peringatan', 'Masukkan kunci AES terlebih dahulu.'); return; }
             if (!fileInput.files || fileInput.files.length === 0) { showModal('Peringatan', 'Pilih file gambar atau video terlebih dahulu.'); return; }
