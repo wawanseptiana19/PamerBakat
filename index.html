@@ -1149,6 +1149,7 @@
       `;
       el.innerHTML=`
         <span id="rtDot" style="width:8px;height:8px;border-radius:50%;background:#94a3b8;display:inline-block;transition:background 0.3s;"></span>
+        <span id="rtLabel">Menghubungkan…</span>
       `;
       document.body.appendChild(el);
     }
@@ -1161,6 +1162,7 @@
         dot.style.background='#22c55e';
         dot.style.boxShadow='0 0 0 3px rgba(34,197,94,0.2)';
         dot.style.animation='rtPulse 2s infinite';
+        label.textContent='Live';
       } else if(status==='update'){
         dot.style.background='#3b82f6';
         dot.style.boxShadow='0 0 0 3px rgba(59,130,246,0.25)';
