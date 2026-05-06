@@ -127,19 +127,12 @@
                     </button>
                 </div>
 
-                <!-- GitHub Token Input -->
+                <!-- GitHub Token: otomatis diambil dari Supabase -->
                 <div class="mb-3">
-                    <label for="githubTokenInput" class="block text-xs font-medium text-gray-600 mb-1">
-                        <i class="fas fa-shield-alt mr-1 text-green-500"></i> GitHub Personal Access Token
-                    </label>
-                    <div class="relative">
-                        <input id="githubTokenInput" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 pr-10 transition-colors">
-                        <button type="button" id="toggleTokenBtn" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none">
-                            <i id="toggleTokenIcon" class="fas fa-eye text-xs"></i>
-                        </button>
+                    <div id="tokenStatusBadge" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs text-gray-500">
+                        <i class="fas fa-circle-notch fa-spin text-gray-400"></i>
+                        <span id="tokenStatusText">Mengambil token dari Supabase...</span>
                     </div>
-                    <p class="text-xs text-gray-400 mt-1">Token hanya tersimpan di memori, tidak disimpan ke kode.</p>
                 </div>
 
                 <!-- Repo List -->
@@ -199,8 +192,31 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let GITHUB_TOKEN = ''; // diisi dari input user saat runtime
+        let GITHUB_TOKEN = null; // diambil dari Supabase secara otomatis
         const GITHUB_API = 'https://api.github.com';
+
+        // ─── AMBIL TOKEN DARI SUPABASE ───────────────────────────────────────────
+        async function loadGithubToken() {
+            const badge = document.getElementById('tokenStatusBadge');
+            const statusText = document.getElementById('tokenStatusText');
+            try {
+                const { data, error } = await supabaseClient
+                    .from('app_config')
+                    .select('value')
+                    .eq('key', 'github_token')
+                    .single();
+                if (error || !data) throw new Error('Token tidak ditemukan');
+                GITHUB_TOKEN = data.value;
+                badge.className = 'flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 border border-green-200 text-xs text-green-700';
+                badge.innerHTML = '<i class="fas fa-check-circle text-green-500"></i><span>Token GitHub siap digunakan</span>';
+            } catch (err) {
+                GITHUB_TOKEN = null;
+                badge.className = 'flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-xs text-red-600';
+                badge.innerHTML = `<i class="fas fa-exclamation-circle text-red-500"></i><span>Gagal ambil token: ${err.message}</span>`;
+            }
+        }
+        // Langsung load saat halaman dibuka
+        loadGithubToken();
 
         // ─── UI ELEMENTS ─────────────────────────────────────────────────────────
         const tab1Btn = document.getElementById('tab1-btn');
@@ -217,9 +233,6 @@
         const modalTitle = document.getElementById('modal-title');
         const modalMessage = document.getElementById('modal-message');
         const modalCloseBtn = document.getElementById('modal-close-btn');
-        const githubTokenInput = document.getElementById('githubTokenInput');
-        const toggleTokenBtn = document.getElementById('toggleTokenBtn');
-        const toggleTokenIcon = document.getElementById('toggleTokenIcon');
         const loadReposBtn = document.getElementById('loadReposBtn');
         const repoList = document.getElementById('repoList');
         const createRepoBtn = document.getElementById('createRepoBtn');
@@ -323,19 +336,10 @@
             return ghUsername;
         }
 
-        // ─── TOGGLE TOKEN VISIBILITY ─────────────────────────────────────────────
-        toggleTokenBtn.addEventListener('click', () => {
-            const isPassword = githubTokenInput.type === 'password';
-            githubTokenInput.type = isPassword ? 'text' : 'password';
-            toggleTokenIcon.className = isPassword ? 'fas fa-eye-slash text-xs' : 'fas fa-eye text-xs';
-        });
-
-        // Helper: pastikan token sudah diisi sebelum request GitHub
+        // Helper: pastikan token sudah tersedia sebelum request GitHub
         function getToken() {
-            const t = githubTokenInput.value.trim();
-            if (!t) throw new Error('Masukkan GitHub Personal Access Token terlebih dahulu.');
-            GITHUB_TOKEN = t;
-            return t;
+            if (!GITHUB_TOKEN) throw new Error('Token GitHub belum siap. Tunggu sebentar atau cek koneksi Supabase.');
+            return GITHUB_TOKEN;
         }
 
         // ─── LOAD REPOS ──────────────────────────────────────────────────────────
