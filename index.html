@@ -1143,36 +1143,32 @@
         position:fixed; bottom:1rem; left:1rem; z-index:1500;
         display:flex; align-items:center; gap:0.45rem;
         background:white; border:1.5px solid #e2e8f0; border-radius:9999px;
-        padding:0.35rem 0.75rem; font-size:0.72rem; font-weight:600;
+        padding:0.35rem 0.45rem; font-size:0.72rem; font-weight:600;
         color:#64748b; box-shadow:0 2px 8px rgba(0,0,0,0.08);
         transition:all 0.3s ease; user-select:none;
       `;
       el.innerHTML=`
         <span id="rtDot" style="width:8px;height:8px;border-radius:50%;background:#94a3b8;display:inline-block;transition:background 0.3s;"></span>
-        <span id="rtLabel">Menghubungkan…</span>
       `;
       document.body.appendChild(el);
     }
 
     function setRealtimeStatus(status){
       const dot=document.getElementById('rtDot');
-      const label=document.getElementById('rtLabel');
-      if(!dot||!label)return;
+      if(!dot)return;
       if(status==='connected'){
         dot.style.background='#22c55e';
         dot.style.boxShadow='0 0 0 3px rgba(34,197,94,0.2)';
         dot.style.animation='rtPulse 2s infinite';
-        label.textContent='Live';
       } else if(status==='update'){
         dot.style.background='#3b82f6';
         dot.style.boxShadow='0 0 0 3px rgba(59,130,246,0.25)';
-        label.textContent='Memperbarui…';
+        dot.style.animation='none';
         setTimeout(()=>setRealtimeStatus('connected'),2000);
       } else {
         dot.style.background='#f59e0b';
         dot.style.boxShadow='none';
         dot.style.animation='none';
-        label.textContent='Terputus';
       }
     }
 
