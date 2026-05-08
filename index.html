@@ -743,9 +743,17 @@
 
         const viewBtn=card.querySelector('.view-description-btn');
         if(viewBtn){
-            viewBtn.addEventListener('click',()=>{
+            viewBtn.addEventListener('click',(e)=>{
+                e.preventDefault();
+                e.stopPropagation();
                 const targetUrl=`dekripsi.html?url=${encodeURIComponent(link.url||'')}&shift=${encodeURIComponent(link.shift_code||'')}&person=${encodeURIComponent(link.person_name||'')}&name=${encodeURIComponent(link.name||'')}`;
-                window.open(targetUrl,'_blank');
+                const a=document.createElement('a');
+                a.href=targetUrl;
+                a.target='_blank';
+                a.rel='noopener noreferrer';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
             });
         }
 
