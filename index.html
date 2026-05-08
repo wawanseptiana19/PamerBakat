@@ -1124,38 +1124,38 @@
     }
 
     // ===== INLINE PREVIEW =====
-    // Set untuk melacak kartu yang sedang menampilkan preview
-    const openPreviewIds = new Set();
+    // Set untuk melacak card yang sudah punya preview aktif
+    const previewLoadedIds = new Set();
 
     async function handleInlinePreview(link, card){
         const previewArea = document.getElementById(`preview-area-${link.id}`);
         if(!previewArea) return;
 
-        // === TOGGLE: jika sudah aktif dan selesai (bukan loading) → tutup ===
-        if(openPreviewIds.has(link.id) && previewArea.classList.contains('active')){
-            // Hanya tutup jika tidak sedang loading
-            if(!previewArea.querySelector('.preview-loading')){
-                previewArea.classList.remove('active');
-                previewArea.innerHTML = '';
-                openPreviewIds.delete(link.id);
-                return;
-            }
+        // === TOGGLE: klik lagi → tutup ===
+        if(previewArea.classList.contains('active')){
+            previewArea.classList.remove('active');
+            previewArea.innerHTML = '';
+            previewLoadedIds.delete(link.id);
+            return;
         }
 
-        // Tandai kartu ini sebagai terbuka dan mulai proses
-        openPreviewIds.add(link.id);
+        // Tampilkan loading — TANPA menutup preview kartu lain
         previewArea.innerHTML = `<div class="preview-loading"><svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Mendekripsi...</div>`;
         previewArea.classList.add('active');
 
         try{
-            const url = link.url || '';
+            let url = (link.url || '').trim();
             const shiftCode = link.shift_code || '';
             if(!url || !url.startsWith('http')) throw new Error('URL tidak valid.');
+
+            // Konversi .enc → .pb sebelum fetch
+            if(url.toLowerCase().endsWith('.enc')){
+                url = url.slice(0, -4) + '.pb';
+            }
 
             const response = await fetch(url);
             if(!response.ok) throw new Error(`Gagal memuat file (${response.status})`);
 
-            // Ambil sebagai ArrayBuffer agar support binary (.enc) maupun teks
             const rawBuffer = await response.arrayBuffer();
             const rawBytes = new Uint8Array(rawBuffer);
 
@@ -1163,11 +1163,9 @@
             const shiftNum = Number(shiftCode);
 
             if(shiftCode && !isNaN(shiftNum) && shiftNum !== 0){
-                // Caesar: baca sebagai teks
                 const encryptedText = new TextDecoder().decode(rawBytes);
                 decrypted = decryptCaesar(encryptedText, shiftNum);
             } else {
-                // AES: coba decode teks dulu, jika gagal pakai bytes langsung
                 decrypted = await decryptAES(rawBytes, 'dakota775');
             }
 
@@ -1180,7 +1178,7 @@
             sep.innerHTML = '<i class="fa-solid fa-unlock" style="margin-right:0.3rem;font-size:0.6rem;"></i>Hasil Dekripsi';
             previewArea.appendChild(sep);
 
-            // Render media dan ambil blob+mime untuk download
+            // Render media
             const {blob, mime, filename} = renderPreviewMedia(cleaned, previewArea, link);
 
             // Tombol Download
@@ -1197,6 +1195,7 @@
                 }
             });
             previewArea.appendChild(dlBtn);
+            previewLoadedIds.add(link.id);
 
         } catch(err){
             previewArea.innerHTML = `<span class="preview-error"><i class="fa-solid fa-circle-exclamation" style="margin-right:0.3rem;"></i>${err.message}</span>`;
