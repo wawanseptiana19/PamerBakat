@@ -711,7 +711,7 @@
         const viewBtn=card.querySelector('.view-description-btn');
         if(viewBtn){
             viewBtn.addEventListener('click',()=>{
-                const targetUrl=`https://pamer-bakat.vercel.app/dekripsi.html?url=${encodeURIComponent(link.url||'')}&shift=${encodeURIComponent(link.shift_code||'')}&person=${encodeURIComponent(link.person_name||'')}&name=${encodeURIComponent(link.name||'')}`;
+                const targetUrl=`dekripsi.html?url=${encodeURIComponent(link.url||'')}&shift=${encodeURIComponent(link.shift_code||'')}&person=${encodeURIComponent(link.person_name||'')}&name=${encodeURIComponent(link.name||'')}`;
                 window.open(targetUrl,'_blank');
             });
         }
@@ -1026,7 +1026,7 @@
 
     async function showDescriptionModal(url,shiftCode,personName,linkName){
         descriptionModal.classList.remove('hidden');descriptionContent.innerHTML='';descriptionMessage.classList.add('hidden');descriptionLoading.classList.remove('hidden');downloadBtn.classList.add('hidden');
-        try{if(!url||!url.startsWith('http'))throw new Error('URL deskripsi tidak valid.');const response=await fetch(url);if(!response.ok)throw new Error(`Gagal memuat file dari URL. Status: ${response.status}`);const encryptedText=await response.text();const decrypted=decryptCaesar(encryptedText,shiftCode);const probableBase64=decrypted.trim();const mimeHint=getMimeFromBase64Sample(probableBase64);const previewResult=setPreviewFromBase64(probableBase64,mimeHint,true);const blob=previewResult.blob;const mime=previewResult.mime;if(isBase64String(probableBase64)){const fileExt=mime?mime.split('/')[1]:'bin';let baseFilename=`${personName||'anonim'} - ${linkName||'tanpa-nama'}`;baseFilename=baseFilename.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');currentDownloadFilename=`${baseFilename}.${fileExt}`;currentDownloadBlob=blob;}else{currentDownloadBlob=new Blob([decrypted],{type:'text/plain'});currentDownloadFilename=`${personName||'anonim'} - ${linkName||'tanpa-nama'}.txt`;}downloadBtn.textContent='Unduh Konten';downloadBtn.classList.remove('hidden');descriptionLoading.classList.add('hidden');}catch(error){descriptionMessage.textContent=`Gagal memuat atau mendekripsi: ${error.message}`;descriptionLoading.classList.add('hidden');descriptionMessage.classList.remove('hidden');}
+        try{if(!url||!url.startsWith('http'))throw new Error('URL deskripsi tidak valid.');const response=await fetch(url);if(!response.ok)throw new Error(`Gagal memuat file dari URL. Status: ${response.status}`);const encryptedText=await response.text();const urlPath=(url||'').split('?')[0].toLowerCase();const isEncFile=urlPath.endsWith('.enc');const shiftNum=Number(shiftCode);let decrypted='';if(!isEncFile&&shiftCode&&!isNaN(shiftNum)&&shiftNum!==0){decrypted=decryptCaesar(encryptedText,shiftNum);}else{decrypted=await decryptAES(encryptedText.trim(),'dakota775');}const probableBase64=decrypted.trim();const mimeHint=getMimeFromBase64Sample(probableBase64);const previewResult=setPreviewFromBase64(probableBase64,mimeHint,true);const blob=previewResult.blob;const mime=previewResult.mime;if(isBase64String(probableBase64)){const fileExt=mime?mime.split('/')[1]:'bin';let baseFilename=`${personName||'anonim'} - ${linkName||'tanpa-nama'}`;baseFilename=baseFilename.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');currentDownloadFilename=`${baseFilename}.${fileExt}`;currentDownloadBlob=blob;}else{currentDownloadBlob=new Blob([decrypted],{type:'text/plain'});currentDownloadFilename=`${personName||'anonim'} - ${linkName||'tanpa-nama'}.txt`;}downloadBtn.textContent='Unduh Konten';downloadBtn.classList.remove('hidden');descriptionLoading.classList.add('hidden');}catch(error){descriptionMessage.textContent=`Gagal memuat atau mendekripsi: ${error.message}`;descriptionLoading.classList.add('hidden');descriptionMessage.classList.remove('hidden');}
     }
 
     function hideDescriptionModal(){descriptionModal.classList.add('hidden');descriptionContent.innerHTML='';descriptionMessage.classList.add('hidden');descriptionLoading.classList.add('hidden');downloadBtn.classList.add('hidden');if(currentDownloadBlob){URL.revokeObjectURL(URL.createObjectURL(currentDownloadBlob));currentDownloadBlob=null;currentDownloadFilename=null;}}
@@ -1126,22 +1126,42 @@
     // ===== INLINE PREVIEW =====
     // Track which card preview is currently open
     let activePreviewCardId = null;
+    // Cache hasil dekripsi agar tidak fetch ulang
+    const previewCache = new Map();
 
     async function handleInlinePreview(link, card){
         const previewArea = document.getElementById(`preview-area-${link.id}`);
         if(!previewArea) return;
 
-        // Jika sudah ada preview dan sudah selesai (bukan loading), tampilkan saja / jangan sembunyikan
+        // === TOGGLE: Jika preview sudah aktif untuk kartu ini → tutup (sembunyikan saja) ===
         if(activePreviewCardId === link.id && previewArea.classList.contains('active')){
-            // Scroll ke preview agar terlihat
+            previewArea.classList.remove('active');
+            activePreviewCardId = null;
+            return;
+        }
+
+        // Tutup preview kartu lain jika ada (tapi biarkan kontennya — hanya sembunyikan)
+        if(activePreviewCardId !== null && activePreviewCardId !== link.id){
+            const prev = document.getElementById(`preview-area-${activePreviewCardId}`);
+            if(prev){ prev.classList.remove('active'); }
+            // Jangan hapus innerHTML supaya hasil dekripsi tidak hilang
+        }
+
+        // Jika kartu ini pernah didekripsi → restore dari cache tanpa fetch ulang
+        if(previewCache.has(link.id)){
+            activePreviewCardId = link.id;
+            previewArea.innerHTML = previewCache.get(link.id);
+            previewArea.classList.add('active');
             previewArea.scrollIntoView({behavior:'smooth', block:'nearest'});
             return;
         }
 
-        // Tutup preview kartu lain jika ada
-        if(activePreviewCardId !== null && activePreviewCardId !== link.id){
-            const prev = document.getElementById(`preview-area-${activePreviewCardId}`);
-            if(prev){ prev.classList.remove('active'); prev.innerHTML=''; }
+        // Atau: jika previewArea masih punya konten
+        if(previewArea.innerHTML.trim() !== '' && !previewArea.querySelector('.preview-loading')){
+            activePreviewCardId = link.id;
+            previewArea.classList.add('active');
+            previewArea.scrollIntoView({behavior:'smooth', block:'nearest'});
+            return;
         }
 
         activePreviewCardId = link.id;
@@ -1153,6 +1173,10 @@
             const shiftCode = link.shift_code || '';
             if(!url || !url.startsWith('http')) throw new Error('URL tidak valid.');
 
+            // Deteksi apakah file .enc (enkripsi AES) berdasarkan ekstensi URL
+            const urlPath = url.split('?')[0].toLowerCase();
+            const isEncFile = urlPath.endsWith('.enc');
+
             const response = await fetch(url);
             if(!response.ok) throw new Error(`Gagal memuat file (${response.status})`);
             const encryptedText = await response.text();
@@ -1160,9 +1184,11 @@
             let decrypted = '';
 
             const shiftNum = Number(shiftCode);
-            if(shiftCode && !isNaN(shiftNum) && shiftNum !== 0){
+            // Gunakan Caesar jika: ada shift code, angka valid, bukan 0, DAN bukan file .enc
+            if(!isEncFile && shiftCode && !isNaN(shiftNum) && shiftNum !== 0){
                 decrypted = decryptCaesar(encryptedText, shiftNum);
             } else {
+                // File .enc atau tidak ada shift code → pakai AES
                 decrypted = await decryptAES(encryptedText.trim(), 'dakota775');
             }
 
@@ -1198,6 +1224,9 @@
                 }
             });
             previewArea.appendChild(dlBtn);
+
+            // Simpan ke cache (innerHTML saat ini tanpa blob object URL yang bisa expired)
+            previewCache.set(link.id, previewArea.innerHTML);
 
         } catch(err){
             previewArea.innerHTML = `<span class="preview-error"><i class="fa-solid fa-circle-exclamation" style="margin-right:0.3rem;"></i>${err.message}</span>`;
@@ -1338,7 +1367,6 @@
             } else if(mime.startsWith('video/')){
                 const video = document.createElement('video');
                 video.controls = true;
-                video.loop = true;
                 video.setAttribute('playsinline','');
                 video.setAttribute('preload','metadata');
                 if(blob){
@@ -1537,12 +1565,6 @@
     document.addEventListener('DOMContentLoaded',()=>{
       fetchLinks().then(()=>{
         setupRealtime();
-        // Auto-redirect ke dekripsi.html dengan data link pertama saat halaman pertama kali dibuka
-        if(allLinksData && allLinksData.length > 0){
-          const first = allLinksData[0];
-          const targetUrl = `https://pamer-bakat.vercel.app/dekripsi.html?url=${encodeURIComponent(first.url||'')}&shift=${encodeURIComponent(first.shift_code||'')}&person=${encodeURIComponent(first.person_name||'')}&name=${encodeURIComponent(first.name||'')}`;
-          window.location.href = targetUrl;
-        }
       });
     });
   </script>
