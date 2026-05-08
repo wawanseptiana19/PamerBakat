@@ -1,1542 +1,1224 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Daftar Tautan Supabase — Dekripsi & Preview Media</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
-    <style>
-        body { background-color: #f3f4f6; font-family: 'Inter', sans-serif; }
-        .modal-overlay { background-color: rgba(0,0,0,0.75); }
-        .media-preview { max-width: 100%; height: auto; }
-        .video-preview { max-width: 100%; height: auto; }
-        .editable { outline: 2px solid #3b82f6; background-color: #eff6ff; }
-        .status-popup {
-            position: fixed; top: 1rem; left: 50%; transform: translateX(-50%);
-            padding: 0.75rem 1.5rem; border-radius: 9999px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000;
-            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-            opacity: 0; pointer-events: none;
-        }
-        .status-popup.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-        .icon-wrapper { display: flex; align-items: center; justify-content: center; }
-
-        #loginOverlay {
-          position: fixed; inset: 0;
-          background: linear-gradient(135deg, rgba(15,23,42,0.8), rgba(30,58,138,0.75));
-          z-index: 20000; display: flex; align-items: center; justify-content: center;
-          padding: 1rem; backdrop-filter: blur(8px);
-        }
-        #loginBox {
-          background: white; width: 100%; max-width: 420px; border-radius: 1.25rem;
-          padding: 2.5rem 2rem 2rem; box-shadow: 0 25px 60px rgba(0,0,0,0.3); text-align: center;
-        }
-        #loginBox .login-icon {
-          width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6, #6366f1);
-          border-radius: 1rem; display: flex; align-items: center; justify-content: center;
-          margin: 0 auto 1.25rem;
-        }
-        #loginBox .login-icon i { font-size: 1.5rem; color: white; }
-        #loginBox h2 { margin-bottom: 0.35rem; font-size: 1.4rem; font-weight: 800; color: #0f172a; }
-        #loginBox p { margin-bottom: 1.5rem; color: #64748b; font-size: 0.88rem; line-height: 1.5; }
-        #loginBox .file-upload-area {
-          border: 2px dashed #cbd5e1; border-radius: 0.75rem; padding: 1.5rem 1rem;
-          cursor: pointer; transition: all 0.2s; background: #f8fafc; margin-bottom: 1rem;
-        }
-        #loginBox .file-upload-area:hover { border-color: #3b82f6; background: #eff6ff; }
-        #loginBox .file-upload-area.dragover { border-color: #3b82f6; background: #dbeafe; }
-        #loginBox .file-upload-area i { font-size: 1.75rem; color: #94a3b8; margin-bottom: 0.5rem; }
-        #loginBox .file-upload-area p { margin: 0; font-size: 0.82rem; color: #64748b; }
-        #loginBox .file-upload-area .file-name { margin-top: 0.5rem; font-size: 0.8rem; color: #3b82f6; font-weight: 600; }
-        #loginFileInput { display: none; }
-        #loginMsg { min-height: 1.25rem; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 500; border-radius: 0.5rem; padding: 0; transition: all 0.3s; }
-        #loginMsg.has-msg { padding: 0.6rem 1rem; }
-        #loginMsg.error { background: #fef2f2; color: #b91c1c; }
-        #loginMsg.success { background: #f0fdf4; color: #15803d; }
-        #logoutBtn {
-          display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.75rem;
-          background: transparent; border: 1px solid #e2e8f0; padding: 0.5rem 1rem;
-          border-radius: 0.5rem; cursor: pointer; font-size: 0.8rem; color: #64748b; transition: all 0.2s;
-        }
-        #logoutBtn:hover { background: #f1f5f9; color: #334155; }
-
-        body.lock-scroll { overflow: hidden; }
-        #pageContent.blurred { filter: blur(6px) saturate(0.95); transition: filter 0.25s ease; pointer-events: none; user-select: none; }
-        #pageContent { transition: filter 0.25s ease; }
-
-        .filter-scroller-wrapper { position: relative; margin-bottom: 0.75rem; }
-        .filter-scroller {
-            display: flex; flex-direction: row; flex-wrap: nowrap; gap: 0.5rem;
-            overflow-x: auto; overflow-y: hidden; padding-bottom: 0.5rem;
-            scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;
-            -webkit-overflow-scrolling: touch; scroll-behavior: smooth;
-        }
-        .filter-scroller::-webkit-scrollbar { height: 4px; }
-        .filter-scroller::-webkit-scrollbar-track { background: transparent; }
-        .filter-scroller::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-        .filter-scroller::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        .filter-label {
-            display: flex; align-items: center; gap: 0.35rem;
-            font-size: 0.72rem; font-weight: 700; color: #94a3b8;
-            text-transform: uppercase; letter-spacing: 0.05em;
-            white-space: nowrap; flex-shrink: 0;
-            padding: 0.4rem 0.5rem 0.4rem 0;
-            border-right: 1.5px solid #e2e8f0;
-            margin-right: 0.15rem;
-        }
-        .filter-label i { font-size: 0.7rem; }
-
-        .filter-tag {
-            padding: 0.4rem 0.9rem; background: white; color: #334155;
-            border: 1.5px solid #e2e8f0; border-radius: 0.5rem;
-            font-size: 0.78rem; font-weight: 600; cursor: pointer;
-            transition: all 0.2s; display: flex; align-items: center;
-            gap: 0.35rem; white-space: nowrap; flex-shrink: 0;
-        }
-        .filter-tag:hover { border-color: #3b82f6; color: #1e40af; background: #eff6ff; }
-        .filter-tag.active { background: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 2px 8px rgba(59,130,246,0.3); }
-        .filter-tag .tag-count {
-            font-size: 0.65rem; background: rgba(0,0,0,0.08);
-            padding: 0.1rem 0.35rem; border-radius: 0.25rem; font-weight: 700;
-            min-width: 1.1rem; text-align: center;
-            transition: all 0.2s;
-        }
-        .filter-tag.active .tag-count { background: rgba(255,255,255,0.25); }
-
-        .cat-tag { border-color: #e9d5ff; color: #6b21a8; background: #faf5ff; }
-        .cat-tag:hover { border-color: #a855f7; color: #581c87; background: #f3e8ff; }
-        .cat-tag.active { background: #a855f7; color: white; border-color: #a855f7; box-shadow: 0 2px 8px rgba(168,85,247,0.3); }
-        .cat-tag .tag-count { background: rgba(107,33,168,0.1); }
-        .cat-tag.active .tag-count { background: rgba(255,255,255,0.25); }
-
-        .filter-scroller-wrapper::before,
-        .filter-scroller-wrapper::after {
-            content: ''; position: absolute; top: 0; bottom: 0.5rem;
-            width: 2rem; z-index: 2; pointer-events: none; transition: opacity 0.3s;
-        }
-        .filter-scroller-wrapper::before { left: 0; background: linear-gradient(to right, #f3f4f6, transparent); opacity: 0; }
-        .filter-scroller-wrapper::after { right: 0; background: linear-gradient(to left, #f3f4f6, transparent); opacity: 0; }
-        .filter-scroller-wrapper.fade-left::before { opacity: 1; }
-        .filter-scroller-wrapper.fade-right::after { opacity: 1; }
-
-        #activeFilters {
-            display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem;
-            min-height: 0; transition: all 0.2s;
-        }
-        #activeFilters:empty { margin-bottom: 0; }
-        .active-filter-chip {
-            display: inline-flex; align-items: center; gap: 0.3rem;
-            padding: 0.3rem 0.7rem; border-radius: 9999px;
-            font-size: 0.72rem; font-weight: 600; cursor: pointer;
-            transition: all 0.15s; border: 1px solid;
-        }
-        .active-filter-chip.name-chip { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
-        .active-filter-chip.name-chip:hover { background: #bfdbfe; }
-        .active-filter-chip.cat-chip { background: #ede9fe; color: #5b21b6; border-color: #c4b5fd; }
-        .active-filter-chip.cat-chip:hover { background: #ddd6fe; }
-        .active-filter-chip .chip-x { font-size: 0.65rem; opacity: 0.6; margin-left: 0.1rem; }
-        .clear-all-chip {
-            display: inline-flex; align-items: center; gap: 0.3rem;
-            padding: 0.3rem 0.7rem; border-radius: 9999px;
-            font-size: 0.72rem; font-weight: 600; cursor: pointer;
-            background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5;
-            transition: all 0.15s;
-        }
-        .clear-all-chip:hover { background: #fecaca; }
-
-        #sidebar {
-            position: fixed; top: 0; right: -300px; width: 300px; height: 100%;
-            background: white; box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-            transition: right 0.3s ease; z-index: 1000; padding: 1rem; overflow-y: auto;
-        }
-        #sidebar.open { right: 0; }
-        #sidebarToggle {
-            position: fixed; bottom: 1rem; right: 1rem; z-index: 1200;
-            background: white; border: 2px solid #e5e7eb; padding: 0.5rem;
-            border-radius: 0.5rem; cursor: pointer; touch-action: manipulation;
-        }
-
-        #links-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; }
-        .link-card {
-            background: white; border-radius: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
-            overflow: hidden; display: flex; flex-direction: column;
-            transition: box-shadow 0.2s ease, transform 0.2s ease;
-            border: 1px solid #e5e7eb; position: relative;
-        }
-        .link-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); transform: translateY(-2px); }
-        .link-card-qr { display: flex; align-items: center; justify-content: center; padding: 1.25rem 1.25rem 0.75rem; cursor: pointer; }
-        .link-card-qr canvas { border-radius: 0.5rem; border: 1px solid #f3f4f6; }
-        .link-card-body { padding: 0 1.25rem 1rem; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
-        .link-card-title { font-size: 1.05rem; font-weight: 700; color: #1e293b; line-height: 1.3; word-break: break-word; text-align: center; }
-        .link-card-person { font-size: 0.82rem; color: #64748b; font-weight: 500; text-align: center; }
-        .link-card-category { display: inline-block; font-size: 0.7rem; padding: 0.15rem 0.6rem; background: #f1f5f9; color: #475569; border-radius: 9999px; font-weight: 600; width: fit-content; margin-top: 0.15rem; }
-        .link-card-meta { font-size: 0.72rem; color: #94a3b8; margin-top: 0.25rem; text-align: center; }
-        .link-card-actions { display: flex; border-top: 1px solid #f1f5f9; }
-        .link-card-actions button { flex: 1; padding: 0.7rem 0; text-align: center; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: background 0.15s; border: none; background: transparent; }
-        .link-card-actions .card-btn-view { color: #3b82f6; }
-        .link-card-actions .card-btn-view:hover { background: #eff6ff; }
-        .link-card-actions .card-btn-delete { color: #ef4444; }
-        .link-card-actions .card-btn-delete:hover { background: #fef2f2; }
-        .link-card-actions .card-btn-preview { color: #8b5cf6; }
-        .link-card-actions .card-btn-preview:hover { background: #f5f3ff; }
-        .link-card-actions > *:not(:last-child) { border-right: 1px solid #f1f5f9; }
-
-        /* ===== INLINE PREVIEW AREA ===== */
-        .card-preview-area {
-            display: none; border-top: 2px dashed #c4b5fd;
-            padding: 0.85rem 1rem 1rem; flex-direction: column; align-items: center; gap: 0.6rem;
-            background: #faf5ff; position: relative;
-        }
-        .card-preview-area.active { display: flex; }
-        .card-preview-area .preview-sep-label {
-            font-size: 0.65rem; font-weight: 700; color: #a78bfa; text-transform: uppercase;
-            letter-spacing: 0.08em; margin-bottom: 0.1rem;
-        }
-        .card-preview-area .preview-loading {
-            display: flex; align-items: center; gap: 0.5rem; color: #8b5cf6; font-size: 0.78rem; font-weight: 500;
-        }
-        .card-preview-area .preview-error { color: #ef4444; font-size: 0.78rem; text-align: center; }
-        .card-preview-area img { max-width: 100%; max-height: 300px; border-radius: 0.5rem; border: 1px solid #e9d5ff; object-fit: contain; }
-        .card-preview-area video { max-width: 100%; max-height: 300px; border-radius: 0.5rem; border: 1px solid #e9d5ff; }
-        .card-preview-area pre { font-size: 0.72rem; background: #f3e8ff; border-radius: 0.5rem; padding: 0.5rem; max-height: 160px; overflow: auto; width: 100%; color: #4c1d95; }
-        .card-preview-area .preview-method-badge { display: none; }
-        .preview-download-btn {
-            display: inline-flex; align-items: center; gap: 0.4rem;
-            margin-top: 0.25rem; padding: 0.45rem 1.1rem;
-            background: linear-gradient(135deg, #7c3aed, #6366f1);
-            color: white; border: none; border-radius: 0.5rem;
-            font-size: 0.77rem; font-weight: 700; cursor: pointer;
-            transition: all 0.2s; box-shadow: 0 2px 8px rgba(124,58,237,0.25);
-        }
-        .preview-download-btn:hover { background: linear-gradient(135deg, #6d28d9, #4f46e5); box-shadow: 0 4px 12px rgba(124,58,237,0.35); transform: translateY(-1px); }
-
-        .card-info-btn {
-            position: absolute; top: 0.6rem; right: 0.6rem; width: 28px; height: 28px;
-            border-radius: 50%; background: #f1f5f9; border: 1.5px solid #e2e8f0;
-            color: #64748b; font-size: 0.8rem; font-weight: 800; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s; z-index: 5; line-height: 1;
-        }
-        .card-info-btn:hover { background: #3b82f6; color: white; border-color: #3b82f6; transform: scale(1.1); }
-
-        #infoPopupOverlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9000;
-            display: none; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(2px);
-        }
-        #infoPopupOverlay.show { display: flex; }
-        #infoPopupBox {
-            background: white; width: 100%; max-width: 480px; border-radius: 1rem;
-            padding: 1.75rem 1.5rem 1.5rem; box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-            position: relative; animation: popIn 0.2s ease;
-        }
-        @keyframes popIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        #infoPopupBox .info-close-btn {
-            position: absolute; top: 0.75rem; right: 0.75rem; width: 28px; height: 28px;
-            border-radius: 50%; background: #f1f5f9; border: none; color: #64748b;
-            font-size: 0.85rem; cursor: pointer; display: flex; align-items: center;
-            justify-content: center; transition: all 0.15s;
-        }
-        #infoPopupBox .info-close-btn:hover { background: #e2e8f0; color: #1e293b; }
-        #infoPopupBox h3 { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin-bottom: 1rem; text-align: center; }
-        .info-row { margin-bottom: 0.85rem; }
-        .info-row-label { font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
-        .info-row-value {
-            font-size: 0.85rem; color: #334155; word-break: break-all; background: #f8fafc;
-            border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.5rem 0.75rem;
-            min-height: 2rem; line-height: 1.5; cursor: default; transition: all 0.15s;
-        }
-        .info-row-value.editable { outline: 2px solid #3b82f6; background: #eff6ff; border-color: #3b82f6; }
-        .info-row-value.url-value { color: #3b82f6; font-size: 0.78rem; }
-        .info-row-value.shift-value { color: #7c3aed; font-family: monospace; font-size: 0.9rem; font-weight: 600; }
-        .info-hint { text-align: center; font-size: 0.68rem; color: #cbd5e1; margin-top: 0.75rem; }
-
-        #searchWrapper { position: relative; width: 100%; max-width: 280px; }
-        #searchWrapper input {
-            width: 100%; padding: 0.55rem 2.2rem 0.55rem 2.2rem;
-            border: 1.5px solid #e2e8f0; border-radius: 0.625rem;
-            font-size: 0.85rem; background: #f8fafc; transition: all 0.2s; outline: none;
-        }
-        #searchWrapper input:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-        #searchWrapper .search-icon { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem; pointer-events: none; }
-        #searchWrapper .clear-btn {
-            position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
-            color: #94a3b8; cursor: pointer; padding: 0.2rem; border: none;
-            background: none; font-size: 0.8rem; transition: color 0.15s; display: none;
-        }
-        #searchWrapper .clear-btn:hover { color: #475569; }
-        #searchWrapper .clear-btn.visible { display: block; }
-
-        #resultCount { font-size: 0.78rem; color: #94a3b8; font-weight: 500; margin-bottom: 0.75rem; padding-left: 0.1rem; }
-
-        /* ===== PAGINATION ===== */
-        .pagination-container {
-            display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
-            margin-top: 1.5rem; padding: 1.25rem; background: white;
-            border-radius: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            border: 1px solid #e5e7eb;
-        }
-        .pagination-row {
-            display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
-            justify-content: center;
-        }
-        .pagination-btn {
-            display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;
-            padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.82rem; font-weight: 600;
-            cursor: pointer; transition: all 0.2s; border: 1.5px solid #e2e8f0;
-            background: white; color: #475569; min-width: 2.5rem;
-        }
-        .pagination-btn:hover:not(:disabled) { border-color: #3b82f6; color: #1e40af; background: #eff6ff; }
-        .pagination-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .pagination-btn.active {
-            background: #3b82f6; color: white; border-color: #3b82f6;
-            box-shadow: 0 2px 8px rgba(59,130,246,0.3);
-        }
-        .pagination-btn.active:hover { background: #2563eb; }
-        .pagination-btn.nav-btn { padding: 0.5rem 1.2rem; }
-        .pagination-btn.nav-btn i { font-size: 0.7rem; }
-        .pagination-ellipsis {
-            padding: 0.5rem 0.4rem; font-size: 0.82rem; color: #94a3b8;
-            font-weight: 700; letter-spacing: 0.1em; user-select: none;
-        }
-        .pagination-jump {
-            display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: #64748b;
-        }
-        .pagination-jump label { font-weight: 500; white-space: nowrap; }
-        .pagination-jump input {
-            width: 3.5rem; padding: 0.4rem 0.5rem; border: 1.5px solid #e2e8f0;
-            border-radius: 0.5rem; font-size: 0.82rem; text-align: center;
-            outline: none; transition: all 0.2s; background: #f8fafc;
-        }
-        .pagination-jump input:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-        .pagination-jump button {
-            padding: 0.4rem 0.75rem; border-radius: 0.5rem; font-size: 0.78rem; font-weight: 600;
-            cursor: pointer; transition: all 0.2s; border: 1.5px solid #3b82f6;
-            background: #3b82f6; color: white;
-        }
-        .pagination-jump button:hover { background: #2563eb; }
-        .pagination-info {
-            font-size: 0.75rem; color: #94a3b8; font-weight: 500;
-        }
-    </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-</head>
-<body class="bg-gray-100 p-0">
-
-  <!-- LOGIN -->
-  <div id="loginOverlay" role="dialog" aria-modal="true" aria-label="Login file .bat">
-    <div id="loginBox" role="document">
-      <div class="login-icon"><i class="fa-solid fa-lock"></i></div>
-      <h2>Masuk ke Halaman</h2>
-      <p>Unggah file akses Anda untuk melanjutkan</p>
-      <div class="file-upload-area" id="fileUploadArea">
-        <i class="fa-solid fa-cloud-arrow-up"></i>
-        <p>Klik atau seret file ke sini</p>
-        <div class="file-name" id="fileNameDisplay" style="display:none;"></div>
-      </div>
-      <input id="loginFileInput" type="file" accept=".bat,text/plain" />
-      <div id="loginMsg" aria-live="polite"></div>
-      <button id="logoutBtn" style="display:none;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar</button>
-    </div>
-  </div>
-
-  <!-- INFO POPUP -->
-  <div id="infoPopupOverlay">
-    <div id="infoPopupBox">
-      <button class="info-close-btn" id="infoCloseBtn">✕</button>
-      <h3 id="infoPopupTitle">Detail</h3>
-      <div class="info-row">
-        <div class="info-row-label">URL</div>
-        <div class="info-row-value url-value" id="infoUrlValue" data-column="url"></div>
-      </div>
-      <div class="info-row">
-        <div class="info-row-label">Kode Shift</div>
-        <div class="info-row-value shift-value" id="infoShiftValue" data-column="shift_code"></div>
-      </div>
-      <div class="info-hint">Klik 3× pada nilai untuk mengedit</div>
-    </div>
-  </div>
-
-  <div id="pageContent">
-  <div class="px-4 sm:px-6 py-6">
-    <!-- HEADER -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white shadow-md rounded-lg p-6 mb-4 gap-4">
-      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Daftar Tautan</h1>
-      <div id="searchWrapper">
-        <i class="fa-solid fa-magnifying-glass search-icon"></i>
-        <input type="text" id="searchInput" placeholder="Cari tautan...">
-        <button id="clearSearchBtn" class="clear-btn" title="Hapus pencarian"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-    </div>
-
-    <!-- NAME FILTER -->
-    <div class="filter-scroller-wrapper" id="nameTagsWrapper">
-      <div class="filter-scroller" id="nameTagsScroller"></div>
-    </div>
-
-    <!-- CATEGORY FILTER -->
-    <div class="filter-scroller-wrapper" id="catTagsWrapper">
-      <div class="filter-scroller" id="catTagsScroller"></div>
-    </div>
-
-    <!-- ACTIVE FILTERS -->
-    <div id="activeFilters"></div>
-    <div id="resultCount"></div>
-
-    <div class="px-0">
-      <div id="statusMessage" class="hidden text-center p-4 rounded-lg mb-4 text-sm" role="alert"></div>
-      <div id="statusPopup" class="status-popup text-center text-sm font-semibold text-white"></div>
-
-      <div id="loadingIndicator" class="text-center py-10 text-gray-500">
-        <svg class="animate-spin h-8 w-8 text-gray-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <p class="mt-2">Memuat data...</p>
-      </div>
-
-      <div id="links-grid"></div>
-
-      <!-- PAGINATION -->
-      <div id="paginationContainer" class="pagination-container" style="display:none;">
-        <div class="pagination-row" id="paginationButtons"></div>
-        <div class="pagination-row">
-          <div class="pagination-jump">
-            <label for="jumpPageInput">Ke halaman:</label>
-            <input type="number" id="jumpPageInput" min="1" placeholder="..." />
-            <button id="jumpPageBtn"><i class="fa-solid fa-arrow-right"></i> Go</button>
-          </div>
-        </div>
-        <div class="pagination-info" id="paginationInfo"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- QR MODAL -->
-  <div id="qrModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
-    <div class="bg-white p-4 rounded-lg shadow-lg relative">
-      <button id="closeModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 focus:outline-none">✕</button>
-      <div id="enlargedQrContainer" style="width:280px;height:300px;"></div>
-      <button id="downloadSingleQrBtn" class="mt-3 w-full bg-indigo-500 text-white p-2 rounded-md hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2">
-          <i class="fa-solid fa-download"></i> Unduh
-      </button>
-    </div>
-  </div>
-
-  <!-- DESCRIPTION MODAL -->
-  <div id="descriptionModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0 transition-opacity duration-300 ease-in-out modal-overlay">
-    <div class="bg-white p-6 rounded-xl shadow-2xl relative max-w-xl mx-auto w-full max-h-[90vh] overflow-hidden flex flex-col transform scale-100 transition-transform duration-300">
-      <button id="closeDescriptionModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 focus:outline-none transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-      </button>
-      <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">Preview</h2>
-      <div id="descriptionLoading" class="text-center py-8 text-gray-500 hidden">
-        <svg class="animate-spin h-8 w-8 text-gray-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <p class="mt-4 text-sm">Memuat dan mendekripsi...</p>
-      </div>
-      <div id="descriptionContent" class="overflow-y-auto w-full flex flex-col items-center p-2"></div>
-      <p id="descriptionMessage" class="text-center text-red-500 hidden mt-3"></p>
-      <button id="downloadBtn" class="hidden mt-6 px-6 py-3 rounded-lg shadow-md transition-all duration-300 text-center font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg">Unduh Konten</button>
-    </div>
-  </div>
-  </div>
-
-  <button id="sidebarToggle" class="p-4"><i class="fa-solid fa-bars text-gray-700 w-8 h-8"></i></button>
-
-  <div id="sidebar">
-    <button id="closeSidebar" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800"><i class="fa-solid fa-times"></i></button>
-    <h2 class="text-lg font-semibold mb-4">Menu</h2>
-    <button id="downloadAllQrBtn" class="mb-4 p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors icon-wrapper flex items-center gap-2 text-sm font-semibold text-gray-700 w-full justify-center" title="Unduh Semua QR Code">
-        <i class="fa-solid fa-file-zipper w-5 h-5"></i> Unduh Semua QR
-    </button>
-    <a href="https://pamer-bakat.vercel.app/tambah_konten.html" target="_blank" title="Pengaturan" class="mb-4 p-2 border border-gray-300 rounded-md bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors icon-wrapper flex items-center gap-2 text-sm font-semibold text-gray-700 w-full justify-center">
-        <i class="fa-solid fa-plus text-gray-700 w-5 h-5"></i> Tambah Konten
-    </a>
-    <!-- Realtime indicator -->
-    <div style="position:absolute;bottom:1rem;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:0.4rem;">
-      <span id="rtDot" style="width:8px;height:8px;border-radius:50%;background:#94a3b8;display:inline-block;transition:background 0.3s;flex-shrink:0;"></span>
-      <span id="rtLabel" style="font-size:0.7rem;color:#94a3b8;font-weight:600;"></span>
-    </div>
-  </div>
-
-  <!-- LOGIN SCRIPT -->
-  <script>
-    (function(){
-      const SECRET_TEXT='YQDYIpjYnF7PZtDYs6e8yZJmGqTuB4rgZQSaenc618nmy4x095';
-      const overlay=document.getElementById('loginOverlay');const fileInput=document.getElementById('loginFileInput');const msg=document.getElementById('loginMsg');const logoutBtn=document.getElementById('logoutBtn');const pageContent=document.getElementById('pageContent');const fileUploadArea=document.getElementById('fileUploadArea');const fileNameDisplay=document.getElementById('fileNameDisplay');
-      function lockPage(){overlay.style.display='flex';document.documentElement.classList.add('lock-scroll');document.body.classList.add('lock-scroll');if(pageContent)pageContent.classList.add('blurred');}
-      function unlockPage(){overlay.style.display='none';document.documentElement.classList.remove('lock-scroll');document.body.classList.remove('lock-scroll');if(pageContent)pageContent.classList.remove('blurred');logoutBtn.style.display='inline-flex';localStorage.setItem('dekrip_logged_in','true');}
-      function resetAccess(){fileInput.value='';msg.textContent='';msg.className='';fileNameDisplay.style.display='none';logoutBtn.style.display='none';localStorage.removeItem('dekrip_logged_in');lockPage();}
-      function showLoginMsg(t,type){msg.textContent=t;msg.className='has-msg '+type;}
-      lockPage();
-      fileUploadArea.addEventListener('click',()=>fileInput.click());
-      fileUploadArea.addEventListener('dragover',(e)=>{e.preventDefault();fileUploadArea.classList.add('dragover');});
-      fileUploadArea.addEventListener('dragleave',()=>{fileUploadArea.classList.remove('dragover');});
-      fileUploadArea.addEventListener('drop',(e)=>{e.preventDefault();fileUploadArea.classList.remove('dragover');if(e.dataTransfer.files.length>0){fileInput.files=e.dataTransfer.files;fileInput.dispatchEvent(new Event('change'));}});
-      function processFile(f){msg.textContent='';msg.className='';if(!f){showLoginMsg('Tidak ada file terpilih.','error');return;}const name=f.name||'';if(!name.toLowerCase().endsWith('.bat')){showLoginMsg('Harap unggah file yang benar.','error');fileInput.value='';fileNameDisplay.style.display='none';return;}fileNameDisplay.textContent=name;fileNameDisplay.style.display='block';const reader=new FileReader();reader.onload=function(e){let text=String(e.target.result||'');if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);const cleaned=text.trim();if(cleaned===SECRET_TEXT){unlockPage();showLoginMsg('Berhasil — akses diberikan.','success');}else{showLoginMsg('Isi file tidak cocok. Coba lagi.','error');fileInput.value='';fileNameDisplay.style.display='none';}};reader.onerror=function(){showLoginMsg('Gagal membaca file.','error');fileInput.value='';fileNameDisplay.style.display='none';};reader.readAsText(f);}
-      fileInput.addEventListener('change',(ev)=>{const f=ev.target.files&&ev.target.files[0];processFile(f);});
-      logoutBtn.addEventListener('click',()=>{if(confirm('Apakah Anda yakin ingin menghapus akses dan keluar?'))resetAccess();});
-      overlay.addEventListener('click',(e)=>{if(e.target===overlay)showLoginMsg('Silakan unggah file untuk masuk.','error');});
-    })();
-  </script>
-
-  <!-- MAIN SCRIPT -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dekripsi & Preview — Dekripsi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
+    window.createClient = createClient;
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:'Inter',sans-serif;
+      background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);
+      min-height:100vh;color:#e2e8f0;
+      overflow-x:hidden;
+    }
 
-    const supabaseUrl='https://qzdvdfebkzlwkhvxwsju.supabase.co';
-    const supabaseKey='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
-    const supabase=createClient(supabaseUrl,supabaseKey);
+    /* Animated background particles */
+    body::before{
+      content:'';position:fixed;inset:0;z-index:0;
+      background:
+        radial-gradient(ellipse 600px 600px at 20% 20%, rgba(59,130,246,.08) 0%, transparent 70%),
+        radial-gradient(ellipse 500px 500px at 80% 80%, rgba(139,92,246,.06) 0%, transparent 70%),
+        radial-gradient(ellipse 400px 400px at 50% 50%, rgba(16,185,129,.04) 0%, transparent 70%);
+      pointer-events:none;
+    }
 
-    const linksGrid=document.getElementById('links-grid');
-    const loadingIndicator=document.getElementById('loadingIndicator');
-    const statusPopup=document.getElementById('statusPopup');
-    const searchInput=document.getElementById('searchInput');
-    const clearSearchBtn=document.getElementById('clearSearchBtn');
-    const qrModal=document.getElementById('qrModal');
-    const closeModalButton=document.getElementById('closeModal');
-    const descriptionModal=document.getElementById('descriptionModal');
-    const closeDescriptionModalButton=document.getElementById('closeDescriptionModal');
-    const descriptionContent=document.getElementById('descriptionContent');
-    const descriptionMessage=document.getElementById('descriptionMessage');
-    const descriptionLoading=document.getElementById('descriptionLoading');
-    const downloadBtn=document.getElementById('downloadBtn');
-    const downloadSingleQrBtn=document.getElementById('downloadSingleQrBtn');
-    const enlargedQrContainer=document.getElementById('enlargedQrContainer');
-    const downloadAllQrBtn=document.getElementById('downloadAllQrBtn');
-    const nameTagsContainer=document.getElementById('nameTagsScroller');
-    const nameTagsWrapper=document.getElementById('nameTagsWrapper');
-    const catTagsContainer=document.getElementById('catTagsScroller');
-    const catTagsWrapper=document.getElementById('catTagsWrapper');
-    const activeFiltersContainer=document.getElementById('activeFilters');
-    const resultCountEl=document.getElementById('resultCount');
-    const sidebar=document.getElementById('sidebar');
-    const sidebarToggle=document.getElementById('sidebarToggle');
-    const closeSidebarEl=document.getElementById('closeSidebar');
-    const pageContent=document.getElementById('pageContent');
-    const infoPopupOverlay=document.getElementById('infoPopupOverlay');
-    const infoCloseBtn=document.getElementById('infoCloseBtn');
-    const infoPopupTitle=document.getElementById('infoPopupTitle');
-    const infoUrlValue=document.getElementById('infoUrlValue');
-    const infoShiftValue=document.getElementById('infoShiftValue');
-    const paginationContainer=document.getElementById('paginationContainer');
-    const paginationButtons=document.getElementById('paginationButtons');
-    const paginationInfo=document.getElementById('paginationInfo');
-    const jumpPageInput=document.getElementById('jumpPageInput');
-    const jumpPageBtn=document.getElementById('jumpPageBtn');
+    .main-container{
+      position:relative;z-index:1;
+      width:100%;max-width:960px;margin:0 auto;
+      padding:1.5rem 1rem 6rem;
+    }
+    @media(min-width:768px){
+      .main-container{padding:2.5rem 2rem 4rem;}
+    }
 
-    let lastClickTime=0,clickCount=0;
-    let currentDownloadBlob=null,currentDownloadFilename=null;
-    let allLinksData=[];
-    let currentQrFilename=null,currentInfoCardId=null;
-    let activeNameFilter=null;
-    let activeCatFilter=null;
+    /* Glass Card */
+    .card{
+      background:rgba(255,255,255,.04);
+      backdrop-filter:blur(20px);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:1.25rem;
+      padding:1.5rem;
+      margin-bottom:1.25rem;
+      transition:all .3s ease;
+    }
+    .card:hover{
+      background:rgba(255,255,255,.06);
+      border-color:rgba(255,255,255,.12);
+    }
+    @media(min-width:768px){
+      .card{padding:2rem;}
+    }
 
-    // ===== PAGINATION STATE =====
-    const ITEMS_PER_PAGE = 9;
-    let currentPage = 1;
-    let filteredLinksData = []; // links after filter applied
+    .card-header{
+      display:flex;align-items:center;gap:.75rem;
+    }
+    .card-icon{
+      width:2.75rem;height:2.75rem;border-radius:.75rem;
+      display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;
+    }
+    .card-icon.blue{background:linear-gradient(135deg,#3b82f6,#6366f1);}
+    .card-icon.green{background:linear-gradient(135deg,#10b981,#06b6d4);}
+    .card-icon.purple{background:linear-gradient(135deg,#8b5cf6,#a855f7);}
 
-    // --- Scroll fade ---
-    function setupScrollFades(scroller,wrapper){
-        function update(){
-            const canLeft=scroller.scrollLeft>2;
-            const canRight=scroller.scrollLeft<(scroller.scrollWidth-scroller.clientWidth-2);
-            wrapper.classList.toggle('fade-left',canLeft);
-            wrapper.classList.toggle('fade-right',canRight);
+    .page-title{
+      font-size:1.5rem;font-weight:800;
+      background:linear-gradient(135deg,#f1f5f9,#cbd5e1);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text;
+      line-height:1.3;
+    }
+    @media(min-width:768px){.page-title{font-size:1.75rem;}}
+
+    .page-subtitle{
+      font-size:.8125rem;color:#94a3b8;margin-top:.125rem;
+    }
+
+    /* Status Bar */
+    .status-bar{
+      display:flex;align-items:center;gap:.625rem;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:.75rem;padding:.75rem 1rem;
+      font-size:.8125rem;color:#94a3b8;
+      transition:all .3s ease;
+    }
+    .status-bar.success{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.06);}
+    .status-bar.error{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.06);}
+
+    /* Preview */
+    .preview-area{
+      display:flex;flex-direction:column;align-items:center;
+      gap:1rem;width:100%;
+    }
+    .preview-area img,
+    .preview-area video{
+      width:100%;max-width:380px;border-radius:1rem;
+      box-shadow:0 8px 32px rgba(0,0,0,.4);
+      border:1px solid rgba(255,255,255,.06);
+    }
+    .preview-label{
+      font-size:.9375rem;font-weight:600;color:#e2e8f0;
+      text-align:center;word-break:break-word;
+      padding:.5rem 1rem;
+      background:rgba(255,255,255,.04);
+      border-radius:.5rem;
+    }
+
+    /* Buttons */
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      gap:.5rem;padding:.75rem 1.5rem;border-radius:.75rem;
+      font-size:.8125rem;font-weight:600;
+      text-decoration:none;border:none;cursor:pointer;
+      transition:all .2s ease;position:relative;overflow:hidden;
+    }
+    .btn::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(135deg,rgba(255,255,255,.1),transparent);
+      opacity:0;transition:opacity .2s;
+    }
+    .btn:hover::after{opacity:1;}
+
+    .btn-glass{
+      background:rgba(255,255,255,.06);color:#e2e8f0;
+      border:1px solid rgba(255,255,255,.1);
+    }
+    .btn-glass:hover{background:rgba(255,255,255,.1);transform:translateY(-1px);}
+
+    .btn-green{
+      background:linear-gradient(135deg,#10b981,#059669);color:#fff;
+      box-shadow:0 4px 16px rgba(16,185,129,.3);
+    }
+    .btn-green:hover{box-shadow:0 6px 24px rgba(16,185,129,.4);transform:translateY(-1px);}
+
+    .btn-blue{
+      background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;
+      box-shadow:0 4px 16px rgba(59,130,246,.3);
+    }
+    .btn-blue:hover{box-shadow:0 6px 24px rgba(59,130,246,.4);transform:translateY(-1px);}
+
+    .btn-purple{
+      background:linear-gradient(135deg,#8b5cf6,#a855f7);color:#fff;
+      box-shadow:0 4px 16px rgba(139,92,246,.3);
+    }
+    .btn-purple:hover{box-shadow:0 6px 24px rgba(139,92,246,.4);transform:translateY(-1px);}
+
+    .btn-group{display:flex;flex-wrap:wrap;justify-content:center;gap:.75rem;margin-top:1.25rem;}
+
+    /* Meta */
+    .meta-row{
+      display:flex;flex-wrap:wrap;justify-content:center;gap:1.25rem;
+      margin-top:1.25rem;font-size:.8125rem;color:#94a3b8;
+    }
+    .meta-item{
+      display:flex;align-items:center;gap:.375rem;
+      background:rgba(255,255,255,.03);
+      padding:.5rem .875rem;border-radius:.5rem;
+      border:1px solid rgba(255,255,255,.06);
+    }
+
+    /* Frames Grid */
+    .frames-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+      gap:.75rem;margin-top:1rem;
+    }
+    @media(min-width:768px){
+      .frames-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));}
+    }
+    .frame-thumb{
+      width:100%;aspect-ratio:16/9;object-fit:cover;
+      border-radius:.75rem;cursor:pointer;
+      box-shadow:0 2px 8px rgba(0,0,0,.3);
+      border:2px solid transparent;
+      transition:all .2s ease;
+    }
+    .frame-thumb:hover{
+      transform:scale(1.04);
+      box-shadow:0 8px 24px rgba(0,0,0,.4);
+      border-color:rgba(59,130,246,.4);
+    }
+    .frame-thumb.active-frame{
+      border-color:#3b82f6;
+      box-shadow:0 0 0 3px rgba(59,130,246,.3), 0 8px 24px rgba(0,0,0,.4);
+      transform:scale(1.04);
+    }
+
+    /* Frame counter badge */
+    .frame-counter{
+      display:inline-flex;align-items:center;gap:.5rem;
+      background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);
+      color:#93c5fd;padding:.5rem 1rem;border-radius:.5rem;
+      font-size:.8125rem;font-weight:600;margin-top:.75rem;
+    }
+
+    /* Progress bar for frame extraction */
+    .progress-wrap{
+      width:100%;max-width:400px;margin:1rem auto;
+    }
+    .progress-bar-bg{
+      height:.375rem;background:rgba(255,255,255,.06);
+      border-radius:1rem;overflow:hidden;
+    }
+    .progress-bar-fill{
+      height:100%;width:0;
+      background:linear-gradient(90deg,#3b82f6,#8b5cf6);
+      border-radius:1rem;transition:width .1s ease;
+    }
+    .progress-text{
+      text-align:center;font-size:.75rem;color:#64748b;margin-top:.375rem;
+    }
+
+    /* ── Sidebar ── */
+    #sidebar{
+      position:fixed;top:0;right:-360px;width:340px;height:100%;
+      background:rgba(15,23,42,.95);
+      backdrop-filter:blur(24px);
+      border-left:1px solid rgba(255,255,255,.08);
+      box-shadow:-8px 0 40px rgba(0,0,0,.4);
+      transition:right .35s cubic-bezier(.4,0,.2,1);
+      z-index:1000;padding:1.5rem;overflow-y:auto;
+    }
+    @media(max-width:400px){
+      #sidebar{width:calc(100% - 2rem);right:calc(-100% + 2rem);}
+    }
+    #sidebar.open{right:0;}
+
+    #sidebarToggle{
+      position:fixed;bottom:1.5rem;right:1.5rem;z-index:1001;
+      width:3.25rem;height:3.25rem;
+      border-radius:.875rem;
+      background:linear-gradient(135deg,#3b82f6,#6366f1);
+      color:#fff;border:none;cursor:pointer;
+      box-shadow:0 8px 24px rgba(59,130,246,.4);
+      display:flex;align-items:center;justify-content:center;
+      font-size:1.25rem;
+      transition:all .25s ease;
+    }
+    #sidebarToggle:hover{
+      box-shadow:0 12px 32px rgba(59,130,246,.5);
+      transform:translateY(-2px);
+    }
+    #sidebarToggle:active{transform:scale(.92);}
+    #sidebarToggle.hidden-btn{
+      opacity:0;pointer-events:none;transform:scale(.8);
+    }
+
+    .sidebar-section{margin-bottom:2rem;}
+    .sidebar-heading{
+      font-size:1rem;font-weight:700;color:#f1f5f9;
+      margin-bottom:.75rem;
+      display:flex;align-items:center;gap:.5rem;
+    }
+    .sidebar-desc{font-size:.75rem;color:#64748b;margin-bottom:1rem;line-height:1.6;}
+
+    #qrWrapper{
+      background:rgba(255,255,255,.03);
+      padding:1rem;border-radius:1rem;
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,.06);
+      transition:all .2s ease;
+    }
+    #qrWrapper:hover{
+      background:rgba(255,255,255,.06);
+      border-color:rgba(255,255,255,.12);
+    }
+    #qrWrapper canvas{width:100%;height:auto;border-radius:.5rem;}
+
+    .category-group{margin-bottom:1.25rem;}
+    .category-heading{
+      font-size:.8125rem;font-weight:700;color:#94a3b8;
+      margin-bottom:.5rem;padding-bottom:.375rem;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      text-transform:uppercase;letter-spacing:.05em;
+    }
+    .related-sublist{list-style:none;padding:0;margin:0;}
+    .related-sublist li{
+      padding:.75rem .875rem;border-radius:.625rem;
+      cursor:pointer;font-size:.8125rem;color:#94a3b8;
+      transition:all .15s ease;margin-bottom:.25rem;
+      border:1px solid transparent;
+    }
+    .related-sublist li:hover{
+      background:rgba(255,255,255,.06);
+      color:#e2e8f0;
+      border-color:rgba(255,255,255,.08);
+    }
+
+    body.sidebar-open .main-container{
+      filter:blur(6px) brightness(.7);
+      transition:filter .3s ease;
+      pointer-events:none;user-select:none;
+    }
+
+    #sidebarDimmer{
+      position:fixed;inset:0;
+      background:rgba(0,0,0,.5);
+      z-index:999;opacity:0;pointer-events:none;
+      transition:opacity .3s ease;
+      backdrop-filter:blur(2px);
+    }
+    #sidebarDimmer.active{opacity:1;pointer-events:auto;}
+
+    /* Locked Overlay */
+    #lockedOverlay{
+      position:fixed;inset:0;
+      background:rgba(15,23,42,.92);
+      z-index:99999;display:none;align-items:center;justify-content:center;
+      padding:1rem;color:#fff;backdrop-filter:blur(12px);
+    }
+    #lockedBox{
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:1.25rem;padding:2.5rem;width:100%;max-width:420px;
+      text-align:center;
+      box-shadow:0 16px 64px rgba(0,0,0,.5);
+    }
+    #lockedBox h2{font-size:1.375rem;font-weight:800;margin-bottom:.625rem;}
+    #lockedBox p{font-size:.875rem;color:#94a3b8;line-height:1.6;}
+
+    body.blurred .main-container{
+      filter:blur(8px) brightness(.6);
+      transition:filter .3s ease;
+      pointer-events:none;user-select:none;
+    }
+
+    /* Image Modal */
+    #imageModal{
+      display:none;position:fixed;z-index:2000;inset:0;
+      background:rgba(0,0,0,.95);
+      align-items:center;justify-content:center;
+      padding:1rem;backdrop-filter:blur(8px);
+      flex-direction:column;gap:1rem;
+    }
+    .modal-content{
+      max-width:92%;max-height:80vh;border-radius:1rem;
+      box-shadow:0 16px 64px rgba(0,0,0,.6);
+    }
+    .close-btn{
+      position:absolute;top:1rem;right:1.5rem;
+      color:#fff;font-size:2rem;font-weight:700;
+      cursor:pointer;opacity:.6;transition:opacity .15s;
+      line-height:1;z-index:10;
+      width:2.5rem;height:2.5rem;
+      display:flex;align-items:center;justify-content:center;
+      border-radius:.5rem;
+      background:rgba(255,255,255,.06);
+    }
+    .close-btn:hover{opacity:1;background:rgba(255,255,255,.12);}
+
+    /* Modal nav buttons for frames */
+    .modal-nav{
+      position:absolute;top:50%;transform:translateY(-50%);
+      width:3rem;height:3rem;border-radius:.75rem;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      transition:all .2s ease;z-index:10;
+      backdrop-filter:blur(8px);
+    }
+    .modal-nav:hover{
+      background:rgba(255,255,255,.15);
+      border-color:rgba(255,255,255,.2);
+    }
+    .modal-nav.prev{left:1rem;}
+    .modal-nav.next{right:1rem;}
+    .modal-nav:disabled{opacity:.2;cursor:default;pointer-events:none;}
+
+    .modal-counter{
+      position:absolute;top:1rem;left:50%;transform:translateX(-50%);
+      background:rgba(0,0,0,.6);backdrop-filter:blur(8px);
+      padding:.375rem 1rem;border-radius:2rem;
+      font-size:.8125rem;font-weight:600;color:#e2e8f0;
+      border:1px solid rgba(255,255,255,.08);
+      z-index:10;
+    }
+
+    .modal-download-btn{
+      position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);
+      background:linear-gradient(135deg,#10b981,#059669);
+      color:#fff;padding:.75rem 2rem;
+      border:none;border-radius:.75rem;cursor:pointer;
+      font-size:.875rem;font-weight:600;
+      box-shadow:0 4px 16px rgba(16,185,129,.3);
+      transition:all .2s;
+      display:flex;align-items:center;gap:.5rem;
+      z-index:10;
+    }
+    .modal-download-btn:hover{
+      box-shadow:0 8px 24px rgba(16,185,129,.4);
+      transform:translateX(-50%) translateY(-2px);
+    }
+
+    /* Keyboard hint */
+    .kbd-hint{
+      display:flex;align-items:center;justify-content:center;gap:.5rem;
+      margin-top:1rem;font-size:.75rem;color:#475569;
+    }
+    .kbd{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-width:1.5rem;height:1.5rem;padding:0 .375rem;
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+      border-radius:.25rem;font-size:.6875rem;font-weight:600;color:#94a3b8;
+    }
+
+    .hidden{display:none!important;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .animate-spin{animation:spin 1s linear infinite;}
+
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+    .fade-in{animation:fadeIn .4s ease forwards;}
+
+    @keyframes pulse-glow{
+      0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.3);}
+      50%{box-shadow:0 0 0 8px rgba(59,130,246,0);}
+    }
+    .pulse-glow{animation:pulse-glow 2s ease-in-out infinite;}
+
+    /* Scrollbar */
+    ::-webkit-scrollbar{width:6px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px;}
+    ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.2);}
+  </style>
+</head>
+<body>
+
+  <div id="sidebarDimmer" style="display:none!important"></div>
+
+  <div id="sidebar" style="display:none!important">
+    <div class="flex items-center justify-between mb-6">
+      <span class="text-lg font-bold text-white flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="20" height="20" class="text-blue-400">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"/>
+        </svg>
+        Menu
+      </span>
+      <button id="sidebarClose" class="text-gray-500 hover:text-white text-2xl leading-none transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5">&times;</button>
+    </div>
+
+    <div id="qrSection" class="sidebar-section hidden">
+      <h2 class="sidebar-heading">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" height="16" class="text-blue-400">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z"/>
+        </svg>
+        QR Code Akses Cepat
+      </h2>
+      <p class="sidebar-desc">QR ini berisi URL file enkripsi dan kode shift untuk akses cepat.</p>
+      <div id="qrWrapper">
+        <canvas id="qrCanvas"></canvas>
+      </div>
+      <div class="mt-3">
+        <button id="downloadQrBtn" class="btn btn-green w-full">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+          </svg>
+          Unduh QR Code
+        </button>
+      </div>
+    </div>
+
+    <div id="relatedSection" class="sidebar-section hidden">
+      <h2 class="sidebar-heading">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" height="16" class="text-purple-400">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L12 12.75 6.429 9.75m11.142 0 4.179 2.25-9.75 5.25-9.75-5.25 4.179-2.25"/>
+        </svg>
+        Konten Terkait
+      </h2>
+      <div id="relatedList" class="text-sm"></div>
+    </div>
+  </div>
+
+  <div class="main-container">
+
+    <!-- Header Card -->
+    <div class="card fade-in">
+      <div class="card-header">
+        <div class="card-icon blue">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="20" height="20" class="text-white">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="page-title">Hasil Dekripsi &amp; Preview</h1>
+          <p class="page-subtitle">Pratinjau konten Anda yang telah terdekripsi</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Card -->
+    <div class="card fade-in" style="animation-delay:.05s">
+      <div id="status" class="status-bar">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-gray-500">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+        </svg>
+        Memuat...
+      </div>
+    </div>
+
+    <!-- Preview Card -->
+    <div class="card fade-in" style="animation-delay:.1s">
+      <div id="preview" class="preview-area"></div>
+
+      <div class="btn-group">
+        <a id="downloadOriginalBtn" class="btn btn-glass hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+          </svg>
+          Unduh .pb
+        </a>
+        <a id="downloadDecryptedBtn" class="btn btn-green hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+          </svg>
+          Unduh Dekripsi
+        </a>
+      </div>
+
+      <div id="meta" class="meta-row hidden">
+        <div class="meta-item">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="14" height="14" class="text-blue-400">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/>
+          </svg>
+          <span id="fileSize" class="font-medium">Ukuran: -</span>
+        </div>
+        <div class="meta-item">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="14" height="14" class="text-green-400">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a4.5 4.5 0 0 0-4.5-4.5Z"/>
+          </svg>
+          <span id="detectedMime">Tipe: -</span>
+        </div>
+      </div>
+
+      <div class="btn-group hidden" id="videoActions">
+        <button id="showFramesBtn" class="btn btn-purple">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" height="16">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/>
+          </svg>
+          Tampilkan Semua Frame
+        </button>
+      </div>
+    </div>
+
+    <!-- Frames Card -->
+    <div id="framesPreview" class="card hidden fade-in">
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-1">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="20" height="20" class="text-purple-400">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-2.625 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-1.5A1.125 1.125 0 0 1 18 18.375M20.625 4.5H3.375m17.25 0c.621 0 1.125.504 1.125 1.125M20.625 4.5h-1.5C18.504 4.5 18 5.004 18 5.625m3.75 0v1.5c0 .621-.504 1.125-1.125 1.125M3.375 4.5c-.621 0-1.125.504-1.125 1.125M3.375 4.5h1.5C5.496 4.5 6 5.004 6 5.625m-2.625 0v1.5c0 .621.504 1.125 1.125 1.125m0 0h12m-12 0a1.125 1.125 0 0 1-1.125 1.125M12 8.25c.621 0 1.125.504 1.125 1.125"/>
+          </svg>
+          Semua Frame Video
+        </h2>
+        <div id="frameCounterBadge" class="frame-counter hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909"/>
+          </svg>
+          <span id="frameCountText">0 frame</span>
+        </div>
+      </div>
+      <div id="progressWrap" class="progress-wrap hidden">
+        <div class="progress-bar-bg"><div id="progressFill" class="progress-bar-fill"></div></div>
+        <div id="progressText" class="progress-text">Mengekstrak frame...</div>
+      </div>
+      <div class="kbd-hint">
+        <span>Gunakan</span>
+        <span class="kbd">←</span>
+        <span class="kbd">→</span>
+        <span>untuk navigasi frame di preview</span>
+      </div>
+      <div class="frames-grid" id="framesGrid"></div>
+    </div>
+  </div>
+
+  <!-- Locked Overlay -->
+  <div id="lockedOverlay" role="dialog" aria-modal="true">
+    <div id="lockedBox" role="document">
+      <div style="margin-bottom:1rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="48" height="48" style="margin:0 auto;opacity:.6;">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/>
+        </svg>
+      </div>
+      <h2>Akses Terkunci</h2>
+      <p>Login terlebih dahulu untuk melihat konten ini.</p>
+    </div>
+  </div>
+
+  <!-- Image Modal with navigation -->
+  <div id="imageModal">
+    <span class="close-btn">&times;</span>
+    <div class="modal-counter hidden" id="modalCounter">1 / 1</div>
+    <button class="modal-nav prev hidden" id="modalPrev" aria-label="Previous">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="20" height="20">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
+      </svg>
+    </button>
+    <button class="modal-nav next hidden" id="modalNext" aria-label="Next">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="20" height="20">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+      </svg>
+    </button>
+    <img class="modal-content" id="modalImage" alt="Preview">
+    <a id="modalDownloadBtn" class="modal-download-btn" download>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+      </svg>
+      Download
+    </a>
+  </div>
+
+  <script>
+    function q(name){
+      return new URLSearchParams(window.location.search).get(name)||'';
+    }
+
+    function decryptCaesar(text,shift){
+      if(typeof text!=='string')return text;
+      const s=Number(shift);if(isNaN(s))return text;
+      let result='';
+      for(let i=0;i<text.length;i++){
+        let code=text.charCodeAt(i);
+        if(code>=65&&code<=90)code=((code-65-s+260)%26)+65;
+        else if(code>=97&&code<=122)code=((code-97-s+260)%26)+97;
+        result+=String.fromCharCode(code);
+      }
+      return result;
+    }
+
+    /* ── AES-256-CBC Decrypt ── */
+    async function decryptAES(encryptedText,password){
+      const b64=encryptedText.replace(/\s+/g,'');
+      let raw;
+      try{raw=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));}
+      catch(e){throw new Error('Base64 tidak valid: '+e.message);}
+
+      let key,iv,ciphertext;
+      const passBytes=new TextEncoder().encode(password);
+
+      const header=String.fromCharCode(...raw.slice(0,8));
+      if(header==='Salted__'){
+        // Format OpenSSL: "Salted__" + salt(8) + ciphertext
+        const salt=raw.slice(8,16);
+        ciphertext=raw.slice(16);
+        const keyiv=evpBytesToKey(passBytes,salt,48); // sync now
+        key=keyiv.slice(0,32);
+        iv=keyiv.slice(32,48);
+      }else{
+        // Format raw: IV(16 bytes) + ciphertext
+        iv=raw.slice(0,16);
+        ciphertext=raw.slice(16);
+        const keyiv=evpBytesToKey(passBytes,new Uint8Array(8),32);
+        key=keyiv.slice(0,32);
+      }
+
+      const cryptoKey=await crypto.subtle.importKey('raw',key,{name:'AES-CBC'},false,['decrypt']);
+      let decrypted;
+      try{
+        decrypted=await crypto.subtle.decrypt({name:'AES-CBC',iv},cryptoKey,ciphertext);
+      }catch(e){
+        throw new Error('Kunci/IV salah atau data rusak');
+      }
+      return new Uint8Array(decrypted);
+    }
+
+    /* Pure-JS MD5 — no parameter name collision */
+    function md5js(dataBytes){
+      function RL(v,n){return(v<<n)|(v>>>(32-n));}
+      function ADD(x,y){return(x+y)|0;}
+      const K=new Int32Array(64);
+      for(let i=0;i<64;i++)K[i]=Math.floor(Math.abs(Math.sin(i+1))*0x100000000)|0;
+      const S=[7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,
+               5, 9,14,20,5, 9,14,20,5, 9,14,20,5, 9,14,20,
+               4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,
+               6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21];
+      const bytes=Array.from(dataBytes);
+      const bitLen=bytes.length*8;
+      bytes.push(0x80);
+      while(bytes.length%64!==56)bytes.push(0);
+      for(let i=0;i<4;i++)bytes.push((bitLen>>>(i*8))&0xFF);
+      for(let i=0;i<4;i++)bytes.push(0);
+      let a0=0x67452301,b0=0xEFCDAB89|0,c0=0x98BADCFE|0,d0=0x10325476|0;
+      for(let blk=0;blk<bytes.length;blk+=64){
+        const W=new Int32Array(16);
+        for(let j=0;j<16;j++){
+          const o=blk+j*4;
+          W[j]=bytes[o]|(bytes[o+1]<<8)|(bytes[o+2]<<16)|(bytes[o+3]<<24);
         }
-        scroller.addEventListener('scroll',update);
-        window.addEventListener('resize',update);
-        requestAnimationFrame(update);
-        return update;
-    }
-    const updateNameFades=setupScrollFades(nameTagsContainer,nameTagsWrapper);
-    const updateCatFades=setupScrollFades(catTagsContainer,catTagsWrapper);
-
-    // --- Drag scroll ---
-    function setupDragScroll(el){
-        let dragging=false,startX=0,scrollL=0;
-        el.addEventListener('mousedown',(e)=>{dragging=true;startX=e.pageX-el.offsetLeft;scrollL=el.scrollLeft;el.style.cursor='grabbing';el.style.userSelect='none';});
-        el.addEventListener('mouseleave',()=>{dragging=false;el.style.cursor='';el.style.userSelect='';});
-        el.addEventListener('mouseup',()=>{dragging=false;el.style.cursor='';el.style.userSelect='';});
-        el.addEventListener('mousemove',(e)=>{if(!dragging)return;e.preventDefault();const x=e.pageX-el.offsetLeft;el.scrollLeft=scrollL-(x-startX)*1.5;});
-    }
-    setupDragScroll(nameTagsContainer);
-    setupDragScroll(catTagsContainer);
-
-    function getCatCountsForCurrentNameFilter(){
-        const catCounts={};
-        const filtered=activeNameFilter
-            ? allLinksData.filter(l=>(l.person_name||'').toLowerCase()===activeNameFilter)
-            : allLinksData;
-        filtered.forEach(link=>{
-            const c=(link.category||'Belum Dikategorikan');
-            catCounts[c]=(catCounts[c]||0)+1;
-        });
-        return catCounts;
-    }
-
-    function rebuildCatTags(){
-        catTagsContainer.innerHTML='';
-        const catCounts=getCatCountsForCurrentNameFilter();
-        const uniqueCats=Object.keys(catCounts).sort((a,b)=>a.localeCompare(b,'id',{sensitivity:'base'}));
-
-        const catLabel=document.createElement('span');
-        catLabel.className='filter-label';
-        catLabel.innerHTML='<i class="fa-solid fa-tag"></i> Kategori';
-        catTagsContainer.appendChild(catLabel);
-
-        if(uniqueCats.length===0){
-            const empty=document.createElement('span');
-            empty.className='text-gray-400 text-sm';
-            empty.style.whiteSpace='nowrap';
-            empty.style.padding='0.4rem';
-            empty.textContent='Tidak ada kategori';
-            catTagsContainer.appendChild(empty);
-        } else {
-            uniqueCats.forEach(cat=>{
-                const tag=document.createElement('span');
-                tag.className='filter-tag cat-tag';
-                tag.dataset.cat=cat.toLowerCase();
-                tag.innerHTML=`${cat} <span class="tag-count">${catCounts[cat]}</span>`;
-                tag.title=`Filter "${cat}" (${catCounts[cat]} item)`;
-                if(activeCatFilter===cat.toLowerCase()) tag.classList.add('active');
-                tag.addEventListener('click',()=>{
-                    if(activeCatFilter===cat.toLowerCase()){activeCatFilter=null;}
-                    else{activeCatFilter=cat.toLowerCase();}
-                    currentPage=1;
-                    applyFilters();
-                });
-                catTagsContainer.appendChild(tag);
-            });
+        let A=a0,B=b0,C=c0,D=d0;
+        for(let i=0;i<64;i++){
+          let F2,g;
+          if(i<16){F2=(B&C)|(~B&D);g=i;}
+          else if(i<32){F2=(D&B)|(~D&C);g=(5*i+1)%16;}
+          else if(i<48){F2=B^C^D;g=(3*i+5)%16;}
+          else{F2=C^(B|~D);g=(7*i)%16;}
+          F2=ADD(F2,ADD(A,ADD(K[i],W[g])));
+          A=D;D=C;C=B;B=ADD(B,RL(F2,S[i]));
         }
-
-        if(activeCatFilter && !uniqueCats.some(c=>c.toLowerCase()===activeCatFilter)){
-            activeCatFilter=null;
-        }
-
-        requestAnimationFrame(()=>updateCatFades());
+        a0=ADD(a0,A);b0=ADD(b0,B);c0=ADD(c0,C);d0=ADD(d0,D);
+      }
+      const out=new Uint8Array(16);
+      [a0,b0,c0,d0].forEach((v,i)=>{
+        out[i*4]=(v)&0xFF;out[i*4+1]=(v>>>8)&0xFF;
+        out[i*4+2]=(v>>>16)&0xFF;out[i*4+3]=(v>>>24)&0xFF;
+      });
+      return out;
     }
 
-    // ===== GET FILTERED DATA (without rendering) =====
-    function getFilteredData(){
-        const searchTerm=searchInput.value.toLowerCase().trim();
-        return allLinksData.filter(link=>{
-            const text=`${link.name||''} ${link.person_name||''} ${link.category||'Belum Dikategorikan'} ${link.url||''} ${link.shift_code||''} ${link.created_at||''}`.toLowerCase();
-            const cardName=(link.person_name||'').toLowerCase();
-            const cardCat=(link.category||'Belum Dikategorikan').toLowerCase();
-            let show=true;
-            if(searchTerm&&!text.includes(searchTerm))show=false;
-            if(activeNameFilter&&cardName!==activeNameFilter)show=false;
-            if(activeCatFilter&&cardCat!==activeCatFilter)show=false;
-            return show;
-        });
+    /* EVP_BytesToKey: MD5-based KDF sama seperti openssl enc default */
+    function evpBytesToKey(password,salt,keyLen){
+      function md5of(data){
+        return md5js(data);
+      }
+      let result=new Uint8Array(0);
+      let prev=new Uint8Array(0);
+      while(result.length<keyLen){
+        const input=new Uint8Array(prev.length+password.length+salt.length);
+        input.set(prev,0);
+        input.set(password,prev.length);
+        input.set(salt,prev.length+password.length);
+        prev=md5of(input);
+        const tmp=new Uint8Array(result.length+prev.length);
+        tmp.set(result,0);tmp.set(prev,result.length);
+        result=tmp;
+      }
+      return result.slice(0,keyLen);
     }
 
-    // ===== RENDER CARDS FOR CURRENT PAGE =====
-    function renderCurrentPage(){
-        linksGrid.innerHTML='';
-        const totalFiltered=filteredLinksData.length;
-        const totalPages=Math.ceil(totalFiltered/ITEMS_PER_PAGE);
-
-        if(currentPage>totalPages&&totalPages>0) currentPage=totalPages;
-        if(currentPage<1) currentPage=1;
-
-        const startIdx=(currentPage-1)*ITEMS_PER_PAGE;
-        const endIdx=Math.min(startIdx+ITEMS_PER_PAGE, totalFiltered);
-        const pageData=filteredLinksData.slice(startIdx, endIdx);
-
-        pageData.forEach(link=>{
-            const card=createCardElement(link);
-            linksGrid.appendChild(card);
-            const smallQrId=`qr-${link.id}`;
-            const qrData=`${link.url||''} || ${link.shift_code||''}`;
-            const canvasEl=document.getElementById(smallQrId);
-            if(canvasEl){
-                QRCode.toCanvas(canvasEl,qrData,{errorCorrectionLevel:'L',margin:1,width:100,color:{dark:'#000000',light:'#ffffff'}});
-            }
-        });
-
-        renderPagination(totalFiltered, totalPages);
+    function normalizeBase64(b64){
+      if(!b64||typeof b64!=='string')return'';
+      let s=b64.replace(/\s+/g,'');
+      const m=s.match(/^data:.*;base64,(.*)$/i);
+      if(m)s=m[1];
+      s=s.replace(/-/g,'+').replace(/_/g,'/');
+      const pad=s.length%4;
+      if(pad===2)s+='==';else if(pad===3)s+='=';
+      return s;
     }
 
-    // ===== CREATE CARD ELEMENT =====
-    function createCardElement(link){
-        const card=document.createElement('div');
-        card.classList.add('link-card');card.dataset.id=link.id;
-        const category=link.category||'Belum Dikategorikan';
-        card.dataset.searchtext=`${link.name||''} ${link.person_name||''} ${category} ${link.url||''} ${link.shift_code||''} ${link.created_at||''}`;
-        card.dataset.personname=(link.person_name||'').toLowerCase();
-        card.dataset.category=category.toLowerCase();
-
-        const formattedDate=link.created_at?new Date(link.created_at).toLocaleString():'-';
-        const qrData=`${link.url||''} || ${link.shift_code||''}`;
-        let qrFilenameBase=`${link.person_name||'anonim'} - ${link.name||'tanpa-nama'}`;
-        qrFilenameBase=qrFilenameBase.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');
-        const smallQrId=`qr-${link.id}`;
-
-        card.innerHTML=`
-            <button class="card-info-btn" title="Lihat URL & Kode Shift">!</button>
-            <div class="link-card-qr" title="Klik untuk memperbesar QR">
-              <canvas id="${smallQrId}" style="width:100px;height:100px;"></canvas>
-            </div>
-            <div class="link-card-body">
-              <div class="link-card-title" data-column="name">${link.name||'-'}</div>
-              <div class="link-card-person" data-column="person_name">${link.person_name||'-'}</div>
-              <div class="link-card-category" data-column="category">${category}</div>
-              <div class="link-card-meta"><i class="fa-regular fa-clock" style="margin-right:0.2rem;"></i>${formattedDate}</div>
-            </div>
-            <div class="link-card-actions">
-              <button class="card-btn-view view-description-btn"><i class="fa-solid fa-eye" style="margin-right:0.3rem;"></i>Lihat</button>
-              <button class="card-btn-preview preview-btn"><i class="fa-solid fa-photo-film" style="margin-right:0.3rem;"></i>Preview</button>
-              <button class="card-btn-delete delete-btn"><i class="fa-solid fa-trash-can" style="margin-right:0.3rem;"></i>Hapus</button>
-            </div>
-            <div class="card-preview-area" id="preview-area-${link.id}"></div>
-        `;
-
-        card.querySelector('.card-info-btn').addEventListener('click',(e)=>{e.stopPropagation();openInfoPopup(link.id,link.name,link.url,link.shift_code);});
-
-        card.querySelector('.link-card-qr').addEventListener('click',()=>{
-            enlargedQrContainer.innerHTML='';
-            generateQrCodeWithPadding(qrData,256,12).then(canvas=>{enlargedQrContainer.appendChild(canvas);canvas.style.borderRadius='0.375rem';canvas.style.display='block';currentQrFilename=`${qrFilenameBase}.png`;qrModal.classList.remove('hidden');});
-        });
-
-        const viewBtn=card.querySelector('.view-description-btn');
-        if(viewBtn){
-            viewBtn.addEventListener('click',()=>{
-                const targetUrl=`dekripsi.html?url=${encodeURIComponent(link.url||'')}&shift=${encodeURIComponent(link.shift_code||'')}&person=${encodeURIComponent(link.person_name||'')}&name=${encodeURIComponent(link.name||'')}`;
-                window.open(targetUrl,'_blank');
-            });
-        }
-
-        card.querySelector('.delete-btn').addEventListener('click',handleDelete);
-
-        const previewBtn=card.querySelector('.preview-btn');
-        if(previewBtn){
-            previewBtn.addEventListener('click',()=>handleInlinePreview(link, card));
-        }
-
-        card.querySelectorAll('[data-column]').forEach(cell=>{
-            cell.addEventListener('click',(e)=>{
-                const now=Date.now();const diff=now-lastClickTime;
-                clickCount=(diff<300&&clickCount<3)?clickCount+1:1;lastClickTime=now;
-                if(clickCount===3){
-                    e.preventDefault();cell.contentEditable='true';cell.classList.add('editable');cell.focus();
-                    cell.removeEventListener('blur',handleEditCard);cell.removeEventListener('keydown',handleEnter);
-                    cell.addEventListener('blur',handleEditCard);cell.addEventListener('keydown',handleEnter);
-                }
-            });
-        });
-
-        return card;
+    function base64ToBlob(base64,mime){
+      const cleaned=normalizeBase64(base64);
+      const binary=atob(cleaned);
+      const arr=new Uint8Array(binary.length);
+      for(let i=0;i<binary.length;i++)arr[i]=binary.charCodeAt(i);
+      return new Blob([arr],{type:mime||'application/octet-stream'});
     }
 
-    // ===== RENDER PAGINATION =====
-    function renderPagination(totalItems, totalPages){
-        if(totalPages<=1){
-            paginationContainer.style.display='none';
-            return;
-        }
-        paginationContainer.style.display='';
-        paginationButtons.innerHTML='';
-
-        // First button
-        const firstBtn=document.createElement('button');
-        firstBtn.className='pagination-btn nav-btn';
-        firstBtn.innerHTML='<i class="fa-solid fa-angles-left"></i>';
-        firstBtn.title='Halaman pertama';
-        firstBtn.disabled=(currentPage===1);
-        firstBtn.addEventListener('click',()=>{currentPage=1;renderCurrentPage();scrollToTop();});
-        paginationButtons.appendChild(firstBtn);
-
-        // Prev button
-        const prevBtn=document.createElement('button');
-        prevBtn.className='pagination-btn nav-btn';
-        prevBtn.innerHTML='<i class="fa-solid fa-chevron-left"></i> Sblm';
-        prevBtn.disabled=(currentPage===1);
-        prevBtn.addEventListener('click',()=>{if(currentPage>1){currentPage--;renderCurrentPage();scrollToTop();}});
-        paginationButtons.appendChild(prevBtn);
-
-        // Page number buttons with ellipsis
-        const pageNumbers=getPageNumbers(currentPage, totalPages);
-        pageNumbers.forEach(p=>{
-            if(p==='...'){
-                const ell=document.createElement('span');
-                ell.className='pagination-ellipsis';
-                ell.textContent='···';
-                paginationButtons.appendChild(ell);
-            } else {
-                const btn=document.createElement('button');
-                btn.className='pagination-btn'+(p===currentPage?' active':'');
-                btn.textContent=p;
-                btn.addEventListener('click',()=>{currentPage=p;renderCurrentPage();scrollToTop();});
-                paginationButtons.appendChild(btn);
-            }
-        });
-
-        // Next button
-        const nextBtn=document.createElement('button');
-        nextBtn.className='pagination-btn nav-btn';
-        nextBtn.innerHTML='Slnjt <i class="fa-solid fa-chevron-right"></i>';
-        nextBtn.disabled=(currentPage===totalPages);
-        nextBtn.addEventListener('click',()=>{if(currentPage<totalPages){currentPage++;renderCurrentPage();scrollToTop();}});
-        paginationButtons.appendChild(nextBtn);
-
-        // Last button
-        const lastBtn=document.createElement('button');
-        lastBtn.className='pagination-btn nav-btn';
-        lastBtn.innerHTML='<i class="fa-solid fa-angles-right"></i>';
-        lastBtn.title='Halaman terakhir';
-        lastBtn.disabled=(currentPage===totalPages);
-        lastBtn.addEventListener('click',()=>{currentPage=totalPages;renderCurrentPage();scrollToTop();});
-        paginationButtons.appendChild(lastBtn);
-
-        // Jump input
-        jumpPageInput.max=totalPages;
-        jumpPageInput.value='';
-        jumpPageInput.placeholder=`1-${totalPages}`;
-
-        // Info text
-        const startItem=(currentPage-1)*ITEMS_PER_PAGE+1;
-        const endItem=Math.min(currentPage*ITEMS_PER_PAGE, totalItems);
-        paginationInfo.textContent=`Halaman ${currentPage} dari ${totalPages} — Menampilkan ${startItem}–${endItem} dari ${totalItems} tautan`;
-    }
-
-    // Generate smart page numbers with ellipsis
-    function getPageNumbers(current, total){
-        const delta=2;
-        const range=[];
-        const rangeWithDots=[];
-
-        for(let i=1;i<=total;i++){
-            if(i===1||i===total||
-               (i>=current-delta&&i<=current+delta)){
-                range.push(i);
-            }
-        }
-
-        let prev=null;
-        for(const i of range){
-            if(prev!==null){
-                if(i-prev===2){
-                    rangeWithDots.push(prev+1);
-                } else if(i-prev>2){
-                    rangeWithDots.push('...');
-                }
-            }
-            rangeWithDots.push(i);
-            prev=i;
-        }
-        return rangeWithDots;
-    }
-
-    function scrollToTop(){
-        window.scrollTo({top:0, behavior:'smooth'});
-    }
-
-    // Jump page handler
-    jumpPageBtn.addEventListener('click',()=>{
-        const totalPages=Math.ceil(filteredLinksData.length/ITEMS_PER_PAGE);
-        const val=parseInt(jumpPageInput.value);
-        if(isNaN(val)||val<1||val>totalPages){
-            showStatus(`Masukkan nomor halaman antara 1 dan ${totalPages}`,'error');
-            return;
-        }
-        currentPage=val;
-        renderCurrentPage();
-        scrollToTop();
-    });
-    jumpPageInput.addEventListener('keydown',(e)=>{
-        if(e.key==='Enter'){e.preventDefault();jumpPageBtn.click();}
-    });
-
-    // ===== COMBINED FILTER =====
-    function applyFilters(){
-        const searchTerm=searchInput.value.toLowerCase().trim();
-
-        rebuildCatTags();
-
-        filteredLinksData=getFilteredData();
-
-        // Update name tag active states
-        document.querySelectorAll('#nameTagsScroller .filter-tag').forEach(t=>{
-            t.classList.toggle('active',activeNameFilter&&t.dataset.name===activeNameFilter);
-        });
-
-        clearSearchBtn.classList.toggle('visible',!!searchTerm);
-        renderActiveFilters();
-
-        const totalFiltered=filteredLinksData.length;
-        const hasAnyFilter=searchTerm||activeNameFilter||activeCatFilter;
-        if(hasAnyFilter){
-            resultCountEl.textContent=`Menampilkan ${totalFiltered} dari ${allLinksData.length} tautan`;
-        }else{
-            resultCountEl.textContent=allLinksData.length>0?`Total ${allLinksData.length} tautan`:'';
-        }
-
-        // Clamp current page
-        const totalPages=Math.ceil(totalFiltered/ITEMS_PER_PAGE);
-        if(currentPage>totalPages&&totalPages>0) currentPage=totalPages;
-        if(currentPage<1) currentPage=1;
-
-        renderCurrentPage();
-    }
-
-    function renderActiveFilters(){
-        activeFiltersContainer.innerHTML='';
-        const hasFilter=activeNameFilter||activeCatFilter;
-        if(!hasFilter)return;
-
-        if(activeNameFilter){
-            const chip=document.createElement('span');
-            chip.className='active-filter-chip name-chip';
-            const displayName=allLinksData.find(l=>(l.person_name||'').toLowerCase()===activeNameFilter)?.person_name||activeNameFilter;
-            chip.innerHTML=`<i class="fa-solid fa-user" style="font-size:0.6rem;"></i> ${displayName} <span class="chip-x">✕</span>`;
-            chip.title='Klik untuk hapus filter nama';
-            chip.addEventListener('click',()=>{activeNameFilter=null;currentPage=1;applyFilters();});
-            activeFiltersContainer.appendChild(chip);
-        }
-        if(activeCatFilter){
-            const chip=document.createElement('span');
-            chip.className='active-filter-chip cat-chip';
-            const displayCat=allLinksData.find(l=>(l.category||'Belum Dikategorikan').toLowerCase()===activeCatFilter)?.category||activeCatFilter;
-            chip.innerHTML=`<i class="fa-solid fa-tag" style="font-size:0.6rem;"></i> ${displayCat||'Belum Dikategorikan'} <span class="chip-x">✕</span>`;
-            chip.title='Klik untuk hapus filter kategori';
-            chip.addEventListener('click',()=>{activeCatFilter=null;currentPage=1;applyFilters();});
-            activeFiltersContainer.appendChild(chip);
-        }
-        if(activeNameFilter&&activeCatFilter){
-            const clearChip=document.createElement('span');
-            clearChip.className='clear-all-chip';
-            clearChip.innerHTML='<i class="fa-solid fa-xmark" style="font-size:0.6rem;"></i> Hapus Semua';
-            clearChip.addEventListener('click',()=>{activeNameFilter=null;activeCatFilter=null;searchInput.value='';currentPage=1;applyFilters();});
-            activeFiltersContainer.appendChild(clearChip);
-        }
-    }
-
-    searchInput.addEventListener('input',()=>{currentPage=1;applyFilters();});
-    clearSearchBtn.addEventListener('click',()=>{searchInput.value='';currentPage=1;applyFilters();searchInput.focus();});
-
-    // --- Info Popup ---
-    function openInfoPopup(linkId,linkName,url,shiftCode){
-        currentInfoCardId=linkId;infoPopupTitle.textContent=linkName||'Detail';
-        infoUrlValue.textContent=url||'-';infoShiftValue.textContent=shiftCode||'-';
-        infoUrlValue.contentEditable='false';infoShiftValue.contentEditable='false';
-        infoUrlValue.classList.remove('editable');infoShiftValue.classList.remove('editable');
-        infoPopupOverlay.classList.add('show');
-    }
-    function closeInfoPopup(){infoPopupOverlay.classList.remove('show');currentInfoCardId=null;}
-    infoCloseBtn.addEventListener('click',closeInfoPopup);
-    infoPopupOverlay.addEventListener('click',(e)=>{if(e.target===infoPopupOverlay)closeInfoPopup();});
-
-    let infoClickTime=0,infoClickCount=0;
-    function setupInfoFieldEdit(el){
-        el.addEventListener('click',(e)=>{
-            const now=Date.now();const diff=now-infoClickTime;
-            infoClickCount=(diff<300&&infoClickCount<3)?infoClickCount+1:1;infoClickTime=now;
-            if(infoClickCount===3){
-                e.preventDefault();el.contentEditable='true';el.classList.add('editable');el.focus();
-                const onBlur=async()=>{
-                    el.contentEditable='false';el.classList.remove('editable');
-                    el.removeEventListener('blur',onBlur);el.removeEventListener('keydown',onEnter);
-                    const newText=el.textContent.trim();const column=el.dataset.column;
-                    if(!currentInfoCardId||!column)return;
-                    const updates={};updates[column]=newText;showStatus('Menyimpan perubahan...','success');
-                    try{const{error}=await supabase.from('links').update(updates).eq('id',currentInfoCardId);if(error)throw error;showStatus('Perubahan berhasil disimpan!','success');fetchLinks();}catch(error){showStatus(`Gagal menyimpan: ${error.message}`,'error');}
-                };
-                const onEnter=(ev)=>{if(ev.key==='Enter'){ev.preventDefault();el.blur();}};
-                el.addEventListener('blur',onBlur);el.addEventListener('keydown',onEnter);
-            }
-        });
-    }
-    setupInfoFieldEdit(infoUrlValue);setupInfoFieldEdit(infoShiftValue);
-
-    // --- Sidebar ---
-    function openSidebar(e){e.stopPropagation();sidebar.classList.add('open');sidebarToggle.style.display='none';}
-    function closeSidebarFunc(){sidebar.classList.remove('open');sidebarToggle.style.display='block';}
-    sidebarToggle.addEventListener('click',openSidebar);
-    closeSidebarEl.addEventListener('click',closeSidebarFunc);
-    document.addEventListener('click',(e)=>{if(sidebar.classList.contains('open')&&!sidebar.contains(e.target)&&e.target!==sidebarToggle)closeSidebarFunc();});
-
-    function showStatus(message,type='error'){
-        statusPopup.textContent=message;
-        if(type==='error'){statusPopup.classList.add('bg-red-500','text-white');statusPopup.classList.remove('bg-green-500');}
-        else{statusPopup.classList.add('bg-green-500','text-white');statusPopup.classList.remove('bg-red-500');}
-        statusPopup.classList.add('show');setTimeout(()=>{statusPopup.classList.remove('show');},3000);
-    }
-
-    async function generateQrCodeWithPadding(data,size=256,padding=4){
-        const canvas=document.createElement('canvas');
-        await QRCode.toCanvas(canvas,data,{errorCorrectionLevel:'H',margin:0,width:size});
-        const qrSize=canvas.width;const totalSize=qrSize+2*padding;
-        const finalCanvas=document.createElement('canvas');finalCanvas.width=totalSize;finalCanvas.height=totalSize;
-        const finalCtx=finalCanvas.getContext('2d');finalCtx.fillStyle='#FFFFFF';finalCtx.fillRect(0,0,totalSize,totalSize);
-        finalCtx.drawImage(canvas,padding,padding,qrSize,qrSize);return finalCanvas;
-    }
-    function downloadQrCode(canvas,filename){
-        if(!canvas){showStatus('Gagal membuat QR Code untuk diunduh.','error');return;}
-        const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=filename;
-        document.body.appendChild(a);a.click();document.body.removeChild(a);
-        showStatus(`QR Code '${filename}' berhasil diunduh.`,'success');
-    }
-    async function downloadAllQRCodes(){
-        if(allLinksData.length===0){showStatus('Tidak ada data tautan untuk diunduh.','error');return;}
-        const zip=new JSZip();const promises=[];
-        downloadAllQrBtn.disabled=true;downloadAllQrBtn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
-        showStatus('Mempersiapkan file ZIP QR Code...','success');
-        for(const link of allLinksData){
-            const qrData=`${link.url||''} || ${link.shift_code||''}`;
-            let filename=`${link.person_name||'anonim'} - ${link.name||'tanpa-nama'}.png`;
-            filename=filename.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');
-            promises.push(generateQrCodeWithPadding(qrData,512,20).then(canvas=>new Promise(resolve=>{canvas.toBlob(blob=>{zip.file(filename,blob);resolve();},'image/png');})));
-        }
-        await Promise.all(promises);
-        zip.generateAsync({type:'blob'}).then(content=>{
-            const a=document.createElement('a');a.href=URL.createObjectURL(content);a.download='Semua_QR_Codes.zip';
-            document.body.appendChild(a);a.click();document.body.removeChild(a);
-            showStatus('Semua QR Code berhasil dikemas dan diunduh!','success');
-        }).catch(()=>{showStatus('Gagal membuat file ZIP.','error');}).finally(()=>{
-            downloadAllQrBtn.disabled=false;downloadAllQrBtn.innerHTML='<i class="fa-solid fa-file-zipper w-5 h-5"></i> Unduh Semua QR';
-        });
-    }
-    downloadAllQrBtn.addEventListener('click',downloadAllQRCodes);
-
-    function decryptCaesar(text,shift){if(typeof text!=='string')return text;const s=Number(shift);if(isNaN(s))return text;let result='';for(let i=0;i<text.length;i++){let code=text.charCodeAt(i);if(code>=65&&code<=90)code=((code-65-s+260)%26)+65;else if(code>=97&&code<=122)code=((code-97-s+260)%26)+97;result+=String.fromCharCode(code);}return result;}
-    function normalizeBase64(b64){if(!b64||typeof b64!=='string')return'';let s=b64.replace(/\s+/g,'');const m=s.match(/^data:.*;base64,(.*)$/i);if(m)s=m[1];s=s.replace(/-/g,'+').replace(/_/g,'/');const pad=s.length%4;if(pad===2)s+='==';else if(pad===3)s+='=';return s;}
-    function isBase64String(s){if(!s||typeof s!=='string')return false;const c=normalizeBase64(s);return c.length%4===0&&/^[A-Za-z0-9+/=]+$/.test(c);}
-    function getMimeFromBase64Sample(b64){try{const cleaned=normalizeBase64(b64).slice(0,2000);if(!cleaned)return null;const bin=atob(cleaned);const c0=bin.charCodeAt(0),c1=bin.charCodeAt(1);if(c0===0x89&&bin[1]==='P'&&bin[2]==='N'&&bin[3]==='G')return'image/png';if(c0===0xFF&&c1===0xD8)return'image/jpeg';if(bin.startsWith('GIF87a')||bin.startsWith('GIF89a'))return'image/gif';if(bin.trim().startsWith('<svg'))return'image/svg+xml';if(bin.indexOf('ftyp')!==-1)return'video/mp4';if(bin.toLowerCase().indexOf('webm')!==-1)return'video/webm';const prefix=normalizeBase64(b64).slice(0,8);if(prefix.startsWith('iVBOR')||prefix.startsWith('iVBORw0K'))return'image/png';if(prefix.startsWith('/9j/'))return'image/jpeg';if(prefix.startsWith('R0lG'))return'image/gif';return null;}catch(e){return null;}}
-    function base64ToBlob(base64,mime){const binary=atob(base64);const len=binary.length;const arr=new Uint8Array(len);for(let i=0;i<len;i++)arr[i]=binary.charCodeAt(i);return new Blob([arr],{type:mime||'application/octet-stream'});}
-
-    function setPreviewFromBase64(rawBase64,mimeHint,useBlobIfLarge=true){
-        const cleaned=normalizeBase64(rawBase64);if(!cleaned){descriptionContent.innerHTML='<p class="text-red-500">Data base64 kosong.</p>';return;}
-        let mime=mimeHint||getMimeFromBase64Sample(cleaned);
-        if(!mime){if(cleaned.startsWith('iVBOR')||cleaned.startsWith('iVBORw0K'))mime='image/png';else if(cleaned.startsWith('/9j/'))mime='image/jpeg';else if(cleaned.startsWith('R0lG'))mime='image/gif';}
-        descriptionContent.innerHTML='';const threshold=1024*300;const approximateSize=Math.ceil((cleaned.length*3)/4);let blob=null;
-        if(useBlobIfLarge&&approximateSize>threshold){try{blob=base64ToBlob(cleaned,mime);const objectUrl=URL.createObjectURL(blob);if(mime&&mime.startsWith('image/')){const img=document.createElement('img');img.src=objectUrl;img.className='media-preview rounded-md border border-gray-200';img.onload=()=>URL.revokeObjectURL(objectUrl);descriptionContent.appendChild(img);}else if(mime&&mime.startsWith('video/')){const video=document.createElement('video');video.src=objectUrl;video.controls=true;video.className='video-preview rounded-md border border-gray-200';video.onloadeddata=()=>URL.revokeObjectURL(objectUrl);descriptionContent.appendChild(video);}else{const a=document.createElement('a');a.href=objectUrl;a.download='file.bin';a.textContent='Unduh file (tipe media tidak terdeteksi)';a.className='underline text-blue-600';descriptionContent.appendChild(a);}}catch(err){blob=null;}}
-        if(!blob){const dataMime=mime||'application/octet-stream';const dataUrl=`data:${dataMime};base64,${cleaned}`;if(dataMime.startsWith('image/')){const img=document.createElement('img');img.src=dataUrl;img.className='media-preview rounded-md border border-gray-200';descriptionContent.appendChild(img);}else if(dataMime.startsWith('video/')){const video=document.createElement('video');video.src=dataUrl;video.controls=true;video.className='video-preview rounded-md border border-gray-200';video.setAttribute('playsinline','');descriptionContent.appendChild(video);}else{const pre=document.createElement('pre');pre.textContent=cleaned.slice(0,2000)+(cleaned.length>2000?'\n\n... (terpotong) ...':'');pre.className='p-4 bg-gray-50 rounded-md text-sm max-h-96 overflow-auto w-full';descriptionContent.appendChild(pre);}}
-        return{blob,mime};
-    }
-
-    async function showDescriptionModal(url,shiftCode,personName,linkName){
-        descriptionModal.classList.remove('hidden');descriptionContent.innerHTML='';descriptionMessage.classList.add('hidden');descriptionLoading.classList.remove('hidden');downloadBtn.classList.add('hidden');
-        try{if(!url||!url.startsWith('http'))throw new Error('URL deskripsi tidak valid.');const response=await fetch(url);if(!response.ok)throw new Error(`Gagal memuat file dari URL. Status: ${response.status}`);const encryptedText=await response.text();const decrypted=decryptCaesar(encryptedText,shiftCode);const probableBase64=decrypted.trim();const mimeHint=getMimeFromBase64Sample(probableBase64);const previewResult=setPreviewFromBase64(probableBase64,mimeHint,true);const blob=previewResult.blob;const mime=previewResult.mime;if(isBase64String(probableBase64)){const fileExt=mime?mime.split('/')[1]:'bin';let baseFilename=`${personName||'anonim'} - ${linkName||'tanpa-nama'}`;baseFilename=baseFilename.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');currentDownloadFilename=`${baseFilename}.${fileExt}`;currentDownloadBlob=blob;}else{currentDownloadBlob=new Blob([decrypted],{type:'text/plain'});currentDownloadFilename=`${personName||'anonim'} - ${linkName||'tanpa-nama'}.txt`;}downloadBtn.textContent='Unduh Konten';downloadBtn.classList.remove('hidden');descriptionLoading.classList.add('hidden');}catch(error){descriptionMessage.textContent=`Gagal memuat atau mendekripsi: ${error.message}`;descriptionLoading.classList.add('hidden');descriptionMessage.classList.remove('hidden');}
-    }
-
-    function hideDescriptionModal(){descriptionModal.classList.add('hidden');descriptionContent.innerHTML='';descriptionMessage.classList.add('hidden');descriptionLoading.classList.add('hidden');downloadBtn.classList.add('hidden');if(currentDownloadBlob){URL.revokeObjectURL(URL.createObjectURL(currentDownloadBlob));currentDownloadBlob=null;currentDownloadFilename=null;}}
-
-    closeModalButton.addEventListener('click',()=>qrModal.classList.add('hidden'));
-    qrModal.addEventListener('click',(e)=>{if(e.target===qrModal)qrModal.classList.add('hidden');});
-    closeDescriptionModalButton.addEventListener('click',hideDescriptionModal);
-    descriptionModal.addEventListener('click',(e)=>{if(e.target===descriptionModal)hideDescriptionModal();});
-    downloadSingleQrBtn.addEventListener('click',()=>{const canvas=enlargedQrContainer.querySelector('canvas');if(canvas&&currentQrFilename)downloadQrCode(canvas,currentQrFilename);else showStatus('QR Code tidak ditemukan.','error');});
-    downloadBtn.addEventListener('click',()=>{if(currentDownloadBlob){const a=document.createElement('a');a.href=URL.createObjectURL(currentDownloadBlob);a.download=currentDownloadFilename;document.body.appendChild(a);a.click();document.body.removeChild(a);}});
-
-    async function handleEditCard(e){
-        const cell=e.target;if(!cell.classList.contains('editable'))return;
-        cell.contentEditable='false';cell.classList.remove('editable');
-        cell.removeEventListener('keydown',handleEnter);cell.removeEventListener('blur',handleEditCard);
-        const newText=cell.textContent.trim();const card=cell.closest('.link-card');
-        const linkId=card.dataset.id;const column=cell.dataset.column;
-        if(!linkId||!column){showStatus('Gagal menemukan ID atau kolom.','error');return;}
-        const updates={};updates[column]=newText;showStatus('Menyimpan perubahan...','success');
-        try{const{error}=await supabase.from('links').update(updates).eq('id',linkId);if(error)throw error;showStatus('Perubahan berhasil disimpan!','success');fetchLinks();}catch(error){showStatus(`Gagal menyimpan: ${error.message}`,'error');}
-    }
-    function handleEnter(e){if(e.key==='Enter'){e.preventDefault();e.target.blur();}}
-
-    // ===== GITHUB DELETE CONFIG =====
-    let GITHUB_TOKEN=null; // diambil dari Supabase saat pertama kali dibutuhkan
-
-    async function getGithubToken(){
-        if(GITHUB_TOKEN) return GITHUB_TOKEN; // sudah di-cache, langsung pakai
-        try{
-            const{data,error}=await supabase
-                .from('app_config')
-                .select('value')
-                .eq('key','github_token')
-                .single();
-            if(error||!data) throw new Error('Token tidak ditemukan di app_config');
-            GITHUB_TOKEN=data.value;
-            return GITHUB_TOKEN;
-        }catch(err){
-            throw new Error(`Gagal ambil GitHub token: ${err.message}`);
-        }
-    }
-
-    function parseGithubUrl(url){
-        if(!url) return null;
-        let m=url.match(/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)/);
-        if(m) return {owner:m[1],repo:m[2],branch:m[3],path:m[4]};
-        m=url.match(/github\.com\/([^/]+)\/([^/]+)\/raw\/([^/]+)\/(.+)/);
-        if(m) return {owner:m[1],repo:m[2],branch:m[3],path:m[4]};
-        m=url.match(/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+)/);
-        if(m) return {owner:m[1],repo:m[2],branch:m[3],path:m[4]};
+    function detectMimeFromBase64(b64){
+      try{
+        const cleaned=normalizeBase64(b64).slice(0,2000);
+        if(!cleaned)return null;
+        const bin=atob(cleaned.slice(0,1000));
+        if(bin.startsWith('\x89PNG'))return'image/png';
+        if(bin.charCodeAt(0)===0xFF&&bin.charCodeAt(1)===0xD8)return'image/jpeg';
+        if(bin.startsWith('GIF87a')||bin.startsWith('GIF89a'))return'image/gif';
+        if(bin.indexOf('ftyp')!==-1)return'video/mp4';
+        if(bin.toLowerCase().indexOf('webm')!==-1)return'video/webm';
+        if(cleaned.startsWith('iVBOR'))return'image/png';
+        if(cleaned.startsWith('/9j/'))return'image/jpeg';
         return null;
+      }catch(e){return null;}
     }
 
-    async function deleteFileFromGithub(url){
-        const parsed=parseGithubUrl(url);
-        if(!parsed) return {ok:false, reason:'URL bukan GitHub yang dikenali, dilewati.'};
-        const {owner,repo,branch,path}=parsed;
-        const apiUrl=`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
-        // Ambil token dari Supabase (di-cache setelah pertama kali)
-        const token=await getGithubToken();
-        const getRes=await fetch(apiUrl,{headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github.v3+json'}});
-        if(getRes.status===404) return {ok:true, reason:'File sudah tidak ada di GitHub.'};
-        if(!getRes.ok){const err=await getRes.json().catch(()=>({}));return {ok:false, reason:`Gagal ambil info file GitHub: ${err.message||getRes.status}`};}
-        const fileInfo=await getRes.json();
-        const sha=fileInfo.sha;
-        const delRes=await fetch(apiUrl,{method:'DELETE',headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({message:`Hapus file: ${path}`,sha,branch})});
-        if(delRes.ok) return {ok:true};
-        const delErr=await delRes.json().catch(()=>({}));
-        return {ok:false, reason:`Gagal hapus dari GitHub: ${delErr.message||delRes.status}`};
+    function bytesToMB(n){
+      if(typeof n!=='number'||isNaN(n))return'-';
+      if(n<1024*1024)return(n/1024).toFixed(1)+' KB';
+      return(n/(1024*1024)).toFixed(2)+' MB';
     }
 
-    async function handleDelete(e){
-        const button=e.target.closest('button');
-        const card=button.closest('.link-card');
-        const linkId=card.dataset.id;
-        if(!linkId){showStatus('Gagal menemukan ID tautan.','error');return;}
-        const linkData=allLinksData.find(l=>String(l.id)===String(linkId));
-        const fileUrl=linkData?.url||'';
-        const linkName=linkData?.name||linkId;
-        if(!confirm(`Hapus "${linkName}"?\n\nIni juga akan menghapus file dari GitHub jika URL valid.`)) return;
-        showStatus('Menghapus...','success');
-        let githubNote='';
-        if(fileUrl){
-            try{
-                const ghResult=await deleteFileFromGithub(fileUrl);
-                if(ghResult.ok){githubNote=' & GitHub ✓';}
-                else{githubNote=` (GitHub: ${ghResult.reason})`;console.warn('GitHub delete issue:',ghResult.reason);}
-            }catch(ghErr){githubNote=` (GitHub error: ${ghErr.message})`;console.error('GitHub delete error:',ghErr);}
-        } else {githubNote=' (tidak ada URL GitHub)';}
-        try{
-            const{error}=await supabase.from('links').delete().eq('id',linkId);
-            if(error) throw error;
-            showStatus(`Berhasil dihapus dari Supabase${githubNote}!`,'success');
-        }catch(error){showStatus(`Gagal hapus dari Supabase: ${error.message}`,'error');}
+    function createLabel(text){
+      const h=document.createElement('div');
+      h.className='preview-label';
+      h.textContent=text||'';
+      return h;
     }
 
-    // ===== INLINE PREVIEW =====
-    // Track which card preview is currently open
-    let activePreviewCardId = null;
+    const lockedOverlay=document.getElementById('lockedOverlay');
+    function showLockedOverlay(){lockedOverlay.style.display='flex';document.body.classList.add('blurred');}
+    function hideLockedOverlay(){lockedOverlay.style.display='none';document.body.classList.remove('blurred');}
+    function isLoggedIn(){return localStorage.getItem('dekrip_logged_in')==='true';}
 
-    async function handleInlinePreview(link, card){
-        const previewArea = document.getElementById(`preview-area-${link.id}`);
-        if(!previewArea) return;
-
-        // Jika sudah ada preview dan sudah selesai (bukan loading), tampilkan saja / jangan sembunyikan
-        if(activePreviewCardId === link.id && previewArea.classList.contains('active')){
-            // Scroll ke preview agar terlihat
-            previewArea.scrollIntoView({behavior:'smooth', block:'nearest'});
-            return;
-        }
-
-        // Tutup preview kartu lain jika ada
-        if(activePreviewCardId !== null && activePreviewCardId !== link.id){
-            const prev = document.getElementById(`preview-area-${activePreviewCardId}`);
-            if(prev){ prev.classList.remove('active'); prev.innerHTML=''; }
-        }
-
-        activePreviewCardId = link.id;
-        previewArea.innerHTML = `<div class="preview-loading"><svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Mendekripsi...</div>`;
-        previewArea.classList.add('active');
-
-        try{
-            const url = link.url || '';
-            const shiftCode = link.shift_code || '';
-            if(!url || !url.startsWith('http')) throw new Error('URL tidak valid.');
-
-            const response = await fetch(url);
-            if(!response.ok) throw new Error(`Gagal memuat file (${response.status})`);
-            const encryptedText = await response.text();
-
-            let decrypted = '';
-
-            const shiftNum = Number(shiftCode);
-            if(shiftCode && !isNaN(shiftNum) && shiftNum !== 0){
-                decrypted = decryptCaesar(encryptedText, shiftNum);
-            } else {
-                decrypted = await decryptAES(encryptedText.trim(), 'dakota775');
-            }
-
-            const cleaned = decrypted.trim();
-            previewArea.innerHTML = '';
-
-            // Label pemisah
-            const sep = document.createElement('div');
-            sep.className = 'preview-sep-label';
-            sep.innerHTML = '<i class="fa-solid fa-unlock" style="margin-right:0.3rem;font-size:0.6rem;"></i>Hasil Dekripsi';
-            previewArea.appendChild(sep);
-
-            // Render media dan ambil blob+mime untuk download
-            const {blob, mime, filename} = renderPreviewMedia(cleaned, previewArea, link);
-
-            // Tombol Download
-            const dlBtn = document.createElement('button');
-            dlBtn.className = 'preview-download-btn';
-            dlBtn.innerHTML = '<i class="fa-solid fa-download"></i> Unduh';
-            dlBtn.addEventListener('click', ()=>{
-                if(blob){
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(blob);
-                    a.download = filename;
-                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                } else {
-                    // Teks biasa
-                    const txtBlob = new Blob([cleaned], {type:'text/plain'});
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(txtBlob);
-                    a.download = filename;
-                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                }
+    async function fetchRelatedLinks(person){
+      const relatedSection=document.getElementById('relatedSection');
+      const relatedList=document.getElementById('relatedList');
+      relatedList.innerHTML='';
+      if(!person){relatedSection.classList.add('hidden');return;}
+      const supabaseUrl='https://qzdvdfebkzlwkhvxwsju.supabase.co';
+      const supabaseKey='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
+      const supabase=window.createClient(supabaseUrl,supabaseKey);
+      const currentUrl=q('url');const currentShift=q('shift');
+      try{
+        const{data,error}=await supabase.from('links').select('id, person_name, name, category, url, shift_code').ilike('person_name',person);
+        if(error)throw error;
+        if(!data||data.length<1){relatedSection.classList.add('hidden');return;}
+        const grouped={};
+        data.forEach(item=>{
+          if(item.url===currentUrl&&item.shift_code===currentShift)return;
+          const cat=item.category||'Belum Dikategorikan';
+          if(!grouped[cat])grouped[cat]=[];
+          grouped[cat].push(item);
+        });
+        if(Object.keys(grouped).length===0){relatedSection.classList.add('hidden');return;}
+        Object.keys(grouped).sort().forEach(category=>{
+          const groupDiv=document.createElement('div');
+          groupDiv.className='category-group';
+          const heading=document.createElement('h3');
+          heading.className='category-heading';
+          heading.textContent=category;
+          groupDiv.appendChild(heading);
+          const sublist=document.createElement('ul');
+          sublist.className='related-sublist';
+          grouped[category].forEach(item=>{
+            const li=document.createElement('li');
+            li.textContent=`${item.person_name||'Anonim'} — ${item.name||'Tanpa Judul'}`;
+            li.addEventListener('click',()=>{
+              window.location.href=`dekripsi.html?url=${encodeURIComponent(item.url)}&shift=${encodeURIComponent(item.shift_code)}&person=${encodeURIComponent(item.person_name)}&name=${encodeURIComponent(item.name)}`;
             });
-            previewArea.appendChild(dlBtn);
-
-        } catch(err){
-            previewArea.innerHTML = `<span class="preview-error"><i class="fa-solid fa-circle-exclamation" style="margin-right:0.3rem;"></i>${err.message}</span>`;
-        }
-    }
-
-    async function decryptAES(ciphertext, password){
-        const clean = ciphertext.trim();
-
-        // === Strategi 1: CryptoJS (format OpenSSL: U2FsdGVkX1...) ===
-        if(typeof CryptoJS !== 'undefined'){
-            try{
-                const bytes = CryptoJS.AES.decrypt(clean, password);
-                // Coba decode sebagai UTF-8 teks
-                const resultUtf8 = bytes.toString(CryptoJS.enc.Utf8);
-                if(resultUtf8 && resultUtf8.length > 0) return resultUtf8;
-                // Coba decode sebagai Base64 langsung (untuk binary)
-                const resultBase64 = bytes.toString(CryptoJS.enc.Base64);
-                if(resultBase64 && resultBase64.length > 0) return resultBase64;
-            }catch(e){}
-
-            // === Strategi 2: CryptoJS dengan key dari WordArray (bukan passphrase) ===
-            try{
-                const key = CryptoJS.enc.Utf8.parse(password.padEnd(32, '0').slice(0,32));
-                const iv  = CryptoJS.enc.Utf8.parse(password.padEnd(16, '0').slice(0,16));
-                const bytes = CryptoJS.AES.decrypt(clean, key, {iv, mode:CryptoJS.mode.CBC, padding:CryptoJS.pad.Pkcs7});
-                const res = bytes.toString(CryptoJS.enc.Utf8);
-                if(res && res.length > 0) return res;
-                const resB64 = bytes.toString(CryptoJS.enc.Base64);
-                if(resB64 && resB64.length > 0) return resB64;
-            }catch(e){}
-
-            // === Strategi 3: CryptoJS ECB ===
-            try{
-                const key = CryptoJS.enc.Utf8.parse(password.padEnd(32, '0').slice(0,32));
-                const bytes = CryptoJS.AES.decrypt(clean, key, {mode:CryptoJS.mode.ECB, padding:CryptoJS.pad.Pkcs7});
-                const res = bytes.toString(CryptoJS.enc.Utf8);
-                if(res && res.length > 0) return res;
-                const resB64 = bytes.toString(CryptoJS.enc.Base64);
-                if(resB64 && resB64.length > 0) return resB64;
-            }catch(e){}
-        }
-
-        // === Strategi 4: Web Crypto AES-GCM (format: base64(iv[12]+data)) ===
-        try{
-            const enc = new TextEncoder();
-            const rawData = Uint8Array.from(atob(clean), c=>c.charCodeAt(0));
-            if(rawData.length > 12){
-                const keyMat = await crypto.subtle.importKey('raw', enc.encode(password), {name:'PBKDF2'}, false, ['deriveKey']);
-                const salt = enc.encode('dakotasalt');
-                const key = await crypto.subtle.deriveKey(
-                    {name:'PBKDF2', salt, iterations:100000, hash:'SHA-256'},
-                    keyMat, {name:'AES-GCM', length:256}, false, ['decrypt']
-                );
-                const iv = rawData.slice(0,12);
-                const data = rawData.slice(12);
-                const decBuffer = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, data);
-                return new TextDecoder().decode(decBuffer);
-            }
-        }catch(e){}
-
-        // === Strategi 5: Web Crypto AES-GCM dengan salt berbeda ===
-        try{
-            const enc = new TextEncoder();
-            const rawData = Uint8Array.from(atob(clean), c=>c.charCodeAt(0));
-            if(rawData.length > 16){
-                const salt = rawData.slice(0,16);
-                const iv   = rawData.slice(16,28);
-                const data = rawData.slice(28);
-                const keyMat = await crypto.subtle.importKey('raw', enc.encode(password), {name:'PBKDF2'}, false, ['deriveKey']);
-                const key = await crypto.subtle.deriveKey(
-                    {name:'PBKDF2', salt, iterations:100000, hash:'SHA-256'},
-                    keyMat, {name:'AES-GCM', length:256}, false, ['decrypt']
-                );
-                const decBuffer = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, data);
-                return new TextDecoder().decode(decBuffer);
-            }
-        }catch(e){}
-
-        // === Strategi 6: Web Crypto AES-CBC ===
-        try{
-            const enc = new TextEncoder();
-            const rawData = Uint8Array.from(atob(clean), c=>c.charCodeAt(0));
-            if(rawData.length > 16){
-                const iv   = rawData.slice(0,16);
-                const data = rawData.slice(16);
-                const digest = await crypto.subtle.digest('SHA-256', enc.encode(password));
-                const key = await crypto.subtle.importKey('raw', digest, {name:'AES-CBC'}, false, ['decrypt']);
-                const decBuffer = await crypto.subtle.decrypt({name:'AES-CBC', iv}, key, data);
-                return new TextDecoder().decode(decBuffer);
-            }
-        }catch(e){}
-
-        throw new Error('Semua metode dekripsi AES gagal. Pastikan format enkripsi sesuai.');
-    }
-
-    function renderPreviewMedia(cleaned, container, link){
-        // Deteksi MIME - coba dari sample base64 dulu
-        const mimeHint = getMimeFromBase64Sample(cleaned);
-        let mime = mimeHint;
-        // Fallback: deteksi dari prefix base64
-        if(!mime){
-            if(cleaned.startsWith('iVBOR') || cleaned.startsWith('iVBORw0K'))mime='image/png';
-            else if(cleaned.startsWith('/9j/'))mime='image/jpeg';
-            else if(cleaned.startsWith('R0lG'))mime='image/gif';
-            else if(cleaned.startsWith('AAAB') || cleaned.startsWith('AAAM'))mime='video/mp4';
-            else if(cleaned.startsWith('GkXf'))mime='video/webm';
-        }
-
-        // Buat nama file untuk download
-        let baseFilename = `${link?.person_name||'anonim'} - ${link?.name||'file'}`;
-        baseFilename = baseFilename.replace(/[^a-zA-Z0-9\s\-_.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'') || 'dekripsi';
-        const ext = mime ? mime.split('/')[1]?.replace('jpeg','jpg') || 'bin' : 'txt';
-        const filename = `${baseFilename}.${ext}`;
-
-        // Apakah ini base64 valid?
-        const looksLikeBase64 = isBase64String(cleaned);
-
-        if(looksLikeBase64 && mime){
-            const norm = normalizeBase64(cleaned);
-            // Selalu pakai Blob untuk binary agar bisa didownload & ditampilkan dengan benar
-            let blob = null;
-            try{ blob = base64ToBlob(norm, mime); }catch(e){}
-
-            if(mime.startsWith('image/')){
-                const img = document.createElement('img');
-                if(blob){
-                    const objUrl = URL.createObjectURL(blob);
-                    img.src = objUrl;
-                    img.onload = ()=>{};  // jangan revoke karena perlu download
-                } else {
-                    img.src = `data:${mime};base64,${norm}`;
-                }
-                img.alt = 'Preview';
-                container.appendChild(img);
-                return { blob, mime, filename };
-
-            } else if(mime.startsWith('video/')){
-                const video = document.createElement('video');
-                video.controls = true;
-                video.setAttribute('playsinline','');
-                video.setAttribute('preload','metadata');
-                if(blob){
-                    const objUrl = URL.createObjectURL(blob);
-                    video.src = objUrl;
-                    // Fallback: coba juga source tag dengan type
-                    const src = document.createElement('source');
-                    src.src = objUrl;
-                    src.type = mime;
-                    video.appendChild(src);
-                } else {
-                    video.src = `data:${mime};base64,${norm}`;
-                }
-                container.appendChild(video);
-                return { blob, mime, filename };
-
-            } else {
-                // Base64 tapi bukan gambar/video - tampilkan teks
-                let displayText = cleaned;
-                try{ displayText = atob(norm).slice(0, 500); }catch(e){}
-                const pre = document.createElement('pre');
-                pre.textContent = displayText + (displayText.length >= 500 ? '\n...(terpotong)...' : '');
-                container.appendChild(pre);
-                return { blob, mime, filename };
-            }
-        } else {
-            // Teks biasa / hasil dekripsi teks
-            const pre = document.createElement('pre');
-            pre.textContent = cleaned.slice(0,1000)+(cleaned.length>1000?'\n...(terpotong)...':'');
-            container.appendChild(pre);
-            return { blob: null, mime: 'text/plain', filename: baseFilename + '.txt' };
-        }
-    }
-
-    async function fetchLinks(){
-        loadingIndicator&&loadingIndicator.classList.remove('hidden');
-        linksGrid.innerHTML='';allLinksData=[];filteredLinksData=[];
-        nameTagsContainer.innerHTML='';catTagsContainer.innerHTML='';
-        paginationContainer.style.display='none';
-
-        try{
-            const{data,error}=await supabase.from('links').select('*, category').order('created_at',{ascending:false});
-            loadingIndicator&&loadingIndicator.classList.add('hidden');
-            if(error){showStatus(`Error: ${error.message}`);return;}
-            if(!data||data.length===0){resultCountEl.textContent='';return;}
-
-            allLinksData=data;
-
-            // --- Name tags ---
-            const nameCounts={};
-            data.forEach(link=>{const n=link.person_name;if(n)nameCounts[n]=(nameCounts[n]||0)+1;});
-            const uniqueNames=Object.keys(nameCounts).sort((a,b)=>a.localeCompare(b,'id',{sensitivity:'base'}));
-
-            const nameLabel=document.createElement('span');
-            nameLabel.className='filter-label';
-            nameLabel.innerHTML='<i class="fa-solid fa-user"></i> Nama';
-            nameTagsContainer.appendChild(nameLabel);
-
-            uniqueNames.forEach(name=>{
-                const tag=document.createElement('span');
-                tag.className='filter-tag';
-                tag.dataset.name=name.toLowerCase();
-                tag.innerHTML=`${name} <span class="tag-count">${nameCounts[name]}</span>`;
-                tag.title=`Filter "${name}" (${nameCounts[name]} item)`;
-                if(activeNameFilter===name.toLowerCase())tag.classList.add('active');
-                tag.addEventListener('click',()=>{
-                    if(activeNameFilter===name.toLowerCase()){activeNameFilter=null;}
-                    else{activeNameFilter=name.toLowerCase();}
-                    currentPage=1;
-                    applyFilters();
-                });
-                nameTagsContainer.appendChild(tag);
-            });
-
-            if(uniqueNames.length===0){
-                const empty=document.createElement('span');
-                empty.className='text-gray-400 text-sm';empty.style.whiteSpace='nowrap';empty.style.padding='0.4rem';
-                empty.textContent='Belum ada nama';nameTagsContainer.appendChild(empty);
-            }
-
-            requestAnimationFrame(()=>updateNameFades());
-
-            applyFilters();
-
-        }catch(err){
-            loadingIndicator&&loadingIndicator.classList.add('hidden');
-            showStatus(`Terjadi kesalahan: ${err.message}`,'error');
-        }
-    }
-
-    // ===== REALTIME INDICATOR =====
-    // Dot sudah ada di dalam sidebar (HTML statis)
-
-    function setRealtimeStatus(status){
-      const dot=document.getElementById('rtDot');
-      const label=document.getElementById('rtLabel');
-      if(!dot)return;
-      if(status==='connected'){
-        dot.style.background='#22c55e';
-        dot.style.boxShadow='0 0 0 3px rgba(34,197,94,0.2)';
-        dot.style.animation='rtPulse 2s infinite';
-        if(label){label.textContent='Live';label.style.color='#22c55e';}
-      } else if(status==='update'){
-        dot.style.background='#3b82f6';
-        dot.style.boxShadow='0 0 0 3px rgba(59,130,246,0.25)';
-        dot.style.animation='none';
-        if(label){label.textContent='Memperbarui…';label.style.color='#3b82f6';}
-        setTimeout(()=>setRealtimeStatus('connected'),2000);
-      } else {
-        dot.style.background='#f59e0b';
-        dot.style.boxShadow='none';
-        dot.style.animation='none';
-        if(label){label.textContent='Terputus';label.style.color='#f59e0b';}
+            sublist.appendChild(li);
+          });
+          groupDiv.appendChild(sublist);
+          relatedList.appendChild(groupDiv);
+        });
+        relatedSection.classList.remove('hidden');
+      }catch(err){
+        relatedList.innerHTML='<p class="text-red-400 text-xs">Gagal memuat konten terkait.</p>';
+        relatedSection.classList.remove('hidden');
       }
     }
 
-    // Inject pulse keyframes
-    (function(){
-      const s=document.createElement('style');
-      s.textContent=`@keyframes rtPulse{0%,100%{opacity:1}50%{opacity:0.5}}`;
-      document.head.appendChild(s);
+    async function generateQrCodeWithPadding(data,size=200,padding=10){
+      const tempCanvas=document.createElement('canvas');
+      await QRCode.toCanvas(tempCanvas,data,{errorCorrectionLevel:'H',margin:0,width:size});
+      const qrSize=tempCanvas.width;
+      const totalSize=qrSize+padding*2;
+      const finalCanvas=document.createElement('canvas');
+      finalCanvas.width=totalSize;finalCanvas.height=totalSize;
+      const ctx=finalCanvas.getContext('2d');
+      ctx.fillStyle='#FFFFFF';ctx.fillRect(0,0,totalSize,totalSize);
+      ctx.drawImage(tempCanvas,padding,padding,qrSize,qrSize);
+      return finalCanvas;
+    }
+
+    /* ══════════ Modal / Frame Navigation State ══════════ */
+    const modal=document.getElementById('imageModal');
+    const modalImage=document.getElementById('modalImage');
+    const modalDownloadBtn=document.getElementById('modalDownloadBtn');
+    const modalPrev=document.getElementById('modalPrev');
+    const modalNext=document.getElementById('modalNext');
+    const modalCounter=document.getElementById('modalCounter');
+
+    let frameImages=[];      // array of {src, filename}
+    let currentFrameIndex=-1;
+    let isFrameMode=false;
+
+    function openModalSingle(src,filename){
+      isFrameMode=false;
+      currentFrameIndex=-1;
+      modal.style.display='flex';
+      modalImage.src=src;
+      modalDownloadBtn.href=src;
+      modalDownloadBtn.download=filename||'image.png';
+      modalPrev.classList.add('hidden');
+      modalNext.classList.add('hidden');
+      modalCounter.classList.add('hidden');
+    }
+
+    function openModalFrame(index){
+      if(frameImages.length===0)return;
+      isFrameMode=true;
+      currentFrameIndex=Math.max(0,Math.min(index,frameImages.length-1));
+      modal.style.display='flex';
+      modalPrev.classList.remove('hidden');
+      modalNext.classList.remove('hidden');
+      modalCounter.classList.remove('hidden');
+      updateModalFrame();
+    }
+
+    function updateModalFrame(){
+      const f=frameImages[currentFrameIndex];
+      if(!f)return;
+      modalImage.src=f.src;
+      modalDownloadBtn.href=f.src;
+      modalDownloadBtn.download=f.filename;
+      modalCounter.textContent=`${currentFrameIndex+1} / ${frameImages.length}`;
+      modalPrev.disabled=currentFrameIndex<=0;
+      modalNext.disabled=currentFrameIndex>=frameImages.length-1;
+
+      // highlight active thumb
+      document.querySelectorAll('.frame-thumb').forEach((t,i)=>{
+        t.classList.toggle('active-frame',i===currentFrameIndex);
+      });
+      // scroll active thumb into view
+      const activeThumb=document.querySelectorAll('.frame-thumb')[currentFrameIndex];
+      if(activeThumb)activeThumb.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'});
+    }
+
+    function navigateFrame(dir){
+      if(!isFrameMode)return;
+      const next=currentFrameIndex+dir;
+      if(next<0||next>=frameImages.length)return;
+      currentFrameIndex=next;
+      updateModalFrame();
+    }
+
+    function closeModal(){
+      modal.style.display='none';
+      isFrameMode=false;
+      currentFrameIndex=-1;
+      document.querySelectorAll('.frame-thumb').forEach(t=>t.classList.remove('active-frame'));
+    }
+
+    document.querySelector('.close-btn').addEventListener('click',closeModal);
+    modal.addEventListener('click',e=>{if(e.target===modal)closeModal();});
+    modalPrev.addEventListener('click',()=>navigateFrame(-1));
+    modalNext.addEventListener('click',()=>navigateFrame(1));
+
+    // Keyboard navigation
+    document.addEventListener('keydown',e=>{
+      if(modal.style.display==='flex'){
+        if(e.key==='Escape')closeModal();
+        if(isFrameMode){
+          if(e.key==='ArrowLeft'||e.key==='a'){e.preventDefault();navigateFrame(-1);}
+          if(e.key==='ArrowRight'||e.key==='d'){e.preventDefault();navigateFrame(1);}
+          if(e.key==='ArrowUp'){e.preventDefault();navigateFrame(-1);}
+          if(e.key==='ArrowDown'){e.preventDefault();navigateFrame(1);}
+        }
+      }
+    });
+
+    // Touch swipe for modal
+    let touchStartX=0;
+    modal.addEventListener('touchstart',e=>{touchStartX=e.changedTouches[0].clientX;},{passive:true});
+    modal.addEventListener('touchend',e=>{
+      if(!isFrameMode)return;
+      const diff=e.changedTouches[0].clientX-touchStartX;
+      if(Math.abs(diff)>50){
+        if(diff<0)navigateFrame(1);
+        else navigateFrame(-1);
+      }
+    },{passive:true});
+
+    /* ══════════ Main Load & Decrypt ══════════ */
+    async function loadAndDecrypt(url,shift,person,name){
+      const statusEl=document.getElementById('status');
+      const previewEl=document.getElementById('preview');
+      const metaEl=document.getElementById('meta');
+      const fileSizeEl=document.getElementById('fileSize');
+      const mimeEl=document.getElementById('detectedMime');
+      const downloadOriginalBtn=document.getElementById('downloadOriginalBtn');
+      const downloadDecryptedBtn=document.getElementById('downloadDecryptedBtn');
+      const showFramesBtn=document.getElementById('showFramesBtn');
+      const framesPreview=document.getElementById('framesPreview');
+      const framesGrid=document.getElementById('framesGrid');
+      const videoActions=document.getElementById('videoActions');
+      const progressWrap=document.getElementById('progressWrap');
+      const progressFill=document.getElementById('progressFill');
+      const progressTextEl=document.getElementById('progressText');
+      const frameCounterBadge=document.getElementById('frameCounterBadge');
+      const frameCountText=document.getElementById('frameCountText');
+
+      let objectUrl=null,currentBlob=null,detectedMime=null,videoEl=null,imageEl=null,decryptedContent='';
+
+      if(!url){statusEl.textContent='Parameter url tidak ditemukan.';return;}
+
+      statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-blue-400 animate-spin"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Memuat file terenkripsi...`;
+
+      try{
+        const res=await fetch(url);
+        if(!res.ok)throw new Error(`Gagal memuat file: ${res.status}`);
+        const encryptedText=await res.text();
+
+        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-blue-400 animate-spin"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Mendekripsi konten...`;
+
+        /* ── Pilih metode dekripsi ── */
+        const useAES=!shift||shift===''||shift==='-';
+        let cleaned='';
+        if(useAES){
+          // AES-256-CBC dengan password dakota775
+          const AES_PASSWORD='dakota775';
+          let decryptedBytes;
+          try{
+            decryptedBytes=await decryptAES(encryptedText.trim(),AES_PASSWORD);
+          }catch(e){
+            throw new Error('Dekripsi AES gagal: '+e.message);
+          }
+          // Coba deteksi apakah hasilnya binary langsung (gambar/video)
+          const magic=decryptedBytes.slice(0,12);
+          const isPNG=magic[0]===0x89&&magic[1]===0x50;
+          const isJPEG=magic[0]===0xFF&&magic[1]===0xD8;
+          const isGIF=magic[0]===0x47&&magic[1]===0x49;
+          const isMP4=magic[4]===0x66&&magic[5]===0x74&&magic[6]===0x79&&magic[7]===0x70;
+          const isWEBM=magic[0]===0x1A&&magic[1]===0x45;
+          if(isPNG||isJPEG||isGIF||isMP4||isWEBM){
+            // Hasil dekripsi sudah binary — langsung buat blob
+            if(isPNG)detectedMime='image/png';
+            else if(isJPEG)detectedMime='image/jpeg';
+            else if(isGIF)detectedMime='image/gif';
+            else if(isMP4)detectedMime='video/mp4';
+            else if(isWEBM)detectedMime='video/webm';
+            currentBlob=new Blob([decryptedBytes],{type:detectedMime});
+            objectUrl=URL.createObjectURL(currentBlob);
+            fileSizeEl.textContent=`Ukuran: ${bytesToMB(currentBlob.size)}`;
+            mimeEl.textContent=`Tipe: ${detectedMime}`;
+            metaEl.classList.remove('hidden');
+          }else{
+            // Coba konversi ke string (mungkin base64 atau teks)
+            decryptedContent=new TextDecoder().decode(decryptedBytes);
+            cleaned=normalizeBase64(decryptedContent.trim());
+          }
+        }else{
+          decryptedContent=decryptCaesar(encryptedText,shift);
+          cleaned=normalizeBase64(decryptedContent.trim());
+        }
+
+        const looksLikeBase64=!objectUrl&&cleaned&&/^[A-Za-z0-9+/=]+$/.test(cleaned);
+
+        if(objectUrl||looksLikeBase64){
+          if(!objectUrl){
+            detectedMime=detectMimeFromBase64(cleaned)||'';
+            currentBlob=base64ToBlob(cleaned,detectedMime);
+            objectUrl=URL.createObjectURL(currentBlob);
+            fileSizeEl.textContent=`Ukuran: ${bytesToMB(currentBlob.size)}`;
+            mimeEl.textContent=`Tipe: ${detectedMime||'Tidak terdeteksi'}`;
+            metaEl.classList.remove('hidden');
+          }
+
+          if(detectedMime.startsWith('video/')){
+            previewEl.innerHTML='';
+            videoEl=document.createElement('video');
+            videoEl.controls=true;videoEl.playsInline=true;
+            videoEl.src=objectUrl;videoEl.loop=true;
+            videoEl.style.cssText='width:100%;max-width:720px;border-radius:1rem;box-shadow:0 8px 32px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.06);';
+            previewEl.appendChild(createLabel(`${person} — ${name}`));
+            previewEl.appendChild(videoEl);
+            videoActions.classList.remove('hidden');
+
+            showFramesBtn.addEventListener('click',async()=>{
+              if(framesGrid.innerHTML)return;
+              framesPreview.classList.remove('hidden');
+              progressWrap.classList.remove('hidden');
+              showFramesBtn.disabled=true;
+              showFramesBtn.style.opacity='.5';
+
+              const canvas=document.createElement('canvas');
+              const ctx=canvas.getContext('2d');
+
+              // Wait for video metadata
+              await new Promise(resolve=>{
+                if(videoEl.readyState>=1)resolve();
+                else videoEl.addEventListener('loadedmetadata',resolve,{once:true});
+              });
+
+              canvas.width=videoEl.videoWidth;canvas.height=videoEl.videoHeight;
+              const duration=videoEl.duration;
+              const fps=Math.min(30, Math.ceil(duration * 2)); // reasonable frame count
+              const totalFrames=Math.min(Math.floor(duration*fps), 300); // cap at 300
+              const frameInterval=duration/totalFrames;
+
+              frameImages=[];
+
+              for(let i=0;i<totalFrames;i++){
+                videoEl.currentTime=i*frameInterval;
+                await new Promise(resolve=>videoEl.addEventListener('seeked',resolve,{once:true}));
+                ctx.drawImage(videoEl,0,0,canvas.width,canvas.height);
+                const dataUrl=canvas.toDataURL('image/jpeg',0.85);
+                const filename=`frame_${String(i+1).padStart(4,'0')}.jpg`;
+                frameImages.push({src:dataUrl,filename});
+
+                const img=document.createElement('img');
+                img.src=dataUrl;
+                img.className='frame-thumb fade-in';
+                img.alt=`Frame ${i+1}`;
+                img.style.animationDelay=`${(i%12)*0.03}s`;
+
+                const idx=i;
+                img.addEventListener('click',()=>openModalFrame(idx));
+                framesGrid.appendChild(img);
+
+                // Update progress
+                const pct=Math.round(((i+1)/totalFrames)*100);
+                progressFill.style.width=pct+'%';
+                progressTextEl.textContent=`Mengekstrak frame ${i+1} dari ${totalFrames} (${pct}%)`;
+              }
+
+              progressWrap.classList.add('hidden');
+              frameCounterBadge.classList.remove('hidden');
+              frameCountText.textContent=`${frameImages.length} frame`;
+
+              statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-green-400"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Selesai — ${frameImages.length} frame diekstrak.`;
+              statusEl.className='status-bar success';
+            });
+
+          }else if(detectedMime.startsWith('image/')){
+            previewEl.innerHTML='';
+            imageEl=document.createElement('img');
+            imageEl.src=objectUrl;imageEl.alt=`${person} — ${name}`;
+            imageEl.style.cursor='pointer';
+            imageEl.addEventListener('click',()=>openModalSingle(objectUrl,name||'image'));
+            previewEl.appendChild(createLabel(`${person} — ${name}`));
+            previewEl.appendChild(imageEl);
+
+          }else{
+            previewEl.innerHTML='';
+            previewEl.appendChild(createLabel(`${person} — ${name}`));
+            const pre=document.createElement('pre');
+            pre.style.cssText='margin-top:.75rem;padding:1rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:.75rem;font-size:.75rem;max-height:16rem;overflow:auto;color:#94a3b8;';
+            pre.textContent=`[Preview base64 (dipotong)]\n${cleaned.slice(0,1500)}${cleaned.length>1500?'\n\n... (terpotong) ...':''}`;
+            previewEl.appendChild(pre);
+          }
+        }else{
+          const textBlob=new Blob([decryptedContent],{type:'text/plain'});
+          fileSizeEl.textContent=`Ukuran: ${bytesToMB(textBlob.size)}`;
+          mimeEl.textContent='Tipe: text/plain';
+          metaEl.classList.remove('hidden');
+          previewEl.innerHTML='';
+          previewEl.appendChild(createLabel(`${person} — ${name}`));
+          const pre=document.createElement('pre');
+          pre.style.cssText='margin-top:.75rem;padding:1rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:.75rem;font-size:.8125rem;white-space:pre-wrap;color:#cbd5e1;';
+          pre.textContent=decryptedContent;
+          previewEl.appendChild(pre);
+        }
+
+        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-green-400"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Siap diunduh.`;
+        statusEl.className='status-bar success';
+
+        const blobPB=new Blob([encryptedText],{type:'application/octet-stream'});
+        const tmpUrlPB=URL.createObjectURL(blobPB);
+        let blobDecrypted=currentBlob||new Blob([decryptedContent],{type:'application/octet-stream'});
+        const tmpUrlDecrypted=URL.createObjectURL(blobDecrypted);
+
+        const origExt=useAES?'enc':'pb';
+        downloadOriginalBtn.href=tmpUrlPB;downloadOriginalBtn.download=`file.${origExt}`;
+        downloadOriginalBtn.querySelector('svg')&&(downloadOriginalBtn.childNodes[downloadOriginalBtn.childNodes.length-1].textContent=` Unduh .${origExt}`);
+        // Update button text
+        downloadOriginalBtn.innerHTML=downloadOriginalBtn.innerHTML.replace(/Unduh \.(pb|enc)/,`Unduh .${origExt}`);
+        downloadOriginalBtn.classList.remove('hidden');
+        downloadDecryptedBtn.href=tmpUrlDecrypted;downloadDecryptedBtn.download=name||'decrypted_file';
+        downloadDecryptedBtn.classList.remove('hidden');
+
+        if(url&&!useAES&&shift){
+          const qrData=`${url} || ${shift}`;
+          const safePerson=(person||'Anonim').replace(/[^a-zA-Z0-9 -]/g,'');
+          const safeName=(name||'Konten').replace(/[^a-zA-Z0-9 -]/g,'');
+          const qrFilename=`${safePerson} - ${safeName} - QR.png`.replace(/  +/g,' ').trim();
+
+          const paddedCanvas=await generateQrCodeWithPadding(qrData,200,10);
+          const qrCanvas=document.getElementById('qrCanvas');
+          qrCanvas.width=paddedCanvas.width;qrCanvas.height=paddedCanvas.height;
+          qrCanvas.getContext('2d').drawImage(paddedCanvas,0,0);
+
+          document.getElementById('qrWrapper').addEventListener('click',()=>{
+            openModalSingle(paddedCanvas.toDataURL('image/png'),qrFilename);
+          });
+
+          document.getElementById('downloadQrBtn').onclick=()=>{
+            const a=document.createElement('a');
+            a.href=paddedCanvas.toDataURL('image/png');
+            a.download=qrFilename;a.click();
+          };
+
+          // qrSection hidden (sidebar removed)
+          // document.getElementById('qrSection').classList.remove('hidden');
+        }
+
+        window.addEventListener('beforeunload',()=>{
+          URL.revokeObjectURL(tmpUrlPB);URL.revokeObjectURL(tmpUrlDecrypted);
+          if(objectUrl)URL.revokeObjectURL(objectUrl);
+        });
+
+      }catch(err){
+        statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-red-400"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.731 0 2.813-1.874 1.948-3.374L13.949 3.374c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg> Gagal: ${err.message}`;
+        statusEl.className='status-bar error';
+      }
+    }
+
+    async function ensureAndRunMain(){
+      if(ensureAndRunMain._started)return;
+      ensureAndRunMain._started=true;
+      // shift kosong atau '-' → mode AES; jangan default '0'
+      const params=new URLSearchParams(window.location.search);
+      const url=params.get('url')||'';
+      const shiftRaw=params.has('shift')?params.get('shift'):'';
+      const person=params.get('person')||'';
+      const name=params.get('name')||'';
+      await loadAndDecrypt(url,shiftRaw,person,name);
+      await fetchRelatedLinks(person);
+    }
+
+    (function initAccessCheck(){
+      if(isLoggedIn()){hideLockedOverlay();ensureAndRunMain();}
+      else{showLockedOverlay();}
+      window.addEventListener('focus',()=>{
+        if(isLoggedIn()){hideLockedOverlay();ensureAndRunMain();}
+      });
     })();
 
-    // ===== REALTIME SUBSCRIPTION =====
-    function setupRealtime(){
-      const channel=supabase
-        .channel('links-realtime')
-        .on('postgres_changes',
-          {event:'*', schema:'public', table:'links'},
-          (payload)=>{
-            setRealtimeStatus('update');
-            const evt=payload.eventType;
-            if(evt==='INSERT'){
-              // tambahkan ke allLinksData di urutan terdepan
-              allLinksData.unshift(payload.new);
-              showStatus('📥 Data baru masuk!','success');
-            } else if(evt==='UPDATE'){
-              const idx=allLinksData.findIndex(l=>l.id===payload.new.id);
-              if(idx!==-1) allLinksData[idx]=payload.new;
-              showStatus('✏️ Data diperbarui','success');
-            } else if(evt==='DELETE'){
-              allLinksData=allLinksData.filter(l=>l.id!==payload.old.id);
-              showStatus('🗑️ Data dihapus','success');
-            }
-            // Rebuild filters & re-render tanpa fetch ulang
-            rebuildNameTags();
-            rebuildCatTags();
-            currentPage=1;
-            applyFilters();
-          }
-        )
-        .subscribe((status)=>{
-          if(status==='SUBSCRIBED') setRealtimeStatus('connected');
-          else if(status==='CLOSED'||status==='CHANNEL_ERROR') setRealtimeStatus('disconnected');
-        });
-      return channel;
-    }
+    /* ── Sidebar Logic (disabled) ── */
+    const sidebar=document.getElementById('sidebar');
+    const sidebarToggle=null;
+    const sidebarClose=document.getElementById('sidebarClose');
+    const sidebarDimmer=document.getElementById('sidebarDimmer');
 
-    // Rebuild name tags dari allLinksData terkini (tanpa fetch ulang)
-    function rebuildNameTags(){
-      nameTagsContainer.innerHTML='';
-      const nameCounts={};
-      allLinksData.forEach(link=>{const n=link.person_name;if(n)nameCounts[n]=(nameCounts[n]||0)+1;});
-      const uniqueNames=Object.keys(nameCounts).sort((a,b)=>a.localeCompare(b,'id',{sensitivity:'base'}));
+    function openSidebar(){}
+    function closeSidebar(){}
 
-      const nameLabel=document.createElement('span');
-      nameLabel.className='filter-label';
-      nameLabel.innerHTML='<i class="fa-solid fa-user"></i> Nama';
-      nameTagsContainer.appendChild(nameLabel);
+    // sidebarToggle removed
+    if(sidebarClose)sidebarClose.addEventListener('click',closeSidebar);
+    if(sidebarDimmer)sidebarDimmer.addEventListener('click',closeSidebar);
 
-      uniqueNames.forEach(name=>{
-        const tag=document.createElement('span');
-        tag.className='filter-tag';
-        tag.dataset.name=name.toLowerCase();
-        tag.innerHTML=`${name} <span class="tag-count">${nameCounts[name]}</span>`;
-        tag.title=`Filter "${name}" (${nameCounts[name]} item)`;
-        if(activeNameFilter===name.toLowerCase())tag.classList.add('active');
-        tag.addEventListener('click',()=>{
-          if(activeNameFilter===name.toLowerCase()){activeNameFilter=null;}
-          else{activeNameFilter=name.toLowerCase();}
-          currentPage=1;
-          applyFilters();
-        });
-        nameTagsContainer.appendChild(tag);
-      });
-
-      if(uniqueNames.length===0){
-        const empty=document.createElement('span');
-        empty.className='text-gray-400 text-sm';empty.style.whiteSpace='nowrap';empty.style.padding='0.4rem';
-        empty.textContent='Belum ada nama';nameTagsContainer.appendChild(empty);
-      }
-      if(activeNameFilter&&!uniqueNames.some(n=>n.toLowerCase()===activeNameFilter)) activeNameFilter=null;
-      requestAnimationFrame(()=>updateNameFades());
-    }
-
-    document.addEventListener('DOMContentLoaded',()=>{
-      fetchLinks().then(()=>{
-        setupRealtime();
-      });
+    document.addEventListener('keydown',e=>{
+      if(e.key==='Escape'&&sidebar&&sidebar.classList.contains('open'))closeSidebar();
     });
   </script>
 </body>
