@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
     <style>
         body { background-color: #f3f4f6; font-family: 'Inter', sans-serif; }
         .modal-overlay { background-color: rgba(0,0,0,0.75); }
@@ -181,7 +182,28 @@
         .link-card-actions .card-btn-view:hover { background: #eff6ff; }
         .link-card-actions .card-btn-delete { color: #ef4444; }
         .link-card-actions .card-btn-delete:hover { background: #fef2f2; }
+        .link-card-actions .card-btn-preview { color: #8b5cf6; }
+        .link-card-actions .card-btn-preview:hover { background: #f5f3ff; }
         .link-card-actions > *:not(:last-child) { border-right: 1px solid #f1f5f9; }
+
+        /* ===== INLINE PREVIEW AREA ===== */
+        .card-preview-area {
+            display: none; border-top: 1px solid #f1f5f9;
+            padding: 0.75rem 1rem; flex-direction: column; align-items: center; gap: 0.5rem;
+            background: #faf5ff; position: relative;
+        }
+        .card-preview-area.active { display: flex; }
+        .card-preview-area .preview-loading {
+            display: flex; align-items: center; gap: 0.5rem; color: #8b5cf6; font-size: 0.78rem; font-weight: 500;
+        }
+        .card-preview-area .preview-error { color: #ef4444; font-size: 0.78rem; text-align: center; }
+        .card-preview-area img { max-width: 100%; max-height: 280px; border-radius: 0.5rem; border: 1px solid #e9d5ff; object-fit: contain; }
+        .card-preview-area video { max-width: 100%; max-height: 280px; border-radius: 0.5rem; border: 1px solid #e9d5ff; }
+        .card-preview-area pre { font-size: 0.72rem; background: #f3e8ff; border-radius: 0.5rem; padding: 0.5rem; max-height: 160px; overflow: auto; width: 100%; color: #4c1d95; }
+        .card-preview-area .preview-method-badge {
+            font-size: 0.62rem; padding: 0.15rem 0.5rem; border-radius: 9999px; font-weight: 700;
+            background: #ede9fe; color: #5b21b6; border: 1px solid #c4b5fd; align-self: flex-start;
+        }
 
         .card-info-btn {
             position: absolute; top: 0.6rem; right: 0.6rem; width: 28px; height: 28px;
@@ -663,8 +685,10 @@
             </div>
             <div class="link-card-actions">
               <button class="card-btn-view view-description-btn"><i class="fa-solid fa-eye" style="margin-right:0.3rem;"></i>Lihat</button>
+              <button class="card-btn-preview preview-btn"><i class="fa-solid fa-photo-film" style="margin-right:0.3rem;"></i>Preview</button>
               <button class="card-btn-delete delete-btn"><i class="fa-solid fa-trash-can" style="margin-right:0.3rem;"></i>Hapus</button>
             </div>
+            <div class="card-preview-area" id="preview-area-${link.id}"></div>
         `;
 
         card.querySelector('.card-info-btn').addEventListener('click',(e)=>{e.stopPropagation();openInfoPopup(link.id,link.name,link.url,link.shift_code);});
@@ -683,6 +707,11 @@
         }
 
         card.querySelector('.delete-btn').addEventListener('click',handleDelete);
+
+        const previewBtn=card.querySelector('.preview-btn');
+        if(previewBtn){
+            previewBtn.addEventListener('click',()=>handleInlinePreview(link, card));
+        }
 
         card.querySelectorAll('[data-column]').forEach(cell=>{
             cell.addEventListener('click',(e)=>{
@@ -1082,6 +1111,155 @@
             if(error) throw error;
             showStatus(`Berhasil dihapus dari Supabase${githubNote}!`,'success');
         }catch(error){showStatus(`Gagal hapus dari Supabase: ${error.message}`,'error');}
+    }
+
+    // ===== INLINE PREVIEW =====
+    // Track which card preview is currently open
+    let activePreviewCardId = null;
+
+    async function handleInlinePreview(link, card){
+        const previewArea = document.getElementById(`preview-area-${link.id}`);
+        if(!previewArea) return;
+
+        // Toggle off jika sudah aktif
+        if(activePreviewCardId === link.id){
+            previewArea.classList.remove('active');
+            previewArea.innerHTML='';
+            activePreviewCardId = null;
+            return;
+        }
+
+        // Tutup preview kartu lain jika ada
+        if(activePreviewCardId !== null){
+            const prev = document.getElementById(`preview-area-${activePreviewCardId}`);
+            if(prev){ prev.classList.remove('active'); prev.innerHTML=''; }
+        }
+
+        activePreviewCardId = link.id;
+        previewArea.innerHTML = `<div class="preview-loading"><svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Mendekripsi...</div>`;
+        previewArea.classList.add('active');
+
+        try{
+            const url = link.url || '';
+            const shiftCode = link.shift_code || '';
+            if(!url || !url.startsWith('http')) throw new Error('URL tidak valid.');
+
+            const response = await fetch(url);
+            if(!response.ok) throw new Error(`Gagal memuat file (${response.status})`);
+            const encryptedText = await response.text();
+
+            let decrypted = '';
+            let methodLabel = '';
+
+            const shiftNum = Number(shiftCode);
+            if(shiftCode && !isNaN(shiftNum) && shiftNum !== 0){
+                // Dekripsi Caesar shift (balik: kurangi shift)
+                decrypted = decryptCaesar(encryptedText, shiftNum);
+                methodLabel = `Caesar Shift -${shiftNum}`;
+            } else {
+                // Dekripsi AES dengan password "dakota"
+                decrypted = await decryptAES(encryptedText.trim(), 'dakota775');
+                methodLabel = 'AES / dakota775';
+            }
+
+            const cleaned = decrypted.trim();
+            previewArea.innerHTML = '';
+
+            // Badge metode
+            const badge = document.createElement('span');
+            badge.className = 'preview-method-badge';
+            badge.textContent = methodLabel;
+            previewArea.appendChild(badge);
+
+            // Render media
+            renderPreviewMedia(cleaned, previewArea);
+
+        } catch(err){
+            previewArea.innerHTML = `<span class="preview-error"><i class="fa-solid fa-circle-exclamation" style="margin-right:0.3rem;"></i>${err.message}</span>`;
+        }
+    }
+
+    async function decryptAES(ciphertext, password){
+        // Support CryptoJS-style (WordArray) dan Web Crypto API (raw base64 iv+data)
+        // Coba CryptoJS dulu (format: U2FsdGVkX1...) lalu fallback Web Crypto
+        if(typeof CryptoJS !== 'undefined'){
+            try{
+                const bytes = CryptoJS.AES.decrypt(ciphertext, password);
+                const result = bytes.toString(CryptoJS.enc.Utf8);
+                if(result) return result;
+            }catch(e){}
+        }
+        // Fallback: Web Crypto API — asumsi format base64(iv[12 bytes] + ciphertext)
+        try{
+            const enc = new TextEncoder();
+            const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), {name:'PBKDF2'}, false, ['deriveKey']);
+            const salt = enc.encode('dakotasalt');
+            const key = await crypto.subtle.deriveKey(
+                {name:'PBKDF2', salt, iterations:100000, hash:'SHA-256'},
+                keyMaterial, {name:'AES-GCM', length:256}, false, ['decrypt']
+            );
+            const rawData = Uint8Array.from(atob(ciphertext), c=>c.charCodeAt(0));
+            const iv = rawData.slice(0,12);
+            const data = rawData.slice(12);
+            const decBuffer = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, data);
+            return new TextDecoder().decode(decBuffer);
+        }catch(e){
+            throw new Error('Dekripsi AES gagal: ' + e.message);
+        }
+    }
+
+    function renderPreviewMedia(cleaned, container){
+        const mimeHint = getMimeFromBase64Sample(cleaned);
+        let mime = mimeHint;
+        if(!mime){
+            if(cleaned.startsWith('iVBOR'))mime='image/png';
+            else if(cleaned.startsWith('/9j/'))mime='image/jpeg';
+            else if(cleaned.startsWith('R0lG'))mime='image/gif';
+        }
+
+        if(isBase64String(cleaned) && mime){
+            const norm = normalizeBase64(cleaned);
+            const approxSize = Math.ceil((norm.length*3)/4);
+            const threshold = 1024*300;
+
+            if(mime.startsWith('image/')){
+                const img = document.createElement('img');
+                if(approxSize > threshold){
+                    try{
+                        const blob = base64ToBlob(norm, mime);
+                        img.src = URL.createObjectURL(blob);
+                        img.onload = ()=>URL.revokeObjectURL(img.src);
+                    }catch(e){ img.src=`data:${mime};base64,${norm}`; }
+                } else {
+                    img.src = `data:${mime};base64,${norm}`;
+                }
+                img.alt = 'Preview';
+                container.appendChild(img);
+            } else if(mime.startsWith('video/')){
+                const video = document.createElement('video');
+                video.controls = true;
+                video.setAttribute('playsinline','');
+                if(approxSize > threshold){
+                    try{
+                        const blob = base64ToBlob(norm, mime);
+                        video.src = URL.createObjectURL(blob);
+                        video.onloadeddata = ()=>URL.revokeObjectURL(video.src);
+                    }catch(e){ video.src=`data:${mime};base64,${norm}`; }
+                } else {
+                    video.src = `data:${mime};base64,${norm}`;
+                }
+                container.appendChild(video);
+            } else {
+                const pre = document.createElement('pre');
+                pre.textContent = cleaned.slice(0,500)+(cleaned.length>500?'\n...(terpotong)...':'');
+                container.appendChild(pre);
+            }
+        } else {
+            // Teks biasa
+            const pre = document.createElement('pre');
+            pre.textContent = cleaned.slice(0,500)+(cleaned.length>500?'\n...(terpotong)...':'');
+            container.appendChild(pre);
+        }
     }
 
     async function fetchLinks(){
