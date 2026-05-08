@@ -1124,27 +1124,68 @@
     }
 
     // ===== INLINE PREVIEW =====
-    // Track which card preview is currently open
-    let activePreviewCardId = null;
+    // Cache hasil dekripsi per kartu: { [linkId]: { html: string, blob, mime, filename, cleaned } }
+    const previewCache = {};
+
+    function getFileExtFromUrl(url){
+        try{
+            const pathname = new URL(url).pathname;
+            const parts = pathname.split('.');
+            if(parts.length > 1) return parts[parts.length-1].toLowerCase();
+        }catch(e){}
+        return '';
+    }
 
     async function handleInlinePreview(link, card){
         const previewArea = document.getElementById(`preview-area-${link.id}`);
         if(!previewArea) return;
 
-        // Jika sudah ada preview dan sudah selesai (bukan loading), tampilkan saja / jangan sembunyikan
-        if(activePreviewCardId === link.id && previewArea.classList.contains('active')){
-            // Scroll ke preview agar terlihat
+        // === TOGGLE: jika preview area sudah aktif untuk kartu ini, tutup (sembunyikan) ===
+        if(previewArea.classList.contains('active')){
+            previewArea.classList.remove('active');
+            return;
+        }
+
+        // === Jika sudah ada cache untuk kartu ini, langsung tampilkan tanpa fetch ulang ===
+        if(previewCache[link.id]){
+            // Restore konten ke previewArea yang baru (setelah re-render pagination)
+            if(!previewArea.hasChildNodes() || previewArea.innerHTML.trim() === ''){
+                // Rebuild UI dari cache
+                previewArea.innerHTML = '';
+                const cached = previewCache[link.id];
+
+                const sep = document.createElement('div');
+                sep.className = 'preview-sep-label';
+                sep.innerHTML = '<i class="fa-solid fa-unlock" style="margin-right:0.3rem;font-size:0.6rem;"></i>Hasil Dekripsi';
+                previewArea.appendChild(sep);
+
+                renderPreviewMedia(cached.cleaned, previewArea, link);
+
+                const dlBtn = document.createElement('button');
+                dlBtn.className = 'preview-download-btn';
+                dlBtn.innerHTML = '<i class="fa-solid fa-download"></i> Unduh';
+                dlBtn.addEventListener('click', ()=>{
+                    if(cached.blob){
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(cached.blob);
+                        a.download = cached.filename;
+                        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                    } else {
+                        const txtBlob = new Blob([cached.cleaned], {type:'text/plain'});
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(txtBlob);
+                        a.download = cached.filename;
+                        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                    }
+                });
+                previewArea.appendChild(dlBtn);
+            }
+            previewArea.classList.add('active');
             previewArea.scrollIntoView({behavior:'smooth', block:'nearest'});
             return;
         }
 
-        // Tutup preview kartu lain jika ada
-        if(activePreviewCardId !== null && activePreviewCardId !== link.id){
-            const prev = document.getElementById(`preview-area-${activePreviewCardId}`);
-            if(prev){ prev.classList.remove('active'); prev.innerHTML=''; }
-        }
-
-        activePreviewCardId = link.id;
+        // === Belum ada cache — lakukan fetch & dekripsi ===
         previewArea.innerHTML = `<div class="preview-loading"><svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Mendekripsi...</div>`;
         previewArea.classList.add('active');
 
@@ -1159,8 +1200,17 @@
 
             let decrypted = '';
 
+            const fileExt = getFileExtFromUrl(url);
             const shiftNum = Number(shiftCode);
-            if(shiftCode && !isNaN(shiftNum) && shiftNum !== 0){
+
+            // Logika pemilihan metode dekripsi:
+            // - File .enc → selalu AES (Caesar tidak berlaku)
+            // - File .pb  → selalu AES
+            // - Ada shiftCode angka valid & bukan 0 → Caesar
+            // - Lainnya → AES
+            if(fileExt === 'enc' || fileExt === 'pb'){
+                decrypted = await decryptAES(encryptedText.trim(), 'dakota775');
+            } else if(shiftCode && !isNaN(shiftNum) && shiftNum !== 0){
                 decrypted = decryptCaesar(encryptedText, shiftNum);
             } else {
                 decrypted = await decryptAES(encryptedText.trim(), 'dakota775');
@@ -1189,7 +1239,6 @@
                     a.download = filename;
                     document.body.appendChild(a); a.click(); document.body.removeChild(a);
                 } else {
-                    // Teks biasa
                     const txtBlob = new Blob([cleaned], {type:'text/plain'});
                     const a = document.createElement('a');
                     a.href = URL.createObjectURL(txtBlob);
@@ -1199,8 +1248,12 @@
             });
             previewArea.appendChild(dlBtn);
 
+            // Simpan ke cache (simpan referensi innerHTML agar bisa ditampilkan kembali)
+            previewCache[link.id] = { blob, mime, filename, cleaned };
+
         } catch(err){
             previewArea.innerHTML = `<span class="preview-error"><i class="fa-solid fa-circle-exclamation" style="margin-right:0.3rem;"></i>${err.message}</span>`;
+            // Jangan cache error supaya bisa dicoba lagi
         }
     }
 
