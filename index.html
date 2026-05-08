@@ -185,34 +185,26 @@
         .link-card-actions .card-btn-preview:hover { background: #f5f3ff; }
         .link-card-actions > *:not(:last-child) { border-right: 1px solid #f1f5f9; }
 
-        /* In-card preview area */
         .card-preview-area {
-            border-top: 1px solid #f1f5f9; padding: 0.85rem 1rem 0.5rem;
-            display: none; flex-direction: column; align-items: center; gap: 0.6rem;
-            background: #fafafa;
+            display: none; padding: 1rem; border-top: 1px solid #f1f5f9;
+            flex-direction: column; align-items: center; gap: 0.75rem; background: #fafafa;
         }
-        .card-preview-area.show { display: flex; }
+        .card-preview-area.active { display: flex; }
         .card-preview-area img, .card-preview-area video {
             max-width: 100%; border-radius: 0.5rem; border: 1px solid #e5e7eb;
-            display: block; max-height: 280px; object-fit: contain;
         }
-        .card-preview-area .preview-loading {
+        .card-preview-loading {
             display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
-            padding: 1rem 0; color: #94a3b8; font-size: 0.8rem;
+            color: #94a3b8; font-size: 0.8rem; padding: 1rem;
         }
-        .card-preview-area .preview-error { color: #ef4444; font-size: 0.8rem; text-align: center; padding: 0.5rem; }
-        .card-preview-area .preview-download-btn {
-            width: 100%; padding: 0.55rem 0; border-radius: 0.5rem; font-size: 0.8rem;
-            font-weight: 600; cursor: pointer; border: none; text-align: center;
-            background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white;
-            transition: opacity 0.15s; display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+        .card-preview-error { color: #ef4444; font-size: 0.8rem; text-align: center; padding: 0.5rem; }
+        .card-preview-download {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            padding: 0.5rem 1.25rem; border-radius: 0.5rem; font-size: 0.8rem; font-weight: 600;
+            background: linear-gradient(to right, #3b82f6, #6366f1); color: white;
+            border: none; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 6px rgba(99,102,241,0.3);
         }
-        .card-preview-area .preview-download-btn:hover { opacity: 0.88; }
-        .card-preview-area .preview-text {
-            font-size: 0.78rem; color: #64748b; background: #f1f5f9; border-radius: 0.4rem;
-            padding: 0.5rem 0.6rem; width: 100%; max-height: 140px; overflow-y: auto;
-            white-space: pre-wrap; word-break: break-all; font-family: monospace;
-        }
+        .card-preview-download:hover { opacity: 0.9; box-shadow: 0 4px 12px rgba(99,102,241,0.4); }
 
         .card-info-btn {
             position: absolute; top: 0.6rem; right: 0.6rem; width: 28px; height: 28px;
@@ -694,7 +686,7 @@
             </div>
             <div class="link-card-actions">
               <button class="card-btn-view view-description-btn"><i class="fa-solid fa-eye" style="margin-right:0.3rem;"></i>Lihat</button>
-              <button class="card-btn-preview preview-btn"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:0.3rem;"></i>Preview</button>
+              <button class="card-btn-preview preview-btn"><i class="fa-solid fa-unlock-keyhole" style="margin-right:0.3rem;"></i>Preview</button>
               <button class="card-btn-delete delete-btn"><i class="fa-solid fa-trash-can" style="margin-right:0.3rem;"></i>Hapus</button>
             </div>
             <div class="card-preview-area" id="preview-area-${link.id}"></div>
@@ -717,9 +709,30 @@
 
         card.querySelector('.delete-btn').addEventListener('click',handleDelete);
 
+        // ===== PREVIEW BUTTON =====
         const previewBtn=card.querySelector('.preview-btn');
-        if(previewBtn){
-            previewBtn.addEventListener('click',()=>handleCardPreview(link, previewBtn));
+        const previewArea=card.querySelector('.card-preview-area');
+        if(previewBtn&&previewArea){
+            previewBtn.addEventListener('click',async()=>{
+                // Toggle off jika sudah aktif
+                if(previewArea.classList.contains('active')){
+                    previewArea.classList.remove('active');
+                    previewArea.innerHTML='';
+                    previewBtn.innerHTML='<i class="fa-solid fa-unlock-keyhole" style="margin-right:0.3rem;"></i>Preview';
+                    return;
+                }
+                previewArea.classList.add('active');
+                previewBtn.innerHTML='<i class="fa-solid fa-spinner fa-spin" style="margin-right:0.3rem;"></i>Memuat...';
+                previewBtn.disabled=true;
+                previewArea.innerHTML=`<div class="card-preview-loading"><svg class="animate-spin h-6 w-6 text-purple-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Mendekripsi konten...</span></div>`;
+                try{
+                    await runCardPreview(link.url,link.shift_code,link.person_name,link.name,previewArea);
+                }catch(err){
+                    previewArea.innerHTML=`<div class="card-preview-error"><i class="fa-solid fa-triangle-exclamation"></i> Gagal: ${err.message}</div>`;
+                }
+                previewBtn.innerHTML='<i class="fa-solid fa-eye-slash" style="margin-right:0.3rem;"></i>Tutup';
+                previewBtn.disabled=false;
+            });
         }
 
         card.querySelectorAll('[data-column]').forEach(cell=>{
@@ -1008,155 +1021,6 @@
     downloadAllQrBtn.addEventListener('click',downloadAllQRCodes);
 
     function decryptCaesar(text,shift){if(typeof text!=='string')return text;const s=Number(shift);if(isNaN(s))return text;let result='';for(let i=0;i<text.length;i++){let code=text.charCodeAt(i);if(code>=65&&code<=90)code=((code-65-s+260)%26)+65;else if(code>=97&&code<=122)code=((code-97-s+260)%26)+97;result+=String.fromCharCode(code);}return result;}
-
-    // AES-256-CBC decrypt using Web Crypto API with password "dakota"
-    async function decryptAES(encryptedB64, password='dakota775'){
-        const enc=new TextEncoder();
-        // Derive key using PBKDF2
-        const keyMaterial=await crypto.subtle.importKey('raw',enc.encode(password),{name:'PBKDF2'},false,['deriveKey']);
-        // Try to parse as {iv, data} JSON or assume standard format
-        let ivBytes, dataBytes;
-        try{
-            // Format: base64 of (16-byte IV + ciphertext)
-            const raw=Uint8Array.from(atob(encryptedB64),(c)=>c.charCodeAt(0));
-            ivBytes=raw.slice(0,16);dataBytes=raw.slice(16);
-        }catch(e){throw new Error('Format enkripsi tidak valid.');}
-        const key=await crypto.subtle.deriveKey(
-            {name:'PBKDF2',salt:enc.encode('dakota775-salt'),iterations:100000,hash:'SHA-256'},
-            keyMaterial,{name:'AES-CBC',length:256},false,['decrypt']
-        );
-        const decrypted=await crypto.subtle.decrypt({name:'AES-CBC',iv:ivBytes},key,dataBytes);
-        return new TextDecoder().decode(decrypted);
-    }
-
-    // State tracker for each card preview
-    const cardPreviewState={};
-
-    async function handleCardPreview(link, btn){
-        const previewArea=document.getElementById(`preview-area-${link.id}`);
-        if(!previewArea) return;
-
-        // Toggle off if already shown
-        if(previewArea.classList.contains('show')){
-            previewArea.classList.remove('show');
-            previewArea.innerHTML='';
-            btn.innerHTML='<i class="fa-solid fa-wand-magic-sparkles" style="margin-right:0.3rem;"></i>Preview';
-            delete cardPreviewState[link.id];
-            return;
-        }
-
-        btn.innerHTML='<i class="fa-solid fa-spinner fa-spin" style="margin-right:0.3rem;"></i>Memuat...';
-        btn.disabled=true;
-        previewArea.innerHTML='<div class="preview-loading"><svg class="animate-spin h-6 w-6 text-purple-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Mendekripsi...</span></div>';
-        previewArea.classList.add('show');
-
-        try{
-            const url=link.url||'';
-            const shiftCode=link.shift_code||'';
-            if(!url||!url.startsWith('http')) throw new Error('URL tidak valid.');
-
-            const response=await fetch(url);
-            if(!response.ok) throw new Error(`Gagal mengambil file (${response.status})`);
-            const encryptedText=await response.text();
-
-            let decrypted=null;
-            let usedMethod='';
-
-            // Try Caesar Shift if shift_code is present and numeric
-            const shiftNum=Number(shiftCode);
-            if(shiftCode && !isNaN(shiftNum) && shiftNum!==0){
-                const candidate=decryptCaesar(encryptedText, shiftNum);
-                if(isBase64String(candidate.trim())||candidate.trim().length>10){
-                    decrypted=candidate;
-                    usedMethod='caesar';
-                }
-            }
-
-            // Fallback: AES with "dakota"
-            if(!decrypted){
-                try{
-                    const aesResult=await decryptAES(encryptedText.trim(),'dakota');
-                    decrypted=aesResult;
-                    usedMethod='aes';
-                }catch(aesErr){
-                    // If AES fails, fallback to treating cipher text as Caesar even with shift=0
-                    decrypted=shiftCode?decryptCaesar(encryptedText,shiftNum):encryptedText;
-                    usedMethod='raw';
-                }
-            }
-
-            previewArea.innerHTML='';
-            const probableBase64=decrypted.trim();
-            const mimeHint=getMimeFromBase64Sample(probableBase64);
-
-            let blob=null, mime=null, downloadName=null;
-            let baseFilename=`${link.person_name||'anonim'} - ${link.name||'tanpa-nama'}`;
-            baseFilename=baseFilename.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');
-
-            if(isBase64String(probableBase64)){
-                mime=mimeHint;
-                if(!mime){
-                    const normalized=normalizeBase64(probableBase64);
-                    if(normalized.startsWith('iVBOR')) mime='image/png';
-                    else if(normalized.startsWith('/9j/')) mime='image/jpeg';
-                    else if(normalized.startsWith('R0lG')) mime='image/gif';
-                    else mime='application/octet-stream';
-                }
-                const fileExt=mime.split('/')[1]||'bin';
-                downloadName=`${baseFilename}.${fileExt}`;
-                blob=base64ToBlob(normalizeBase64(probableBase64), mime);
-                const objectUrl=URL.createObjectURL(blob);
-
-                if(mime.startsWith('image/')){
-                    const img=document.createElement('img');
-                    img.src=objectUrl;
-                    img.onload=()=>{/* keep */};
-                    previewArea.appendChild(img);
-                } else if(mime.startsWith('video/')){
-                    const video=document.createElement('video');
-                    video.src=objectUrl;
-                    video.controls=true;
-                    video.setAttribute('playsinline','');
-                    previewArea.appendChild(video);
-                } else {
-                    const pre=document.createElement('div');
-                    pre.className='preview-text';
-                    pre.textContent=decrypted.slice(0,500)+(decrypted.length>500?'\n...(terpotong)':'');
-                    previewArea.appendChild(pre);
-                    downloadName=`${baseFilename}.bin`;
-                }
-            } else {
-                // Plain text result
-                const pre=document.createElement('div');
-                pre.className='preview-text';
-                pre.textContent=decrypted.slice(0,600)+(decrypted.length>600?'\n...(terpotong)':'');
-                previewArea.appendChild(pre);
-                blob=new Blob([decrypted],{type:'text/plain'});
-                downloadName=`${baseFilename}.txt`;
-            }
-
-            cardPreviewState[link.id]={blob, downloadName, mime};
-
-            // Download button
-            const dlBtn=document.createElement('button');
-            dlBtn.className='preview-download-btn';
-            dlBtn.innerHTML='<i class="fa-solid fa-download"></i> Unduh Hasil Dekripsi';
-            dlBtn.addEventListener('click',()=>{
-                const state=cardPreviewState[link.id];
-                if(!state||!state.blob) return;
-                const a=document.createElement('a');a.href=URL.createObjectURL(state.blob);a.download=state.downloadName;document.body.appendChild(a);a.click();document.body.removeChild(a);
-            });
-            previewArea.appendChild(dlBtn);
-
-            btn.innerHTML='<i class="fa-solid fa-eye-slash" style="margin-right:0.3rem;"></i>Tutup';
-            btn.disabled=false;
-
-        }catch(err){
-            previewArea.innerHTML=`<div class="preview-error"><i class="fa-solid fa-triangle-exclamation" style="margin-right:0.3rem;"></i>${err.message}</div>`;
-            btn.innerHTML='<i class="fa-solid fa-wand-magic-sparkles" style="margin-right:0.3rem;"></i>Preview';
-            btn.disabled=false;
-        }
-    }
     function normalizeBase64(b64){if(!b64||typeof b64!=='string')return'';let s=b64.replace(/\s+/g,'');const m=s.match(/^data:.*;base64,(.*)$/i);if(m)s=m[1];s=s.replace(/-/g,'+').replace(/_/g,'/');const pad=s.length%4;if(pad===2)s+='==';else if(pad===3)s+='=';return s;}
     function isBase64String(s){if(!s||typeof s!=='string')return false;const c=normalizeBase64(s);return c.length%4===0&&/^[A-Za-z0-9+/=]+$/.test(c);}
     function getMimeFromBase64Sample(b64){try{const cleaned=normalizeBase64(b64).slice(0,2000);if(!cleaned)return null;const bin=atob(cleaned);const c0=bin.charCodeAt(0),c1=bin.charCodeAt(1);if(c0===0x89&&bin[1]==='P'&&bin[2]==='N'&&bin[3]==='G')return'image/png';if(c0===0xFF&&c1===0xD8)return'image/jpeg';if(bin.startsWith('GIF87a')||bin.startsWith('GIF89a'))return'image/gif';if(bin.trim().startsWith('<svg'))return'image/svg+xml';if(bin.indexOf('ftyp')!==-1)return'video/mp4';if(bin.toLowerCase().indexOf('webm')!==-1)return'video/webm';const prefix=normalizeBase64(b64).slice(0,8);if(prefix.startsWith('iVBOR')||prefix.startsWith('iVBORw0K'))return'image/png';if(prefix.startsWith('/9j/'))return'image/jpeg';if(prefix.startsWith('R0lG'))return'image/gif';return null;}catch(e){return null;}}
@@ -1170,6 +1034,170 @@
         if(useBlobIfLarge&&approximateSize>threshold){try{blob=base64ToBlob(cleaned,mime);const objectUrl=URL.createObjectURL(blob);if(mime&&mime.startsWith('image/')){const img=document.createElement('img');img.src=objectUrl;img.className='media-preview rounded-md border border-gray-200';img.onload=()=>URL.revokeObjectURL(objectUrl);descriptionContent.appendChild(img);}else if(mime&&mime.startsWith('video/')){const video=document.createElement('video');video.src=objectUrl;video.controls=true;video.className='video-preview rounded-md border border-gray-200';video.onloadeddata=()=>URL.revokeObjectURL(objectUrl);descriptionContent.appendChild(video);}else{const a=document.createElement('a');a.href=objectUrl;a.download='file.bin';a.textContent='Unduh file (tipe media tidak terdeteksi)';a.className='underline text-blue-600';descriptionContent.appendChild(a);}}catch(err){blob=null;}}
         if(!blob){const dataMime=mime||'application/octet-stream';const dataUrl=`data:${dataMime};base64,${cleaned}`;if(dataMime.startsWith('image/')){const img=document.createElement('img');img.src=dataUrl;img.className='media-preview rounded-md border border-gray-200';descriptionContent.appendChild(img);}else if(dataMime.startsWith('video/')){const video=document.createElement('video');video.src=dataUrl;video.controls=true;video.className='video-preview rounded-md border border-gray-200';video.setAttribute('playsinline','');descriptionContent.appendChild(video);}else{const pre=document.createElement('pre');pre.textContent=cleaned.slice(0,2000)+(cleaned.length>2000?'\n\n... (terpotong) ...':'');pre.className='p-4 bg-gray-50 rounded-md text-sm max-h-96 overflow-auto w-full';descriptionContent.appendChild(pre);}}
         return{blob,mime};
+    }
+
+    // ===== CARD INLINE PREVIEW WITH DECRYPTION =====
+    async function runCardPreview(url, shiftCode, personName, linkName, previewArea){
+        if(!url||!url.startsWith('http')) throw new Error('URL tidak valid.');
+        const response=await fetch(url);
+        if(!response.ok) throw new Error(`Gagal memuat file. Status: ${response.status}`);
+        const encryptedText=await response.text();
+        const trimmed=encryptedText.trim();
+
+        let decrypted=null;
+        let method='';
+
+        // Coba Caesar jika ada shift_code
+        if(shiftCode){
+            const s=Number(shiftCode);
+            if(!isNaN(s)&&s!==0){
+                const attempted=decryptCaesar(trimmed,s);
+                const cleaned=normalizeBase64(attempted);
+                if(isBase64String(cleaned)){decrypted=attempted;method='Caesar';}
+            }
+        }
+
+        // Fallback AES jika Caesar gagal atau tidak ada shift
+        if(!decrypted){
+            try{
+                const aesResult=await decryptAES(trimmed,'dakota775');
+                if(aesResult){decrypted=aesResult;method='AES';}
+            }catch(e){/* fallback gagal */}
+        }
+
+        // Jika semua gagal, coba raw teks sebagai base64
+        if(!decrypted){
+            if(isBase64String(normalizeBase64(trimmed))){decrypted=trimmed;method='raw';}
+            else throw new Error('Konten tidak dapat didekripsi dengan metode yang tersedia.');
+        }
+
+        // Render hasil ke previewArea
+        previewArea.innerHTML='';
+        const probableBase64=decrypted.trim();
+        const cleaned=normalizeBase64(probableBase64);
+        const mime=getMimeFromBase64Sample(cleaned);
+        let downloadBlob=null;
+        let downloadFilename='file.bin';
+
+        if(isBase64String(cleaned)&&mime){
+            const fileExt=mime.split('/')[1]||'bin';
+            let baseFilename=`${personName||'anonim'} - ${linkName||'tanpa-nama'}`;
+            baseFilename=baseFilename.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');
+            downloadFilename=`${baseFilename}.${fileExt}`;
+
+            if(mime.startsWith('image/')){
+                try{
+                    downloadBlob=base64ToBlob(cleaned,mime);
+                    const objectUrl=URL.createObjectURL(downloadBlob);
+                    const img=document.createElement('img');
+                    img.src=objectUrl;
+                    img.className='media-preview rounded-md border border-gray-200';
+                    img.style.maxHeight='320px';
+                    img.style.objectFit='contain';
+                    img.onload=()=>{};
+                    previewArea.appendChild(img);
+                }catch(err){
+                    const img=document.createElement('img');
+                    img.src=`data:${mime};base64,${cleaned}`;
+                    img.className='media-preview rounded-md border border-gray-200';
+                    img.style.maxHeight='320px';
+                    previewArea.appendChild(img);
+                }
+            } else if(mime.startsWith('video/')){
+                try{
+                    downloadBlob=base64ToBlob(cleaned,mime);
+                    const objectUrl=URL.createObjectURL(downloadBlob);
+                    const video=document.createElement('video');
+                    video.src=objectUrl;
+                    video.controls=true;
+                    video.setAttribute('playsinline','');
+                    video.className='video-preview rounded-md border border-gray-200';
+                    video.style.maxHeight='320px';
+                    previewArea.appendChild(video);
+                }catch(err){
+                    const video=document.createElement('video');
+                    video.src=`data:${mime};base64,${cleaned}`;
+                    video.controls=true;
+                    video.setAttribute('playsinline','');
+                    video.className='video-preview rounded-md border border-gray-200';
+                    previewArea.appendChild(video);
+                }
+            } else {
+                const info=document.createElement('p');
+                info.className='text-gray-500 text-xs text-center';
+                info.textContent=`Tipe file: ${mime}. Klik unduh untuk menyimpan.`;
+                previewArea.appendChild(info);
+                downloadBlob=base64ToBlob(cleaned,mime);
+            }
+        } else {
+            // Tampilkan sebagai teks
+            const pre=document.createElement('pre');
+            pre.textContent=probableBase64.slice(0,3000)+(probableBase64.length>3000?'\n...(terpotong)':'');
+            pre.className='p-3 bg-gray-50 rounded-md text-xs max-h-60 overflow-auto w-full border border-gray-200';
+            previewArea.appendChild(pre);
+            downloadBlob=new Blob([probableBase64],{type:'text/plain'});
+            let baseFilename=`${personName||'anonim'} - ${linkName||'tanpa-nama'}`;
+            baseFilename=baseFilename.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-');
+            downloadFilename=`${baseFilename}.txt`;
+        }
+
+        // Info metode dekripsi
+        const badge=document.createElement('div');
+        badge.style.cssText='font-size:0.68rem;color:#94a3b8;text-align:center;';
+        badge.textContent=`Didekripsi dengan: ${method==='Caesar'?'Caesar Shift':'method==='AES'?'AES-256':'Deteksi Otomatis'}`;
+        badge.textContent=`Didekripsi dengan: ${method==='Caesar'?'Caesar Shift (shift '+shiftCode+')':method==='AES'?'AES-256 (password default)':'Deteksi Otomatis'}`;
+        previewArea.appendChild(badge);
+
+        // Tombol download
+        if(downloadBlob){
+            const dlBtn=document.createElement('button');
+            dlBtn.className='card-preview-download';
+            dlBtn.innerHTML='<i class="fa-solid fa-download"></i> Unduh Hasil Dekripsi';
+            const blobRef=downloadBlob;
+            const fnRef=downloadFilename;
+            dlBtn.addEventListener('click',()=>{
+                const a=document.createElement('a');
+                a.href=URL.createObjectURL(blobRef);
+                a.download=fnRef;
+                document.body.appendChild(a);a.click();document.body.removeChild(a);
+            });
+            previewArea.appendChild(dlBtn);
+        }
+    }
+
+    // ===== AES DECRYPTION (CryptoJS compatible via SubtleCrypto) =====
+    async function decryptAES(ciphertext, password){
+        // Support CryptoJS format: "Salted__" header
+        try{
+            const ct=ciphertext.trim();
+            let rawBytes;
+            try{rawBytes=Uint8Array.from(atob(ct),c=>c.charCodeAt(0));}
+            catch(e){throw new Error('Bukan base64 valid untuk AES.');}
+            const header=String.fromCharCode(...rawBytes.slice(0,8));
+            if(header!=='Salted__') throw new Error('Format bukan CryptoJS Salted.');
+            const salt=rawBytes.slice(8,16);
+            const ciphertextBytes=rawBytes.slice(16);
+            const passBytes=new TextEncoder().encode(password);
+            // Derive key+IV menggunakan EVP_BytesToKey MD5 (CryptoJS default)
+            const keyIv=await evpBytesToKey(passBytes,salt,32+16);
+            const key=keyIv.slice(0,32);const iv=keyIv.slice(32,48);
+            const cryptoKey=await crypto.subtle.importKey('raw',key,{name:'AES-CBC'},false,['decrypt']);
+            const decryptedBuffer=await crypto.subtle.decrypt({name:'AES-CBC',iv},cryptoKey,ciphertextBytes);
+            return new TextDecoder().decode(decryptedBuffer);
+        }catch(e){throw new Error('AES gagal: '+e.message);}
+    }
+
+    async function evpBytesToKey(password,salt,keyLen){
+        const md5=async(data)=>{const buf=await crypto.subtle.digest('MD5',data);return new Uint8Array(buf);};
+        let result=new Uint8Array(0);let block=new Uint8Array(0);
+        while(result.length<keyLen){
+            const concat=new Uint8Array(block.length+password.length+salt.length);
+            concat.set(block);concat.set(password,block.length);concat.set(salt,block.length+password.length);
+            block=await md5(concat);
+            const newResult=new Uint8Array(result.length+block.length);
+            newResult.set(result);newResult.set(block,result.length);result=newResult;
+        }
+        return result.slice(0,keyLen);
     }
 
     async function showDescriptionModal(url,shiftCode,personName,linkName){
