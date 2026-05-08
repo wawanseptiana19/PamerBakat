@@ -1124,68 +1124,27 @@
     }
 
     // ===== INLINE PREVIEW =====
-    // Cache hasil dekripsi per kartu: { [linkId]: { html: string, blob, mime, filename, cleaned } }
-    const previewCache = {};
-
-    function getFileExtFromUrl(url){
-        try{
-            const pathname = new URL(url).pathname;
-            const parts = pathname.split('.');
-            if(parts.length > 1) return parts[parts.length-1].toLowerCase();
-        }catch(e){}
-        return '';
-    }
+    // Track which card preview is currently open
+    let activePreviewCardId = null;
 
     async function handleInlinePreview(link, card){
         const previewArea = document.getElementById(`preview-area-${link.id}`);
         if(!previewArea) return;
 
-        // === TOGGLE: jika preview area sudah aktif untuk kartu ini, tutup (sembunyikan) ===
-        if(previewArea.classList.contains('active')){
-            previewArea.classList.remove('active');
-            return;
-        }
-
-        // === Jika sudah ada cache untuk kartu ini, langsung tampilkan tanpa fetch ulang ===
-        if(previewCache[link.id]){
-            // Restore konten ke previewArea yang baru (setelah re-render pagination)
-            if(!previewArea.hasChildNodes() || previewArea.innerHTML.trim() === ''){
-                // Rebuild UI dari cache
-                previewArea.innerHTML = '';
-                const cached = previewCache[link.id];
-
-                const sep = document.createElement('div');
-                sep.className = 'preview-sep-label';
-                sep.innerHTML = '<i class="fa-solid fa-unlock" style="margin-right:0.3rem;font-size:0.6rem;"></i>Hasil Dekripsi';
-                previewArea.appendChild(sep);
-
-                renderPreviewMedia(cached.cleaned, previewArea, link);
-
-                const dlBtn = document.createElement('button');
-                dlBtn.className = 'preview-download-btn';
-                dlBtn.innerHTML = '<i class="fa-solid fa-download"></i> Unduh';
-                dlBtn.addEventListener('click', ()=>{
-                    if(cached.blob){
-                        const a = document.createElement('a');
-                        a.href = URL.createObjectURL(cached.blob);
-                        a.download = cached.filename;
-                        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                    } else {
-                        const txtBlob = new Blob([cached.cleaned], {type:'text/plain'});
-                        const a = document.createElement('a');
-                        a.href = URL.createObjectURL(txtBlob);
-                        a.download = cached.filename;
-                        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                    }
-                });
-                previewArea.appendChild(dlBtn);
-            }
-            previewArea.classList.add('active');
+        // Jika sudah ada preview dan sudah selesai (bukan loading), tampilkan saja / jangan sembunyikan
+        if(activePreviewCardId === link.id && previewArea.classList.contains('active')){
+            // Scroll ke preview agar terlihat
             previewArea.scrollIntoView({behavior:'smooth', block:'nearest'});
             return;
         }
 
-        // === Belum ada cache — lakukan fetch & dekripsi ===
+        // Tutup preview kartu lain jika ada
+        if(activePreviewCardId !== null && activePreviewCardId !== link.id){
+            const prev = document.getElementById(`preview-area-${activePreviewCardId}`);
+            if(prev){ prev.classList.remove('active'); prev.innerHTML=''; }
+        }
+
+        activePreviewCardId = link.id;
         previewArea.innerHTML = `<div class="preview-loading"><svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Mendekripsi...</div>`;
         previewArea.classList.add('active');
 
@@ -1200,17 +1159,8 @@
 
             let decrypted = '';
 
-            const fileExt = getFileExtFromUrl(url);
             const shiftNum = Number(shiftCode);
-
-            // Logika pemilihan metode dekripsi:
-            // - File .enc → selalu AES (Caesar tidak berlaku)
-            // - File .pb  → selalu AES
-            // - Ada shiftCode angka valid & bukan 0 → Caesar
-            // - Lainnya → AES
-            if(fileExt === 'enc' || fileExt === 'pb'){
-                decrypted = await decryptAES(encryptedText.trim(), 'dakota775');
-            } else if(shiftCode && !isNaN(shiftNum) && shiftNum !== 0){
+            if(shiftCode && !isNaN(shiftNum) && shiftNum !== 0){
                 decrypted = decryptCaesar(encryptedText, shiftNum);
             } else {
                 decrypted = await decryptAES(encryptedText.trim(), 'dakota775');
@@ -1239,6 +1189,7 @@
                     a.download = filename;
                     document.body.appendChild(a); a.click(); document.body.removeChild(a);
                 } else {
+                    // Teks biasa
                     const txtBlob = new Blob([cleaned], {type:'text/plain'});
                     const a = document.createElement('a');
                     a.href = URL.createObjectURL(txtBlob);
@@ -1248,121 +1199,99 @@
             });
             previewArea.appendChild(dlBtn);
 
-            // Simpan ke cache (simpan referensi innerHTML agar bisa ditampilkan kembali)
-            previewCache[link.id] = { blob, mime, filename, cleaned };
-
         } catch(err){
             previewArea.innerHTML = `<span class="preview-error"><i class="fa-solid fa-circle-exclamation" style="margin-right:0.3rem;"></i>${err.message}</span>`;
-            // Jangan cache error supaya bisa dicoba lagi
         }
     }
 
-    /* ── Pure-JS MD5 untuk EVP_BytesToKey ── */
-    function md5js(dataBytes){
-        function RL(v,n){return(v<<n)|(v>>>(32-n));}
-        function ADD(x,y){return(x+y)|0;}
-        const K=new Int32Array(64);
-        for(let i=0;i<64;i++)K[i]=Math.floor(Math.abs(Math.sin(i+1))*0x100000000)|0;
-        const S=[7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,
-                 5, 9,14,20,5, 9,14,20,5, 9,14,20,5, 9,14,20,
-                 4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,
-                 6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21];
-        const bytes=Array.from(dataBytes);
-        const bitLen=bytes.length*8;
-        bytes.push(0x80);
-        while(bytes.length%64!==56)bytes.push(0);
-        for(let i=0;i<4;i++)bytes.push((bitLen>>>(i*8))&0xFF);
-        for(let i=0;i<4;i++)bytes.push(0);
-        let a0=0x67452301,b0=0xEFCDAB89|0,c0=0x98BADCFE|0,d0=0x10325476|0;
-        for(let blk=0;blk<bytes.length;blk+=64){
-            const W=new Int32Array(16);
-            for(let j=0;j<16;j++){const o=blk+j*4;W[j]=bytes[o]|(bytes[o+1]<<8)|(bytes[o+2]<<16)|(bytes[o+3]<<24);}
-            let A=a0,B=b0,C=c0,D=d0;
-            for(let i=0;i<64;i++){
-                let F2,g;
-                if(i<16){F2=(B&C)|(~B&D);g=i;}
-                else if(i<32){F2=(D&B)|(~D&C);g=(5*i+1)%16;}
-                else if(i<48){F2=B^C^D;g=(3*i+5)%16;}
-                else{F2=C^(B|~D);g=(7*i)%16;}
-                F2=ADD(F2,ADD(A,ADD(K[i],W[g])));
-                A=D;D=C;C=B;B=ADD(B,RL(F2,S[i]));
-            }
-            a0=ADD(a0,A);b0=ADD(b0,B);c0=ADD(c0,C);d0=ADD(d0,D);
-        }
-        const out=new Uint8Array(16);
-        [a0,b0,c0,d0].forEach((v,i)=>{
-            out[i*4]=(v)&0xFF;out[i*4+1]=(v>>>8)&0xFF;
-            out[i*4+2]=(v>>>16)&0xFF;out[i*4+3]=(v>>>24)&0xFF;
-        });
-        return out;
-    }
-
-    /* EVP_BytesToKey: KDF yang dipakai openssl enc secara default */
-    function evpBytesToKey(password,salt,keyLen){
-        let result=new Uint8Array(0);
-        let prev=new Uint8Array(0);
-        while(result.length<keyLen){
-            const input=new Uint8Array(prev.length+password.length+salt.length);
-            input.set(prev,0);input.set(password,prev.length);input.set(salt,prev.length+password.length);
-            prev=md5js(input);
-            const tmp=new Uint8Array(result.length+prev.length);
-            tmp.set(result,0);tmp.set(prev,result.length);
-            result=tmp;
-        }
-        return result.slice(0,keyLen);
-    }
-
-    /* AES-256-CBC decrypt — kompatibel dengan format OpenSSL "Salted__" maupun raw IV+cipher */
     async function decryptAES(ciphertext, password){
-        const b64=ciphertext.replace(/\s+/g,'');
-        let raw;
-        try{raw=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));}
-        catch(e){throw new Error('Base64 tidak valid: '+e.message);}
+        const clean = ciphertext.trim();
 
-        let key,iv,cipherBlock;
-        const passBytes=new TextEncoder().encode(password);
-        const header=String.fromCharCode(...raw.slice(0,8));
+        // === Strategi 1: CryptoJS (format OpenSSL: U2FsdGVkX1...) ===
+        if(typeof CryptoJS !== 'undefined'){
+            try{
+                const bytes = CryptoJS.AES.decrypt(clean, password);
+                // Coba decode sebagai UTF-8 teks
+                const resultUtf8 = bytes.toString(CryptoJS.enc.Utf8);
+                if(resultUtf8 && resultUtf8.length > 0) return resultUtf8;
+                // Coba decode sebagai Base64 langsung (untuk binary)
+                const resultBase64 = bytes.toString(CryptoJS.enc.Base64);
+                if(resultBase64 && resultBase64.length > 0) return resultBase64;
+            }catch(e){}
 
-        if(header==='Salted__'){
-            // Format OpenSSL: "Salted__" + salt(8 byte) + ciphertext
-            const salt=raw.slice(8,16);
-            cipherBlock=raw.slice(16);
-            const keyiv=evpBytesToKey(passBytes,salt,48);
-            key=keyiv.slice(0,32);
-            iv=keyiv.slice(32,48);
-        }else{
-            // Format raw: IV(16 byte) + ciphertext
-            iv=raw.slice(0,16);
-            cipherBlock=raw.slice(16);
-            const keyiv=evpBytesToKey(passBytes,new Uint8Array(8),32);
-            key=keyiv.slice(0,32);
+            // === Strategi 2: CryptoJS dengan key dari WordArray (bukan passphrase) ===
+            try{
+                const key = CryptoJS.enc.Utf8.parse(password.padEnd(32, '0').slice(0,32));
+                const iv  = CryptoJS.enc.Utf8.parse(password.padEnd(16, '0').slice(0,16));
+                const bytes = CryptoJS.AES.decrypt(clean, key, {iv, mode:CryptoJS.mode.CBC, padding:CryptoJS.pad.Pkcs7});
+                const res = bytes.toString(CryptoJS.enc.Utf8);
+                if(res && res.length > 0) return res;
+                const resB64 = bytes.toString(CryptoJS.enc.Base64);
+                if(resB64 && resB64.length > 0) return resB64;
+            }catch(e){}
+
+            // === Strategi 3: CryptoJS ECB ===
+            try{
+                const key = CryptoJS.enc.Utf8.parse(password.padEnd(32, '0').slice(0,32));
+                const bytes = CryptoJS.AES.decrypt(clean, key, {mode:CryptoJS.mode.ECB, padding:CryptoJS.pad.Pkcs7});
+                const res = bytes.toString(CryptoJS.enc.Utf8);
+                if(res && res.length > 0) return res;
+                const resB64 = bytes.toString(CryptoJS.enc.Base64);
+                if(resB64 && resB64.length > 0) return resB64;
+            }catch(e){}
         }
 
-        const cryptoKey=await crypto.subtle.importKey('raw',key,{name:'AES-CBC'},false,['decrypt']);
-        let decrypted;
+        // === Strategi 4: Web Crypto AES-GCM (format: base64(iv[12]+data)) ===
         try{
-            decrypted=await crypto.subtle.decrypt({name:'AES-CBC',iv},cryptoKey,cipherBlock);
-        }catch(e){
-            throw new Error('Kunci/IV salah atau data rusak ('+e.message+')');
-        }
+            const enc = new TextEncoder();
+            const rawData = Uint8Array.from(atob(clean), c=>c.charCodeAt(0));
+            if(rawData.length > 12){
+                const keyMat = await crypto.subtle.importKey('raw', enc.encode(password), {name:'PBKDF2'}, false, ['deriveKey']);
+                const salt = enc.encode('dakotasalt');
+                const key = await crypto.subtle.deriveKey(
+                    {name:'PBKDF2', salt, iterations:100000, hash:'SHA-256'},
+                    keyMat, {name:'AES-GCM', length:256}, false, ['decrypt']
+                );
+                const iv = rawData.slice(0,12);
+                const data = rawData.slice(12);
+                const decBuffer = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, data);
+                return new TextDecoder().decode(decBuffer);
+            }
+        }catch(e){}
 
-        // Kembalikan sebagai string UTF-8; caller bisa cek binary magic jika perlu
-        const bytes=new Uint8Array(decrypted);
+        // === Strategi 5: Web Crypto AES-GCM dengan salt berbeda ===
+        try{
+            const enc = new TextEncoder();
+            const rawData = Uint8Array.from(atob(clean), c=>c.charCodeAt(0));
+            if(rawData.length > 16){
+                const salt = rawData.slice(0,16);
+                const iv   = rawData.slice(16,28);
+                const data = rawData.slice(28);
+                const keyMat = await crypto.subtle.importKey('raw', enc.encode(password), {name:'PBKDF2'}, false, ['deriveKey']);
+                const key = await crypto.subtle.deriveKey(
+                    {name:'PBKDF2', salt, iterations:100000, hash:'SHA-256'},
+                    keyMat, {name:'AES-GCM', length:256}, false, ['decrypt']
+                );
+                const decBuffer = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, data);
+                return new TextDecoder().decode(decBuffer);
+            }
+        }catch(e){}
 
-        // Deteksi binary langsung (gambar/video) — kembalikan base64 agar renderPreviewMedia bisa menangani
-        const isPNG=bytes[0]===0x89&&bytes[1]===0x50;
-        const isJPEG=bytes[0]===0xFF&&bytes[1]===0xD8;
-        const isGIF=bytes[0]===0x47&&bytes[1]===0x49;
-        const isMP4=bytes.length>8&&bytes[4]===0x66&&bytes[5]===0x74&&bytes[6]===0x79&&bytes[7]===0x70;
-        const isWEBM=bytes[0]===0x1A&&bytes[1]===0x45;
-        if(isPNG||isJPEG||isGIF||isMP4||isWEBM){
-            // Encode kembali ke base64 agar pipeline renderPreviewMedia berjalan normal
-            let bin='';
-            for(let i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);
-            return btoa(bin);
-        }
+        // === Strategi 6: Web Crypto AES-CBC ===
+        try{
+            const enc = new TextEncoder();
+            const rawData = Uint8Array.from(atob(clean), c=>c.charCodeAt(0));
+            if(rawData.length > 16){
+                const iv   = rawData.slice(0,16);
+                const data = rawData.slice(16);
+                const digest = await crypto.subtle.digest('SHA-256', enc.encode(password));
+                const key = await crypto.subtle.importKey('raw', digest, {name:'AES-CBC'}, false, ['decrypt']);
+                const decBuffer = await crypto.subtle.decrypt({name:'AES-CBC', iv}, key, data);
+                return new TextDecoder().decode(decBuffer);
+            }
+        }catch(e){}
 
-        return new TextDecoder().decode(bytes);
+        throw new Error('Semua metode dekripsi AES gagal. Pastikan format enkripsi sesuai.');
     }
 
     function renderPreviewMedia(cleaned, container, link){
