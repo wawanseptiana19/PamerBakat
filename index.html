@@ -188,22 +188,32 @@
 
         /* ===== INLINE PREVIEW AREA ===== */
         .card-preview-area {
-            display: none; border-top: 1px solid #f1f5f9;
-            padding: 0.75rem 1rem; flex-direction: column; align-items: center; gap: 0.5rem;
+            display: none; border-top: 2px dashed #c4b5fd;
+            padding: 0.85rem 1rem 1rem; flex-direction: column; align-items: center; gap: 0.6rem;
             background: #faf5ff; position: relative;
         }
         .card-preview-area.active { display: flex; }
+        .card-preview-area .preview-sep-label {
+            font-size: 0.65rem; font-weight: 700; color: #a78bfa; text-transform: uppercase;
+            letter-spacing: 0.08em; margin-bottom: 0.1rem;
+        }
         .card-preview-area .preview-loading {
             display: flex; align-items: center; gap: 0.5rem; color: #8b5cf6; font-size: 0.78rem; font-weight: 500;
         }
         .card-preview-area .preview-error { color: #ef4444; font-size: 0.78rem; text-align: center; }
-        .card-preview-area img { max-width: 100%; max-height: 280px; border-radius: 0.5rem; border: 1px solid #e9d5ff; object-fit: contain; }
-        .card-preview-area video { max-width: 100%; max-height: 280px; border-radius: 0.5rem; border: 1px solid #e9d5ff; }
+        .card-preview-area img { max-width: 100%; max-height: 300px; border-radius: 0.5rem; border: 1px solid #e9d5ff; object-fit: contain; }
+        .card-preview-area video { max-width: 100%; max-height: 300px; border-radius: 0.5rem; border: 1px solid #e9d5ff; }
         .card-preview-area pre { font-size: 0.72rem; background: #f3e8ff; border-radius: 0.5rem; padding: 0.5rem; max-height: 160px; overflow: auto; width: 100%; color: #4c1d95; }
-        .card-preview-area .preview-method-badge {
-            font-size: 0.62rem; padding: 0.15rem 0.5rem; border-radius: 9999px; font-weight: 700;
-            background: #ede9fe; color: #5b21b6; border: 1px solid #c4b5fd; align-self: flex-start;
+        .card-preview-area .preview-method-badge { display: none; }
+        .preview-download-btn {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            margin-top: 0.25rem; padding: 0.45rem 1.1rem;
+            background: linear-gradient(135deg, #7c3aed, #6366f1);
+            color: white; border: none; border-radius: 0.5rem;
+            font-size: 0.77rem; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; box-shadow: 0 2px 8px rgba(124,58,237,0.25);
         }
+        .preview-download-btn:hover { background: linear-gradient(135deg, #6d28d9, #4f46e5); box-shadow: 0 4px 12px rgba(124,58,237,0.35); transform: translateY(-1px); }
 
         .card-info-btn {
             position: absolute; top: 0.6rem; right: 0.6rem; width: 28px; height: 28px;
@@ -1121,16 +1131,15 @@
         const previewArea = document.getElementById(`preview-area-${link.id}`);
         if(!previewArea) return;
 
-        // Toggle off jika sudah aktif
-        if(activePreviewCardId === link.id){
-            previewArea.classList.remove('active');
-            previewArea.innerHTML='';
-            activePreviewCardId = null;
+        // Jika sudah ada preview dan sudah selesai (bukan loading), tampilkan saja / jangan sembunyikan
+        if(activePreviewCardId === link.id && previewArea.classList.contains('active')){
+            // Scroll ke preview agar terlihat
+            previewArea.scrollIntoView({behavior:'smooth', block:'nearest'});
             return;
         }
 
         // Tutup preview kartu lain jika ada
-        if(activePreviewCardId !== null){
+        if(activePreviewCardId !== null && activePreviewCardId !== link.id){
             const prev = document.getElementById(`preview-area-${activePreviewCardId}`);
             if(prev){ prev.classList.remove('active'); prev.innerHTML=''; }
         }
@@ -1149,30 +1158,46 @@
             const encryptedText = await response.text();
 
             let decrypted = '';
-            let methodLabel = '';
 
             const shiftNum = Number(shiftCode);
             if(shiftCode && !isNaN(shiftNum) && shiftNum !== 0){
-                // Dekripsi Caesar shift (balik: kurangi shift)
                 decrypted = decryptCaesar(encryptedText, shiftNum);
-                methodLabel = `Caesar Shift -${shiftNum}`;
             } else {
-                // Dekripsi AES dengan password "dakota"
                 decrypted = await decryptAES(encryptedText.trim(), 'dakota775');
-                methodLabel = 'AES / dakota775';
             }
 
             const cleaned = decrypted.trim();
             previewArea.innerHTML = '';
 
-            // Badge metode
-            const badge = document.createElement('span');
-            badge.className = 'preview-method-badge';
-            badge.textContent = methodLabel;
-            previewArea.appendChild(badge);
+            // Label pemisah
+            const sep = document.createElement('div');
+            sep.className = 'preview-sep-label';
+            sep.innerHTML = '<i class="fa-solid fa-unlock" style="margin-right:0.3rem;font-size:0.6rem;"></i>Hasil Dekripsi';
+            previewArea.appendChild(sep);
 
-            // Render media
-            renderPreviewMedia(cleaned, previewArea);
+            // Render media dan ambil blob+mime untuk download
+            const {blob, mime, filename} = renderPreviewMedia(cleaned, previewArea, link);
+
+            // Tombol Download
+            const dlBtn = document.createElement('button');
+            dlBtn.className = 'preview-download-btn';
+            dlBtn.innerHTML = '<i class="fa-solid fa-download"></i> Unduh';
+            dlBtn.addEventListener('click', ()=>{
+                if(blob){
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = filename;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                } else {
+                    // Teks biasa
+                    const txtBlob = new Blob([cleaned], {type:'text/plain'});
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(txtBlob);
+                    a.download = filename;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                }
+            });
+            previewArea.appendChild(dlBtn);
 
         } catch(err){
             previewArea.innerHTML = `<span class="preview-error"><i class="fa-solid fa-circle-exclamation" style="margin-right:0.3rem;"></i>${err.message}</span>`;
@@ -1180,85 +1205,170 @@
     }
 
     async function decryptAES(ciphertext, password){
-        // Support CryptoJS-style (WordArray) dan Web Crypto API (raw base64 iv+data)
-        // Coba CryptoJS dulu (format: U2FsdGVkX1...) lalu fallback Web Crypto
+        const clean = ciphertext.trim();
+
+        // === Strategi 1: CryptoJS (format OpenSSL: U2FsdGVkX1...) ===
         if(typeof CryptoJS !== 'undefined'){
             try{
-                const bytes = CryptoJS.AES.decrypt(ciphertext, password);
-                const result = bytes.toString(CryptoJS.enc.Utf8);
-                if(result) return result;
+                const bytes = CryptoJS.AES.decrypt(clean, password);
+                // Coba decode sebagai UTF-8 teks
+                const resultUtf8 = bytes.toString(CryptoJS.enc.Utf8);
+                if(resultUtf8 && resultUtf8.length > 0) return resultUtf8;
+                // Coba decode sebagai Base64 langsung (untuk binary)
+                const resultBase64 = bytes.toString(CryptoJS.enc.Base64);
+                if(resultBase64 && resultBase64.length > 0) return resultBase64;
+            }catch(e){}
+
+            // === Strategi 2: CryptoJS dengan key dari WordArray (bukan passphrase) ===
+            try{
+                const key = CryptoJS.enc.Utf8.parse(password.padEnd(32, '0').slice(0,32));
+                const iv  = CryptoJS.enc.Utf8.parse(password.padEnd(16, '0').slice(0,16));
+                const bytes = CryptoJS.AES.decrypt(clean, key, {iv, mode:CryptoJS.mode.CBC, padding:CryptoJS.pad.Pkcs7});
+                const res = bytes.toString(CryptoJS.enc.Utf8);
+                if(res && res.length > 0) return res;
+                const resB64 = bytes.toString(CryptoJS.enc.Base64);
+                if(resB64 && resB64.length > 0) return resB64;
+            }catch(e){}
+
+            // === Strategi 3: CryptoJS ECB ===
+            try{
+                const key = CryptoJS.enc.Utf8.parse(password.padEnd(32, '0').slice(0,32));
+                const bytes = CryptoJS.AES.decrypt(clean, key, {mode:CryptoJS.mode.ECB, padding:CryptoJS.pad.Pkcs7});
+                const res = bytes.toString(CryptoJS.enc.Utf8);
+                if(res && res.length > 0) return res;
+                const resB64 = bytes.toString(CryptoJS.enc.Base64);
+                if(resB64 && resB64.length > 0) return resB64;
             }catch(e){}
         }
-        // Fallback: Web Crypto API — asumsi format base64(iv[12 bytes] + ciphertext)
+
+        // === Strategi 4: Web Crypto AES-GCM (format: base64(iv[12]+data)) ===
         try{
             const enc = new TextEncoder();
-            const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), {name:'PBKDF2'}, false, ['deriveKey']);
-            const salt = enc.encode('dakotasalt');
-            const key = await crypto.subtle.deriveKey(
-                {name:'PBKDF2', salt, iterations:100000, hash:'SHA-256'},
-                keyMaterial, {name:'AES-GCM', length:256}, false, ['decrypt']
-            );
-            const rawData = Uint8Array.from(atob(ciphertext), c=>c.charCodeAt(0));
-            const iv = rawData.slice(0,12);
-            const data = rawData.slice(12);
-            const decBuffer = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, data);
-            return new TextDecoder().decode(decBuffer);
-        }catch(e){
-            throw new Error('Dekripsi AES gagal: ' + e.message);
-        }
+            const rawData = Uint8Array.from(atob(clean), c=>c.charCodeAt(0));
+            if(rawData.length > 12){
+                const keyMat = await crypto.subtle.importKey('raw', enc.encode(password), {name:'PBKDF2'}, false, ['deriveKey']);
+                const salt = enc.encode('dakotasalt');
+                const key = await crypto.subtle.deriveKey(
+                    {name:'PBKDF2', salt, iterations:100000, hash:'SHA-256'},
+                    keyMat, {name:'AES-GCM', length:256}, false, ['decrypt']
+                );
+                const iv = rawData.slice(0,12);
+                const data = rawData.slice(12);
+                const decBuffer = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, data);
+                return new TextDecoder().decode(decBuffer);
+            }
+        }catch(e){}
+
+        // === Strategi 5: Web Crypto AES-GCM dengan salt berbeda ===
+        try{
+            const enc = new TextEncoder();
+            const rawData = Uint8Array.from(atob(clean), c=>c.charCodeAt(0));
+            if(rawData.length > 16){
+                const salt = rawData.slice(0,16);
+                const iv   = rawData.slice(16,28);
+                const data = rawData.slice(28);
+                const keyMat = await crypto.subtle.importKey('raw', enc.encode(password), {name:'PBKDF2'}, false, ['deriveKey']);
+                const key = await crypto.subtle.deriveKey(
+                    {name:'PBKDF2', salt, iterations:100000, hash:'SHA-256'},
+                    keyMat, {name:'AES-GCM', length:256}, false, ['decrypt']
+                );
+                const decBuffer = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, data);
+                return new TextDecoder().decode(decBuffer);
+            }
+        }catch(e){}
+
+        // === Strategi 6: Web Crypto AES-CBC ===
+        try{
+            const enc = new TextEncoder();
+            const rawData = Uint8Array.from(atob(clean), c=>c.charCodeAt(0));
+            if(rawData.length > 16){
+                const iv   = rawData.slice(0,16);
+                const data = rawData.slice(16);
+                const digest = await crypto.subtle.digest('SHA-256', enc.encode(password));
+                const key = await crypto.subtle.importKey('raw', digest, {name:'AES-CBC'}, false, ['decrypt']);
+                const decBuffer = await crypto.subtle.decrypt({name:'AES-CBC', iv}, key, data);
+                return new TextDecoder().decode(decBuffer);
+            }
+        }catch(e){}
+
+        throw new Error('Semua metode dekripsi AES gagal. Pastikan format enkripsi sesuai.');
     }
 
-    function renderPreviewMedia(cleaned, container){
+    function renderPreviewMedia(cleaned, container, link){
+        // Deteksi MIME - coba dari sample base64 dulu
         const mimeHint = getMimeFromBase64Sample(cleaned);
         let mime = mimeHint;
+        // Fallback: deteksi dari prefix base64
         if(!mime){
-            if(cleaned.startsWith('iVBOR'))mime='image/png';
+            if(cleaned.startsWith('iVBOR') || cleaned.startsWith('iVBORw0K'))mime='image/png';
             else if(cleaned.startsWith('/9j/'))mime='image/jpeg';
             else if(cleaned.startsWith('R0lG'))mime='image/gif';
+            else if(cleaned.startsWith('AAAB') || cleaned.startsWith('AAAM'))mime='video/mp4';
+            else if(cleaned.startsWith('GkXf'))mime='video/webm';
         }
 
-        if(isBase64String(cleaned) && mime){
+        // Buat nama file untuk download
+        let baseFilename = `${link?.person_name||'anonim'} - ${link?.name||'file'}`;
+        baseFilename = baseFilename.replace(/[^a-zA-Z0-9\s\-_.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'') || 'dekripsi';
+        const ext = mime ? mime.split('/')[1]?.replace('jpeg','jpg') || 'bin' : 'txt';
+        const filename = `${baseFilename}.${ext}`;
+
+        // Apakah ini base64 valid?
+        const looksLikeBase64 = isBase64String(cleaned);
+
+        if(looksLikeBase64 && mime){
             const norm = normalizeBase64(cleaned);
-            const approxSize = Math.ceil((norm.length*3)/4);
-            const threshold = 1024*300;
+            // Selalu pakai Blob untuk binary agar bisa didownload & ditampilkan dengan benar
+            let blob = null;
+            try{ blob = base64ToBlob(norm, mime); }catch(e){}
 
             if(mime.startsWith('image/')){
                 const img = document.createElement('img');
-                if(approxSize > threshold){
-                    try{
-                        const blob = base64ToBlob(norm, mime);
-                        img.src = URL.createObjectURL(blob);
-                        img.onload = ()=>URL.revokeObjectURL(img.src);
-                    }catch(e){ img.src=`data:${mime};base64,${norm}`; }
+                if(blob){
+                    const objUrl = URL.createObjectURL(blob);
+                    img.src = objUrl;
+                    img.onload = ()=>{};  // jangan revoke karena perlu download
                 } else {
                     img.src = `data:${mime};base64,${norm}`;
                 }
                 img.alt = 'Preview';
                 container.appendChild(img);
+                return { blob, mime, filename };
+
             } else if(mime.startsWith('video/')){
                 const video = document.createElement('video');
                 video.controls = true;
                 video.setAttribute('playsinline','');
-                if(approxSize > threshold){
-                    try{
-                        const blob = base64ToBlob(norm, mime);
-                        video.src = URL.createObjectURL(blob);
-                        video.onloadeddata = ()=>URL.revokeObjectURL(video.src);
-                    }catch(e){ video.src=`data:${mime};base64,${norm}`; }
+                video.setAttribute('preload','metadata');
+                if(blob){
+                    const objUrl = URL.createObjectURL(blob);
+                    video.src = objUrl;
+                    // Fallback: coba juga source tag dengan type
+                    const src = document.createElement('source');
+                    src.src = objUrl;
+                    src.type = mime;
+                    video.appendChild(src);
                 } else {
                     video.src = `data:${mime};base64,${norm}`;
                 }
                 container.appendChild(video);
+                return { blob, mime, filename };
+
             } else {
+                // Base64 tapi bukan gambar/video - tampilkan teks
+                let displayText = cleaned;
+                try{ displayText = atob(norm).slice(0, 500); }catch(e){}
                 const pre = document.createElement('pre');
-                pre.textContent = cleaned.slice(0,500)+(cleaned.length>500?'\n...(terpotong)...':'');
+                pre.textContent = displayText + (displayText.length >= 500 ? '\n...(terpotong)...' : '');
                 container.appendChild(pre);
+                return { blob, mime, filename };
             }
         } else {
-            // Teks biasa
+            // Teks biasa / hasil dekripsi teks
             const pre = document.createElement('pre');
-            pre.textContent = cleaned.slice(0,500)+(cleaned.length>500?'\n...(terpotong)...':'');
+            pre.textContent = cleaned.slice(0,1000)+(cleaned.length>1000?'\n...(terpotong)...':'');
             container.appendChild(pre);
+            return { blob: null, mime: 'text/plain', filename: baseFilename + '.txt' };
         }
     }
 
