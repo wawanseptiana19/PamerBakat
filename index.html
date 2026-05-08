@@ -169,6 +169,11 @@
             border: 1px solid #e5e7eb; position: relative;
         }
         .link-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        /* Saat dalam wrapper, link-card tidak perlu border/shadow sendiri */
+        .link-card-inner > .link-card {
+            border: none; box-shadow: none; border-radius: 0;
+        }
+        .link-card-inner > .link-card:hover { box-shadow: none; transform: none; }
         .link-card-qr { display: flex; align-items: center; justify-content: center; padding: 1.25rem 1.25rem 0.75rem; cursor: pointer; }
         .link-card-qr canvas { border-radius: 0.5rem; border: 1px solid #f3f4f6; }
         .link-card-body { padding: 0 1.25rem 1rem; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
@@ -187,10 +192,28 @@
         .link-card-actions > *:not(:last-child) { border-right: 1px solid #f1f5f9; }
 
         /* ===== INLINE PREVIEW AREA ===== */
+        /* Wrapper membungkus card-info + preview-area secara berdampingan */
+        .link-card-with-preview {
+            display: flex; flex-direction: row; align-items: stretch;
+            border: 1px solid #e5e7eb; border-radius: 1rem; overflow: hidden;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        .link-card-with-preview:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        /* card-inner = bagian kiri (info + tombol), lebar tetap */
+        .link-card-inner {
+            display: flex; flex-direction: column; flex-shrink: 0;
+            width: 100%; min-width: 0; transition: width 0.25s ease;
+        }
+        .link-card-with-preview.preview-open .link-card-inner {
+            width: 260px;
+        }
         .card-preview-area {
-            display: none; border-top: 2px dashed #c4b5fd;
+            display: none; border-left: 2px dashed #c4b5fd;
             padding: 0.85rem 1rem 1rem; flex-direction: column; align-items: center; gap: 0.6rem;
             background: #faf5ff; position: relative;
+            flex: 1; min-width: 0; overflow: auto;
         }
         .card-preview-area.active { display: flex; }
         .card-preview-area .preview-sep-label {
@@ -222,6 +245,8 @@
             display: flex; align-items: center; justify-content: center;
             transition: all 0.2s; z-index: 5; line-height: 1;
         }
+        /* link-card-inner harus position:relative agar card-info-btn tertambat padanya */
+        .link-card-inner { position: relative; }
         .card-info-btn:hover { background: #3b82f6; color: white; border-color: #3b82f6; transform: scale(1.1); }
 
         #infoPopupOverlay {
@@ -682,21 +707,29 @@
         qrFilenameBase=qrFilenameBase.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');
         const smallQrId=`qr-${link.id}`;
 
+        // Wrapper membungkus card-inner (kiri) + preview-area (kanan)
+        card.classList.add('link-card-with-preview');
+        card.classList.remove('link-card'); // hapus class lama dari wrapper
+
         card.innerHTML=`
-            <button class="card-info-btn" title="Lihat URL & Kode Shift">!</button>
-            <div class="link-card-qr" title="Klik untuk memperbesar QR">
-              <canvas id="${smallQrId}" style="width:100px;height:100px;"></canvas>
-            </div>
-            <div class="link-card-body">
-              <div class="link-card-title" data-column="name">${link.name||'-'}</div>
-              <div class="link-card-person" data-column="person_name">${link.person_name||'-'}</div>
-              <div class="link-card-category" data-column="category">${category}</div>
-              <div class="link-card-meta"><i class="fa-regular fa-clock" style="margin-right:0.2rem;"></i>${formattedDate}</div>
-            </div>
-            <div class="link-card-actions">
-              <button class="card-btn-view view-description-btn"><i class="fa-solid fa-eye" style="margin-right:0.3rem;"></i>Lihat</button>
-              <button class="card-btn-preview preview-btn"><i class="fa-solid fa-photo-film" style="margin-right:0.3rem;"></i>Preview</button>
-              <button class="card-btn-delete delete-btn"><i class="fa-solid fa-trash-can" style="margin-right:0.3rem;"></i>Hapus</button>
+            <div class="link-card-inner">
+              <div class="link-card" style="border:none;box-shadow:none;border-radius:0;flex:1;">
+                <button class="card-info-btn" title="Lihat URL & Kode Shift">!</button>
+                <div class="link-card-qr" title="Klik untuk memperbesar QR">
+                  <canvas id="${smallQrId}" style="width:100px;height:100px;"></canvas>
+                </div>
+                <div class="link-card-body">
+                  <div class="link-card-title" data-column="name">${link.name||'-'}</div>
+                  <div class="link-card-person" data-column="person_name">${link.person_name||'-'}</div>
+                  <div class="link-card-category" data-column="category">${category}</div>
+                  <div class="link-card-meta"><i class="fa-regular fa-clock" style="margin-right:0.2rem;"></i>${formattedDate}</div>
+                </div>
+                <div class="link-card-actions">
+                  <button class="card-btn-view view-description-btn"><i class="fa-solid fa-eye" style="margin-right:0.3rem;"></i>Lihat</button>
+                  <button class="card-btn-preview preview-btn"><i class="fa-solid fa-photo-film" style="margin-right:0.3rem;"></i>Preview</button>
+                  <button class="card-btn-delete delete-btn"><i class="fa-solid fa-trash-can" style="margin-right:0.3rem;"></i>Hapus</button>
+                </div>
+              </div>
             </div>
             <div class="card-preview-area" id="preview-area-${link.id}"></div>
         `;
@@ -1163,36 +1196,60 @@
         previewArea.appendChild(dlBtn);
     }
 
+    function getWrapper(previewArea){
+        // wrapper = elemen link-card-with-preview (parent dari preview-area)
+        return previewArea ? previewArea.closest('.link-card-with-preview') : null;
+    }
+
+    function openPreviewArea(previewArea, wrapper){
+        previewArea.classList.add('active');
+        if(wrapper) wrapper.classList.add('preview-open');
+    }
+
+    function closePreviewArea(previewArea, wrapper){
+        previewArea.classList.remove('active');
+        if(wrapper) wrapper.classList.remove('preview-open');
+        // Jangan hapus innerHTML! Konten tetap ada, hanya disembunyikan
+    }
+
     async function handleInlinePreview(link, card){
         const previewArea = document.getElementById(`preview-area-${link.id}`);
         if(!previewArea) return;
+        const wrapper = getWrapper(previewArea);
 
-        // === TOGGLE: Jika preview kartu ini sedang aktif → tutup, konten tetap tersimpan di cache ===
+        // === TOGGLE: Jika preview kartu ini sedang aktif → tutup, KONTEN TIDAK DIHAPUS ===
         if(activePreviewCardId === link.id && previewArea.classList.contains('active')){
-            previewArea.classList.remove('active');
+            closePreviewArea(previewArea, wrapper);
             activePreviewCardId = null;
             return;
         }
 
-        // Sembunyikan preview kartu lain jika ada (konten tidak dihapus, cache tetap ada)
+        // Tutup preview kartu lain (hanya sembunyikan, tidak hapus konten)
         if(activePreviewCardId !== null && activePreviewCardId !== link.id){
             const prev = document.getElementById(`preview-area-${activePreviewCardId}`);
-            if(prev) prev.classList.remove('active');
+            if(prev) closePreviewArea(prev, getWrapper(prev));
         }
 
-        // Jika sudah ada di cache → render ulang dari data, tampilkan langsung
-        if(previewCache.has(link.id)){
-            activePreviewCardId = link.id;
-            renderCachedPreview(previewArea, previewCache.get(link.id), link);
-            previewArea.classList.add('active');
+        activePreviewCardId = link.id;
+
+        // Jika previewArea sudah punya konten (hasil dekripsi sebelumnya) → tampilkan saja
+        if(previewArea.innerHTML.trim() !== ''){
+            openPreviewArea(previewArea, wrapper);
             previewArea.scrollIntoView({behavior:'smooth', block:'nearest'});
             return;
         }
 
-        // Belum ada cache → fetch & dekripsi
-        activePreviewCardId = link.id;
+        // Jika ada di cache (misal setelah pagination) → render ulang dari data cache
+        if(previewCache.has(link.id)){
+            renderCachedPreview(previewArea, previewCache.get(link.id), link);
+            openPreviewArea(previewArea, wrapper);
+            previewArea.scrollIntoView({behavior:'smooth', block:'nearest'});
+            return;
+        }
+
+        // Belum ada → fetch & dekripsi
         previewArea.innerHTML = `<div class="preview-loading"><svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Mendekripsi...</div>`;
-        previewArea.classList.add('active');
+        openPreviewArea(previewArea, wrapper);
 
         try{
             const url = link.url || '';
@@ -1243,7 +1300,7 @@
             });
             previewArea.appendChild(dlBtn);
 
-            // Simpan DATA ke cache (bukan innerHTML), tahan terhadap pagination & blob expiry
+            // Cache data (bukan innerHTML) agar tahan pagination
             previewCache.set(link.id, { cleaned, blob, mime, filename });
 
         } catch(err){
