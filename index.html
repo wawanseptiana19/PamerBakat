@@ -1126,44 +1126,70 @@
     // ===== INLINE PREVIEW =====
     // Track which card preview is currently open
     let activePreviewCardId = null;
-    // Cache hasil dekripsi agar tidak fetch ulang
+    // Cache: simpan data dekripsi (bukan innerHTML) agar tahan pagination & blob expiry
+    // Format: { cleaned: string, blob: Blob|null, mime: string, filename: string }
     const previewCache = new Map();
+
+    // Render isi cache ke previewArea (dipanggil saat restore)
+    function renderCachedPreview(previewArea, cached, link){
+        previewArea.innerHTML = '';
+
+        const sep = document.createElement('div');
+        sep.className = 'preview-sep-label';
+        sep.innerHTML = '<i class="fa-solid fa-unlock" style="margin-right:0.3rem;font-size:0.6rem;"></i>Hasil Dekripsi';
+        previewArea.appendChild(sep);
+
+        // Re-render media dari data asli (bukan dari innerHTML lama)
+        const {blob, mime, filename} = renderPreviewMedia(cached.cleaned, previewArea, link);
+
+        const dlBtn = document.createElement('button');
+        dlBtn.className = 'preview-download-btn';
+        dlBtn.innerHTML = '<i class="fa-solid fa-download"></i> Unduh';
+        dlBtn.addEventListener('click', ()=>{
+            const useBlob = blob || cached.blob;
+            if(useBlob){
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(useBlob);
+                a.download = cached.filename;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            } else {
+                const txtBlob = new Blob([cached.cleaned], {type:'text/plain'});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(txtBlob);
+                a.download = cached.filename;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            }
+        });
+        previewArea.appendChild(dlBtn);
+    }
 
     async function handleInlinePreview(link, card){
         const previewArea = document.getElementById(`preview-area-${link.id}`);
         if(!previewArea) return;
 
-        // === TOGGLE: Jika preview sudah aktif untuk kartu ini → tutup (sembunyikan saja) ===
+        // === TOGGLE: Jika preview kartu ini sedang aktif → tutup, konten tetap tersimpan di cache ===
         if(activePreviewCardId === link.id && previewArea.classList.contains('active')){
             previewArea.classList.remove('active');
             activePreviewCardId = null;
             return;
         }
 
-        // Tutup preview kartu lain jika ada (tapi biarkan kontennya — hanya sembunyikan)
+        // Sembunyikan preview kartu lain jika ada (konten tidak dihapus, cache tetap ada)
         if(activePreviewCardId !== null && activePreviewCardId !== link.id){
             const prev = document.getElementById(`preview-area-${activePreviewCardId}`);
-            if(prev){ prev.classList.remove('active'); }
-            // Jangan hapus innerHTML supaya hasil dekripsi tidak hilang
+            if(prev) prev.classList.remove('active');
         }
 
-        // Jika kartu ini pernah didekripsi → restore dari cache tanpa fetch ulang
+        // Jika sudah ada di cache → render ulang dari data, tampilkan langsung
         if(previewCache.has(link.id)){
             activePreviewCardId = link.id;
-            previewArea.innerHTML = previewCache.get(link.id);
+            renderCachedPreview(previewArea, previewCache.get(link.id), link);
             previewArea.classList.add('active');
             previewArea.scrollIntoView({behavior:'smooth', block:'nearest'});
             return;
         }
 
-        // Atau: jika previewArea masih punya konten
-        if(previewArea.innerHTML.trim() !== '' && !previewArea.querySelector('.preview-loading')){
-            activePreviewCardId = link.id;
-            previewArea.classList.add('active');
-            previewArea.scrollIntoView({behavior:'smooth', block:'nearest'});
-            return;
-        }
-
+        // Belum ada cache → fetch & dekripsi
         activePreviewCardId = link.id;
         previewArea.innerHTML = `<div class="preview-loading"><svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Mendekripsi...</div>`;
         previewArea.classList.add('active');
@@ -1173,7 +1199,6 @@
             const shiftCode = link.shift_code || '';
             if(!url || !url.startsWith('http')) throw new Error('URL tidak valid.');
 
-            // Deteksi apakah file .enc (enkripsi AES) berdasarkan ekstensi URL
             const urlPath = url.split('?')[0].toLowerCase();
             const isEncFile = urlPath.endsWith('.enc');
 
@@ -1182,29 +1207,23 @@
             const encryptedText = await response.text();
 
             let decrypted = '';
-
             const shiftNum = Number(shiftCode);
-            // Gunakan Caesar jika: ada shift code, angka valid, bukan 0, DAN bukan file .enc
             if(!isEncFile && shiftCode && !isNaN(shiftNum) && shiftNum !== 0){
                 decrypted = decryptCaesar(encryptedText, shiftNum);
             } else {
-                // File .enc atau tidak ada shift code → pakai AES
                 decrypted = await decryptAES(encryptedText.trim(), 'dakota775');
             }
 
             const cleaned = decrypted.trim();
             previewArea.innerHTML = '';
 
-            // Label pemisah
             const sep = document.createElement('div');
             sep.className = 'preview-sep-label';
             sep.innerHTML = '<i class="fa-solid fa-unlock" style="margin-right:0.3rem;font-size:0.6rem;"></i>Hasil Dekripsi';
             previewArea.appendChild(sep);
 
-            // Render media dan ambil blob+mime untuk download
             const {blob, mime, filename} = renderPreviewMedia(cleaned, previewArea, link);
 
-            // Tombol Download
             const dlBtn = document.createElement('button');
             dlBtn.className = 'preview-download-btn';
             dlBtn.innerHTML = '<i class="fa-solid fa-download"></i> Unduh';
@@ -1215,7 +1234,6 @@
                     a.download = filename;
                     document.body.appendChild(a); a.click(); document.body.removeChild(a);
                 } else {
-                    // Teks biasa
                     const txtBlob = new Blob([cleaned], {type:'text/plain'});
                     const a = document.createElement('a');
                     a.href = URL.createObjectURL(txtBlob);
@@ -1225,8 +1243,8 @@
             });
             previewArea.appendChild(dlBtn);
 
-            // Simpan ke cache (innerHTML saat ini tanpa blob object URL yang bisa expired)
-            previewCache.set(link.id, previewArea.innerHTML);
+            // Simpan DATA ke cache (bukan innerHTML), tahan terhadap pagination & blob expiry
+            previewCache.set(link.id, { cleaned, blob, mime, filename });
 
         } catch(err){
             previewArea.innerHTML = `<span class="preview-error"><i class="fa-solid fa-circle-exclamation" style="margin-right:0.3rem;"></i>${err.message}</span>`;
