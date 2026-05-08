@@ -1236,41 +1236,75 @@
     async function decryptAES(ciphertext, password){
         const clean = ciphertext.trim();
 
-        // === Strategi 1: CryptoJS (format OpenSSL: U2FsdGVkX1...) ===
+        // === Strategi 1: CryptoJS OpenSSL (format: U2FsdGVkX1...) ===
+        // Format ini digunakan oleh CryptoJS.AES.encrypt(data, passphrase)
+        if(typeof CryptoJS !== 'undefined' && clean.startsWith('U2FsdGVkX1')){
+            try{
+                const bytes = CryptoJS.AES.decrypt(clean, password);
+                // Periksa apakah WordArray valid (sigBytes > 0)
+                if(bytes && bytes.sigBytes > 0){
+                    // Coba decode sebagai UTF-8 teks dulu
+                    try{
+                        const resultUtf8 = bytes.toString(CryptoJS.enc.Utf8);
+                        if(resultUtf8 && resultUtf8.length > 0) return resultUtf8;
+                    }catch(utf8Err){
+                        // Bukan UTF-8 valid → kemungkinan binary (gambar/video)
+                        // Kembalikan sebagai Base64 agar bisa dirender
+                    }
+                    // Kembalikan sebagai Base64 (untuk gambar/video/binary)
+                    const resultBase64 = bytes.toString(CryptoJS.enc.Base64);
+                    if(resultBase64 && resultBase64.length > 0) return resultBase64;
+                }
+            }catch(e){
+                // Lanjut ke strategi berikutnya jika gagal
+            }
+        }
+
+        // === Strategi 2: CryptoJS passphrase generik (semua format base64) ===
         if(typeof CryptoJS !== 'undefined'){
             try{
                 const bytes = CryptoJS.AES.decrypt(clean, password);
-                // Coba decode sebagai UTF-8 teks
-                const resultUtf8 = bytes.toString(CryptoJS.enc.Utf8);
-                if(resultUtf8 && resultUtf8.length > 0) return resultUtf8;
-                // Coba decode sebagai Base64 langsung (untuk binary)
-                const resultBase64 = bytes.toString(CryptoJS.enc.Base64);
-                if(resultBase64 && resultBase64.length > 0) return resultBase64;
+                if(bytes && bytes.sigBytes > 0){
+                    try{
+                        const res = bytes.toString(CryptoJS.enc.Utf8);
+                        if(res && res.length > 0) return res;
+                    }catch(e){}
+                    const resB64 = bytes.toString(CryptoJS.enc.Base64);
+                    if(resB64 && resB64.length > 0) return resB64;
+                }
             }catch(e){}
 
-            // === Strategi 2: CryptoJS dengan key dari WordArray (bukan passphrase) ===
+            // === Strategi 3: CryptoJS dengan key eksplisit CBC ===
             try{
                 const key = CryptoJS.enc.Utf8.parse(password.padEnd(32, '0').slice(0,32));
                 const iv  = CryptoJS.enc.Utf8.parse(password.padEnd(16, '0').slice(0,16));
                 const bytes = CryptoJS.AES.decrypt(clean, key, {iv, mode:CryptoJS.mode.CBC, padding:CryptoJS.pad.Pkcs7});
-                const res = bytes.toString(CryptoJS.enc.Utf8);
-                if(res && res.length > 0) return res;
-                const resB64 = bytes.toString(CryptoJS.enc.Base64);
-                if(resB64 && resB64.length > 0) return resB64;
+                if(bytes && bytes.sigBytes > 0){
+                    try{
+                        const res = bytes.toString(CryptoJS.enc.Utf8);
+                        if(res && res.length > 0) return res;
+                    }catch(e){}
+                    const resB64 = bytes.toString(CryptoJS.enc.Base64);
+                    if(resB64 && resB64.length > 0) return resB64;
+                }
             }catch(e){}
 
-            // === Strategi 3: CryptoJS ECB ===
+            // === Strategi 4: CryptoJS ECB ===
             try{
                 const key = CryptoJS.enc.Utf8.parse(password.padEnd(32, '0').slice(0,32));
                 const bytes = CryptoJS.AES.decrypt(clean, key, {mode:CryptoJS.mode.ECB, padding:CryptoJS.pad.Pkcs7});
-                const res = bytes.toString(CryptoJS.enc.Utf8);
-                if(res && res.length > 0) return res;
-                const resB64 = bytes.toString(CryptoJS.enc.Base64);
-                if(resB64 && resB64.length > 0) return resB64;
+                if(bytes && bytes.sigBytes > 0){
+                    try{
+                        const res = bytes.toString(CryptoJS.enc.Utf8);
+                        if(res && res.length > 0) return res;
+                    }catch(e){}
+                    const resB64 = bytes.toString(CryptoJS.enc.Base64);
+                    if(resB64 && resB64.length > 0) return resB64;
+                }
             }catch(e){}
         }
 
-        // === Strategi 4: Web Crypto AES-GCM (format: base64(iv[12]+data)) ===
+        // === Strategi 5: Web Crypto AES-GCM (format: base64(iv[12]+data)) ===
         try{
             const enc = new TextEncoder();
             const rawData = Uint8Array.from(atob(clean), c=>c.charCodeAt(0));
@@ -1288,7 +1322,7 @@
             }
         }catch(e){}
 
-        // === Strategi 5: Web Crypto AES-GCM dengan salt berbeda ===
+        // === Strategi 6: Web Crypto AES-GCM dengan salt ===
         try{
             const enc = new TextEncoder();
             const rawData = Uint8Array.from(atob(clean), c=>c.charCodeAt(0));
@@ -1306,7 +1340,7 @@
             }
         }catch(e){}
 
-        // === Strategi 6: Web Crypto AES-CBC ===
+        // === Strategi 7: Web Crypto AES-CBC ===
         try{
             const enc = new TextEncoder();
             const rawData = Uint8Array.from(atob(clean), c=>c.charCodeAt(0));
@@ -1320,7 +1354,7 @@
             }
         }catch(e){}
 
-        throw new Error('Semua metode dekripsi AES gagal. Pastikan format enkripsi sesuai.');
+        throw new Error('Dekripsi gagal. Periksa password atau format file enkripsi.');
     }
 
     function renderPreviewMedia(cleaned, container, link){
