@@ -1052,8 +1052,8 @@
         let mime=mimeHint||getMimeFromBase64Sample(cleaned);
         if(!mime){if(cleaned.startsWith('iVBOR')||cleaned.startsWith('iVBORw0K'))mime='image/png';else if(cleaned.startsWith('/9j/'))mime='image/jpeg';else if(cleaned.startsWith('R0lG'))mime='image/gif';}
         descriptionContent.innerHTML='';const threshold=1024*300;const approximateSize=Math.ceil((cleaned.length*3)/4);let blob=null;
-        if(useBlobIfLarge&&approximateSize>threshold){try{blob=base64ToBlob(cleaned,mime);const objectUrl=URL.createObjectURL(blob);if(mime&&mime.startsWith('image/')){const img=document.createElement('img');img.src=objectUrl;img.className='media-preview rounded-md border border-gray-200';img.onload=()=>URL.revokeObjectURL(objectUrl);descriptionContent.appendChild(img);}else if(mime&&mime.startsWith('video/')){const video=document.createElement('video');video.src=objectUrl;video.controls=true;video.className='video-preview rounded-md border border-gray-200';video.onloadeddata=()=>URL.revokeObjectURL(objectUrl);descriptionContent.appendChild(video);}else{const a=document.createElement('a');a.href=objectUrl;a.download='file.bin';a.textContent='Unduh file (tipe media tidak terdeteksi)';a.className='underline text-blue-600';descriptionContent.appendChild(a);}}catch(err){blob=null;}}
-        if(!blob){const dataMime=mime||'application/octet-stream';const dataUrl=`data:${dataMime};base64,${cleaned}`;if(dataMime.startsWith('image/')){const img=document.createElement('img');img.src=dataUrl;img.className='media-preview rounded-md border border-gray-200';descriptionContent.appendChild(img);}else if(dataMime.startsWith('video/')){const video=document.createElement('video');video.src=dataUrl;video.controls=true;video.className='video-preview rounded-md border border-gray-200';video.setAttribute('playsinline','');descriptionContent.appendChild(video);}else{const pre=document.createElement('pre');pre.textContent=cleaned.slice(0,2000)+(cleaned.length>2000?'\n\n... (terpotong) ...':'');pre.className='p-4 bg-gray-50 rounded-md text-sm max-h-96 overflow-auto w-full';descriptionContent.appendChild(pre);}}
+        if(useBlobIfLarge&&approximateSize>threshold){try{blob=base64ToBlob(cleaned,mime);const objectUrl=URL.createObjectURL(blob);if(mime&&mime.startsWith('image/')){const img=document.createElement('img');img.src=objectUrl;img.className='media-preview rounded-md border border-gray-200';img.onload=()=>URL.revokeObjectURL(objectUrl);descriptionContent.appendChild(img);}else if(mime&&mime.startsWith('video/')){const video=document.createElement('video');video.src=objectUrl;video.controls=true;video.className='video-preview rounded-md border border-gray-200';video.autoplay=true;video.loop=true;video.muted=true;video.setAttribute('playsinline','');video.addEventListener('loadeddata',()=>{video.play().catch(()=>{});});descriptionContent.appendChild(video);}else{const a=document.createElement('a');a.href=objectUrl;a.download='file.bin';a.textContent='Unduh file (tipe media tidak terdeteksi)';a.className='underline text-blue-600';descriptionContent.appendChild(a);}}catch(err){blob=null;}}
+        if(!blob){const dataMime=mime||'application/octet-stream';const dataUrl=`data:${dataMime};base64,${cleaned}`;if(dataMime.startsWith('image/')){const img=document.createElement('img');img.src=dataUrl;img.className='media-preview rounded-md border border-gray-200';descriptionContent.appendChild(img);}else if(dataMime.startsWith('video/')){const video=document.createElement('video');video.src=dataUrl;video.controls=true;video.autoplay=true;video.loop=true;video.muted=true;video.setAttribute('playsinline','');video.className='video-preview rounded-md border border-gray-200';video.addEventListener('loadeddata',()=>{video.play().catch(()=>{});});descriptionContent.appendChild(video);}else{const pre=document.createElement('pre');pre.textContent=cleaned.slice(0,2000)+(cleaned.length>2000?'\n\n... (terpotong) ...':'');pre.className='p-4 bg-gray-50 rounded-md text-sm max-h-96 overflow-auto w-full';descriptionContent.appendChild(pre);}}
         return{blob,mime};
     }
 
@@ -1475,7 +1475,10 @@
                 const video = document.createElement('video');
                 video.controls = true;
                 video.setAttribute('playsinline','');
-                video.setAttribute('preload','metadata');
+                video.setAttribute('preload','auto');
+                video.autoplay = true;
+                video.loop = true;
+                video.muted = true;
                 if(blob){
                     const objUrl = URL.createObjectURL(blob);
                     video.src = objUrl;
@@ -1487,6 +1490,8 @@
                 } else {
                     video.src = `data:${mime};base64,${norm}`;
                 }
+                // Pastikan autoplay jalan setelah metadata siap
+                video.addEventListener('loadeddata', ()=>{ video.play().catch(()=>{}); });
                 container.appendChild(video);
                 return { blob, mime, filename };
 
