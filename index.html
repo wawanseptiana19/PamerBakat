@@ -236,60 +236,97 @@
             -webkit-backface-visibility: hidden;
             transform: rotateY(180deg);
             border-radius: 1rem;
-            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
-            border: 2px solid #c4b5fd;
-            box-shadow: 0 8px 25px rgba(124,58,237,0.15);
+            background: white;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
             display: flex; flex-direction: column;
             overflow: hidden;
         }
-        /* Back header bar */
+        /* Back header bar - minimal, same as front card top */
         .back-header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0.65rem 0.9rem;
-            background: linear-gradient(135deg, #7c3aed, #6366f1);
+            display: flex; align-items: center; justify-content: flex-end;
+            padding: 0.5rem 0.75rem 0;
             flex-shrink: 0;
         }
-        .back-header-label {
-            font-size: 0.72rem; font-weight: 700; color: rgba(255,255,255,0.9);
-            text-transform: uppercase; letter-spacing: 0.07em;
-            display: flex; align-items: center; gap: 0.35rem;
-        }
+        .back-header-label { display: none; }
         .back-close-btn {
-            width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.2);
-            border: none; color: white; font-size: 0.8rem; cursor: pointer;
+            width: 26px; height: 26px; border-radius: 50%; background: #f1f5f9;
+            border: 1.5px solid #e2e8f0; color: #64748b; font-size: 0.75rem; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            transition: background 0.15s;
+            transition: all 0.15s;
         }
-        .back-close-btn:hover { background: rgba(255,255,255,0.35); }
-        /* Back content scrollable */
+        .back-close-btn:hover { background: #e2e8f0; color: #1e293b; }
+        /* Back content - no scroll, fits card, horizontal layout */
         .card-preview-area {
-            flex: 1; overflow-y: auto; overflow-x: hidden;
-            padding: 0.85rem 1rem 0.75rem;
-            display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
-            /* Always rendered but only visible when card is flipped */
+            flex: 1; overflow: hidden;
+            padding: 0.5rem 0.85rem 0.85rem;
+            display: flex; flex-direction: row; align-items: center; gap: 0.75rem;
         }
-        .card-preview-area .preview-sep-label {
-            font-size: 0.65rem; font-weight: 700; color: #a78bfa; text-transform: uppercase;
-            letter-spacing: 0.08em;
-        }
+        .card-preview-area .preview-sep-label { display: none; }
         .card-preview-area .preview-loading {
-            display: flex; align-items: center; gap: 0.5rem; color: #8b5cf6; font-size: 0.78rem; font-weight: 500;
-            margin-top: 1rem;
+            display: flex; align-items: center; gap: 0.5rem; color: #64748b; font-size: 0.78rem; font-weight: 500;
+            flex: 1; justify-content: center;
         }
-        .card-preview-area .preview-error { color: #ef4444; font-size: 0.78rem; text-align: center; margin-top: 1rem; }
-        .card-preview-area img { max-width: 100%; max-height: 260px; border-radius: 0.5rem; border: 1px solid #e9d5ff; object-fit: contain; }
-        .card-preview-area video { max-width: 100%; max-height: 260px; border-radius: 0.5rem; border: 1px solid #e9d5ff; }
-        .card-preview-area pre { font-size: 0.72rem; background: #f3e8ff; border-radius: 0.5rem; padding: 0.5rem; max-height: 160px; overflow: auto; width: 100%; color: #4c1d95; }
+        .card-preview-area .preview-error { color: #ef4444; font-size: 0.78rem; text-align: center; flex: 1; }
+        /* Media wrapper: takes flex space, clickable for fullscreen */
+        .preview-media-wrapper {
+            flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; position: relative; overflow: hidden; border-radius: 0.5rem;
+            background: #f8fafc; border: 1px solid #e2e8f0;
+            height: 100%;
+        }
+        .preview-media-wrapper:hover::after {
+            content: '\f31e'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+            position: absolute; bottom: 0.35rem; right: 0.4rem;
+            font-size: 0.7rem; color: white; background: rgba(0,0,0,0.45);
+            padding: 0.2rem 0.35rem; border-radius: 0.3rem; pointer-events: none;
+        }
+        .card-preview-area img { width: 100%; height: 100%; object-fit: contain; display: block; border-radius: 0.5rem; }
+        .card-preview-area video { width: 100%; height: 100%; object-fit: contain; display: block; border-radius: 0.5rem; }
+        .card-preview-area pre {
+            font-size: 0.7rem; background: #f8fafc; border-radius: 0.5rem; padding: 0.5rem;
+            overflow: hidden; width: 100%; height: 100%; color: #334155;
+            white-space: pre-wrap; word-break: break-all; margin: 0; border: none;
+        }
+        /* Download button - vertical on right side */
         .preview-download-btn {
-            display: inline-flex; align-items: center; gap: 0.4rem;
-            margin-top: 0.25rem; padding: 0.45rem 1.1rem;
-            background: linear-gradient(135deg, #7c3aed, #6366f1);
-            color: white; border: none; border-radius: 0.5rem;
-            font-size: 0.77rem; font-weight: 700; cursor: pointer;
-            transition: all 0.2s; box-shadow: 0 2px 8px rgba(124,58,237,0.25);
-            flex-shrink: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem;
+            padding: 0.6rem 0.5rem;
+            background: #f1f5f9;
+            color: #475569; border: 1.5px solid #e2e8f0; border-radius: 0.5rem;
+            font-size: 0.65rem; font-weight: 700; cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0; width: 44px; height: 100%;
+            writing-mode: horizontal-tb;
         }
-        .preview-download-btn:hover { background: linear-gradient(135deg, #6d28d9, #4f46e5); box-shadow: 0 4px 12px rgba(124,58,237,0.35); transform: translateY(-1px); }
+        .preview-download-btn i { font-size: 1rem; color: #3b82f6; }
+        .preview-download-btn:hover { background: #dbeafe; border-color: #3b82f6; color: #1e40af; transform: none; }
+
+        /* === FULLSCREEN OVERLAY === */
+        #fullscreenOverlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 99000;
+            display: none; align-items: center; justify-content: center;
+            padding: 1.5rem;
+        }
+        #fullscreenOverlay.show { display: flex; }
+        #fullscreenOverlay img, #fullscreenOverlay video {
+            max-width: 100%; max-height: 90vh; border-radius: 0.75rem;
+            object-fit: contain; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        #fullscreenClose {
+            position: fixed; top: 1rem; right: 1rem; width: 36px; height: 36px;
+            background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.3);
+            border-radius: 50%; color: white; font-size: 1rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s; z-index: 99001;
+        }
+        #fullscreenClose:hover { background: rgba(255,255,255,0.3); }
+        #fullscreenTextBox {
+            background: #1e293b; color: #e2e8f0; border-radius: 0.75rem;
+            padding: 1.5rem; font-size: 0.85rem; max-width: 700px; width: 100%;
+            max-height: 80vh; overflow-y: auto; white-space: pre-wrap; word-break: break-all;
+            font-family: monospace; line-height: 1.6;
+        }
 
         .card-info-btn {
             position: absolute; top: 0.6rem; right: 0.6rem; width: 28px; height: 28px;
@@ -523,6 +560,12 @@
       <button id="downloadBtn" class="hidden mt-6 px-6 py-3 rounded-lg shadow-md transition-all duration-300 text-center font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg">Unduh Konten</button>
     </div>
   </div>
+  </div>
+
+  <!-- FULLSCREEN OVERLAY -->
+  <div id="fullscreenOverlay">
+    <button id="fullscreenClose" title="Tutup"><i class="fa-solid fa-xmark"></i></button>
+    <div id="fullscreenContent" style="display:flex;align-items:center;justify-content:center;max-width:100%;max-height:90vh;"></div>
   </div>
 
   <button id="sidebarToggle" class="p-4"><i class="fa-solid fa-bars text-gray-700 w-8 h-8"></i></button>
@@ -786,7 +829,6 @@
               <!-- BACK FACE -->
               <div class="link-card-back">
                 <div class="back-header">
-                  <span class="back-header-label"><i class="fa-solid fa-eye"></i> Preview Dekripsi</span>
                   <button class="back-close-btn" title="Tutup preview"><i class="fa-solid fa-rotate-left"></i></button>
                 </div>
                 <div class="card-preview-area" id="preview-area-${link.id}"></div>
@@ -1247,7 +1289,9 @@
         const dlBtn = document.createElement('button');
         dlBtn.className = 'preview-download-btn';
         dlBtn.innerHTML = '<i class="fa-solid fa-download"></i> Unduh';
-        dlBtn.addEventListener('click', ()=>{
+        dlBtn.title = 'Unduh konten';
+        dlBtn.addEventListener('click', (e)=>{
+            e.stopPropagation();
             const useBlob = blob || cached.blob;
             if(useBlob){
                 const a = document.createElement('a');
@@ -1317,7 +1361,7 @@
         }
 
         // Belum ada → fetch & dekripsi
-        previewArea.innerHTML = `<div class="preview-loading"><svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Mendekripsi...</div>`;
+        previewArea.innerHTML = `<div class="preview-loading" style="flex:1;"><svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Mendekripsi...</div>`;
         openPreviewArea(previewArea, wrapper);
 
         try{
@@ -1352,7 +1396,9 @@
             const dlBtn = document.createElement('button');
             dlBtn.className = 'preview-download-btn';
             dlBtn.innerHTML = '<i class="fa-solid fa-download"></i> Unduh';
-            dlBtn.addEventListener('click', ()=>{
+            dlBtn.title = 'Unduh konten';
+            dlBtn.addEventListener('click', (e)=>{
+                e.stopPropagation();
                 if(blob){
                     const a = document.createElement('a');
                     a.href = URL.createObjectURL(blob);
@@ -1500,6 +1546,48 @@
         throw new Error('Dekripsi gagal. Periksa password atau format file enkripsi.');
     }
 
+    function openFullscreen(mediaType, src, text){
+        const overlay = document.getElementById('fullscreenOverlay');
+        const content = document.getElementById('fullscreenContent');
+        content.innerHTML = '';
+        if(mediaType === 'image'){
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = 'Fullscreen';
+            content.appendChild(img);
+        } else if(mediaType === 'video'){
+            const video = document.createElement('video');
+            video.src = src;
+            video.controls = true;
+            video.autoplay = true;
+            video.style.maxWidth = '100%';
+            video.style.maxHeight = '90vh';
+            video.style.borderRadius = '0.75rem';
+            content.appendChild(video);
+        } else {
+            const box = document.createElement('div');
+            box.id = 'fullscreenTextBox';
+            box.textContent = text || src;
+            content.appendChild(box);
+        }
+        overlay.classList.add('show');
+    }
+
+    document.getElementById('fullscreenClose').addEventListener('click', ()=>{
+        const overlay = document.getElementById('fullscreenOverlay');
+        overlay.classList.remove('show');
+        const content = document.getElementById('fullscreenContent');
+        // stop video
+        const vid = content.querySelector('video');
+        if(vid){ vid.pause(); vid.src = ''; }
+        content.innerHTML = '';
+    });
+    document.getElementById('fullscreenOverlay').addEventListener('click', (e)=>{
+        if(e.target === document.getElementById('fullscreenOverlay')){
+            document.getElementById('fullscreenClose').click();
+        }
+    });
+
     function renderPreviewMedia(cleaned, container, link){
         // Deteksi MIME - coba dari sample base64 dulu
         const mimeHint = getMimeFromBase64Sample(cleaned);
@@ -1522,24 +1610,28 @@
         // Apakah ini base64 valid?
         const looksLikeBase64 = isBase64String(cleaned);
 
+        // Media wrapper (clickable for fullscreen)
+        const mediaWrapper = document.createElement('div');
+        mediaWrapper.className = 'preview-media-wrapper';
+        container.appendChild(mediaWrapper);
+
+        let blobReturn = null;
+        let objUrlForFullscreen = null;
+
         if(looksLikeBase64 && mime){
             const norm = normalizeBase64(cleaned);
-            // Selalu pakai Blob untuk binary agar bisa didownload & ditampilkan dengan benar
             let blob = null;
             try{ blob = base64ToBlob(norm, mime); }catch(e){}
+            blobReturn = blob;
 
             if(mime.startsWith('image/')){
                 const img = document.createElement('img');
-                if(blob){
-                    const objUrl = URL.createObjectURL(blob);
-                    img.src = objUrl;
-                    img.onload = ()=>{};  // jangan revoke karena perlu download
-                } else {
-                    img.src = `data:${mime};base64,${norm}`;
-                }
+                const objUrl = blob ? URL.createObjectURL(blob) : `data:${mime};base64,${norm}`;
+                objUrlForFullscreen = objUrl;
+                img.src = objUrl;
                 img.alt = 'Preview';
-                container.appendChild(img);
-                return { blob, mime, filename };
+                mediaWrapper.appendChild(img);
+                mediaWrapper.addEventListener('click', ()=> openFullscreen('image', objUrl));
 
             } else if(mime.startsWith('video/')){
                 const video = document.createElement('video');
@@ -1549,38 +1641,42 @@
                 video.autoplay = true;
                 video.loop = true;
                 video.muted = true;
+                const objUrl = blob ? URL.createObjectURL(blob) : `data:${mime};base64,${norm}`;
+                objUrlForFullscreen = objUrl;
+                video.src = objUrl;
                 if(blob){
-                    const objUrl = URL.createObjectURL(blob);
-                    video.src = objUrl;
-                    // Fallback: coba juga source tag dengan type
                     const src = document.createElement('source');
-                    src.src = objUrl;
-                    src.type = mime;
+                    src.src = objUrl; src.type = mime;
                     video.appendChild(src);
-                } else {
-                    video.src = `data:${mime};base64,${norm}`;
                 }
-                // Pastikan autoplay jalan setelah metadata siap
                 video.addEventListener('loadeddata', ()=>{ video.play().catch(()=>{}); });
-                container.appendChild(video);
-                return { blob, mime, filename };
+                mediaWrapper.appendChild(video);
+                mediaWrapper.addEventListener('click', (e)=>{
+                    if(e.target === video) return; // let video controls handle click
+                    openFullscreen('video', objUrl);
+                });
 
             } else {
-                // Base64 tapi bukan gambar/video - tampilkan teks
+                // Base64 non-media → show as text
                 let displayText = cleaned;
                 try{ displayText = atob(norm).slice(0, 500); }catch(e){}
                 const pre = document.createElement('pre');
                 pre.textContent = displayText + (displayText.length >= 500 ? '\n...(terpotong)...' : '');
-                container.appendChild(pre);
-                return { blob, mime, filename };
+                mediaWrapper.appendChild(pre);
+                mediaWrapper.style.cursor = 'pointer';
+                mediaWrapper.addEventListener('click', ()=> openFullscreen('text', null, displayText));
             }
+
         } else {
-            // Teks biasa / hasil dekripsi teks
+            // Teks biasa
             const pre = document.createElement('pre');
             pre.textContent = cleaned.slice(0,1000)+(cleaned.length>1000?'\n...(terpotong)...':'');
-            container.appendChild(pre);
-            return { blob: null, mime: 'text/plain', filename: baseFilename + '.txt' };
+            mediaWrapper.appendChild(pre);
+            mediaWrapper.style.cursor = 'pointer';
+            mediaWrapper.addEventListener('click', ()=> openFullscreen('text', null, cleaned));
         }
+
+        return { blob: blobReturn, mime: mime || 'text/plain', filename };
     }
 
     async function fetchLinks(){
