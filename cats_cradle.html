@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAT'S CRADLE — Neural String Interface</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan: #00f5ff;
+    --magenta: #ff00e5;
+    --yellow: #ffe600;
+    --bg: #020814;
+    --mid: #060d1f;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    overflow: hidden;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  #app {
+    position: relative;
+    width: 100vw; height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Hidden video feed */
+  #videoEl {
+    position: absolute;
+    width: 1px; height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Main canvas fills screen */
+  #mainCanvas {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+  }
+
+  /* CRT scanline overlay */
+  #scanlines {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 2px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 4px
+    );
+    animation: flicker 8s infinite;
+  }
+
+  @keyframes flicker {
+    0%, 97%, 100% { opacity: 1; }
+    98% { opacity: 0.85; }
+    99% { opacity: 0.95; }
+  }
+
+  /* Corner HUD decorations */
+  .hud-corner {
+    position: absolute;
+    z-index: 20;
+    color: var(--cyan);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    opacity: 0.6;
+    line-height: 1.6;
+  }
+
+  .hud-corner.tl { top: 18px; left: 20px; }
+  .hud-corner.tr { top: 18px; right: 20px; text-align: right; }
+  .hud-corner.bl { bottom: 18px; left: 20px; }
+  .hud-corner.br { bottom: 18px; right: 20px; text-align: right; }
+
+  .hud-corner span { display: block; }
+  .hud-val { color: var(--magenta) !important; }
+
+  /* Title */
+  #title {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    text-align: center;
+    pointer-events: none;
+    transition: opacity 0.8s;
+  }
+
+  #title h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(2rem, 6vw, 5rem);
+    font-weight: 900;
+    letter-spacing: 0.3em;
+    color: transparent;
+    background: linear-gradient(135deg, var(--cyan), var(--magenta), var(--yellow));
+    -webkit-background-clip: text;
+    background-clip: text;
+    text-shadow: none;
+    filter: drop-shadow(0 0 30px var(--cyan));
+  }
+
+  #title p {
+    margin-top: 10px;
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    color: var(--cyan);
+    opacity: 0.7;
+  }
+
+  #title.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Status bar */
+  #status {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--cyan);
+    opacity: 0.5;
+  }
+
+  /* Corner brackets decoration */
+  .bracket {
+    position: absolute;
+    z-index: 15;
+    width: 40px; height: 40px;
+    opacity: 0.4;
+  }
+  .bracket.tl { top: 10px; left: 10px; border-top: 1px solid var(--cyan); border-left: 1px solid var(--cyan); }
+  .bracket.tr { top: 10px; right: 10px; border-top: 1px solid var(--cyan); border-right: 1px solid var(--cyan); }
+  .bracket.bl { bottom: 10px; left: 10px; border-bottom: 1px solid var(--cyan); border-left: 1px solid var(--cyan); }
+  .bracket.br { bottom: 10px; right: 10px; border-bottom: 1px solid var(--cyan); border-right: 1px solid var(--cyan); }
+</style>
+</head>
+<body>
+<div id="app">
+  <video id="videoEl" autoplay muted playsinline></video>
+  <canvas id="mainCanvas"></canvas>
+
+  <div id="scanlines"></div>
+
+  <!-- Corner brackets -->
+  <div class="bracket tl"></div>
+  <div class="bracket tr"></div>
+  <div class="bracket bl"></div>
+  <div class="bracket br"></div>
+
+  <!-- HUD corners -->
+  <div class="hud-corner tl">
+    <span>CAT'S CRADLE v2.1</span>
+    <span>NEURAL STRING INTERFACE</span>
+    <span class="hud-val" id="hud-hands">HANDS: 0</span>
+  </div>
+  <div class="hud-corner tr">
+    <span>MEDIAPIPE HANDS</span>
+    <span class="hud-val" id="hud-fps">FPS: --</span>
+    <span class="hud-val" id="hud-touch">TOUCH: --</span>
+  </div>
+  <div class="hud-corner bl">
+    <span id="hud-dist">SPAN: 0px</span>
+    <span id="hud-strings">STRINGS: 5</span>
+  </div>
+  <div class="hud-corner br">
+    <span>POINT BOTH HANDS</span>
+    <span>AT CAMERA</span>
+  </div>
+
+  <!-- Title splash -->
+  <div id="title">
+    <h1>CAT'S CRADLE</h1>
+    <p>NEURAL HAND INTERFACE — POINT BOTH HANDS AT CAMERA</p>
+  </div>
+
+  <div id="status">INITIALIZING CAMERA...</div>
+</div>
+
+<!-- MediaPipe + p5 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js" crossorigin="anonymous"></script>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+const FINGERTIPS = [4, 8, 12, 16, 20]; // thumb, index, middle, ring, pinky
+const ALL_LANDMARKS = 21;
+const JOINT_COLORS = [
+  '#00f5ff', '#33ffee', '#66ffdd',
+  '#ff00e5', '#ff33cc', '#ff66b3',
+  '#ffe600', '#ffcc00', '#ffaa00'
+];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let hands = null;
+let camera = null;
+let handResults = null;
+let particles = [];
+let lastFpsTime = Date.now();
+let frameCount = 0;
+let fps = 0;
+let titleEl = document.getElementById('title');
+let statusEl = document.getElementById('status');
+let handsDetected = false;
+let titleHidden = false;
+
+// ─── PARTICLE CLASS ───────────────────────────────────────────────────────────
+class Particle {
+  constructor(x, y, color) {
+    this.x = x; this.y = y;
+    this.vx = (Math.random() - 0.5) * 12;
+    this.vy = (Math.random() - 0.5) * 12;
+    this.life = 1.0;
+    this.decay = 0.025 + Math.random() * 0.04;
+    this.size = 2 + Math.random() * 5;
+    this.color = color;
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.vx *= 0.94;
+    this.vy *= 0.94;
+    this.life -= this.decay;
+  }
+  isDead() { return this.life <= 0; }
+}
+
+// ─── p5 SKETCH ────────────────────────────────────────────────────────────────
+const sketch = (p) => {
+  let offscreen; // offscreen canvas for trails
+  let W, H;
+  let videoEl = document.getElementById('videoEl');
+  let prevFingertips = { left: null, right: null };
+
+  p.setup = () => {
+    let cnv = p.createCanvas(window.innerWidth, window.innerHeight);
+    cnv.parent('app');
+    cnv.id('mainCanvas');
+    document.getElementById('mainCanvas').style.position = 'absolute';
+    W = p.width; H = p.height;
+    offscreen = p.createGraphics(W, H);
+    offscreen.pixelDensity(1);
+    p.frameRate(60);
+  };
+
+  p.windowResized = () => {
+    p.resizeCanvas(window.innerWidth, window.innerHeight);
+    W = p.width; H = p.height;
+    offscreen = p.createGraphics(W, H);
+  };
+
+  // Map normalized MP coords to canvas, mirrored
+  function mapX(nx) { return (1 - nx) * W; }
+  function mapY(ny) { return ny * H; }
+
+  p.draw = () => {
+    // FPS tracking
+    frameCount++;
+    const now = Date.now();
+    if (now - lastFpsTime >= 500) {
+      fps = Math.round(frameCount * 1000 / (now - lastFpsTime));
+      frameCount = 0;
+      lastFpsTime = now;
+      document.getElementById('hud-fps').textContent = `FPS: ${fps}`;
+    }
+
+    // ── Background: deep midnight navy + slow fade trail ──
+    p.background(2, 8, 20, 255);
+
+    // Subtle radial gradient vignette
+    let grad = p.drawingContext.createRadialGradient(W/2, H/2, H*0.1, W/2, H/2, H*0.75);
+    grad.addColorStop(0, 'rgba(6,20,50,0)');
+    grad.addColorStop(1, 'rgba(0,3,10,0.7)');
+    p.drawingContext.fillStyle = grad;
+    p.drawingContext.fillRect(0, 0, W, H);
+
+    if (!handResults || !handResults.multiHandLandmarks) {
+      document.getElementById('hud-hands').textContent = 'HANDS: 0';
+      document.getElementById('hud-touch').textContent = 'TOUCH: --';
+      drawIdleState(p);
+      updateParticles(p);
+      return;
+    }
+
+    const results = handResults;
+    const numHands = results.multiHandLandmarks.length;
+    document.getElementById('hud-hands').textContent = `HANDS: ${numHands}`;
+
+    if (numHands > 0 && !titleHidden) {
+      titleHidden = true;
+      titleEl.classList.add('hidden');
+      statusEl.textContent = 'TRACKING ACTIVE';
+    }
+
+    // Sort hands: left/right by handedness label
+    let leftHand = null, rightHand = null;
+    results.multiHandLandmarks.forEach((lm, i) => {
+      const label = results.multiHandedness?.[i]?.label;
+      // MP labels are from camera's POV, we mirror — so flip
+      if (label === 'Right') leftHand = lm;
+      else rightHand = lm;
+    });
+
+    // ── Draw hand silhouettes ──
+    if (leftHand) drawHandSilhouette(p, leftHand, 'left');
+    if (rightHand) drawHandSilhouette(p, rightHand, 'right');
+
+    // ── Draw landmark dots ──
+    if (leftHand) drawLandmarks(p, leftHand, '#00f5ff', '#ff00e5');
+    if (rightHand) drawLandmarks(p, rightHand, '#ff00e5', '#00f5ff');
+
+    // ── Draw cat's cradle strings ──
+    if (leftHand && rightHand) {
+      drawCradleStrings(p, leftHand, rightHand);
+    }
+
+    // ── Update + draw particles ──
+    updateParticles(p);
+
+    // ── Touch detection & explosion ──
+    if (leftHand && rightHand) {
+      checkTouchExplosions(p, leftHand, rightHand);
+    }
+  };
+
+  function drawIdleState(p) {
+    // Pulse a subtle glow in the center when idle
+    const t = p.millis() * 0.001;
+    const r = 40 + 20 * Math.sin(t * 1.3);
+    p.drawingContext.shadowBlur = 40;
+    p.drawingContext.shadowColor = '#00f5ff';
+    p.noFill();
+    p.stroke(0, 245, 255, 30);
+    p.strokeWeight(1);
+    p.ellipse(W/2, H/2, r*2, r*2);
+    p.drawingContext.shadowBlur = 0;
+  }
+
+  function drawHandSilhouette(p, landmarks, side) {
+    // Draw a soft glow silhouette blob behind the hand
+    const pts = landmarks.map(lm => ({ x: mapX(lm.x), y: mapY(lm.y) }));
+    const color = side === 'left' ? [0, 245, 255] : [255, 0, 229];
+
+    p.drawingContext.save();
+    p.drawingContext.shadowBlur = 0;
+
+    // Draw connections as thick glowing lines
+    const connections = [
+      [0,1],[1,2],[2,3],[3,4],
+      [0,5],[5,6],[6,7],[7,8],
+      [0,9],[9,10],[10,11],[11,12],
+      [0,13],[13,14],[14,15],[15,16],
+      [0,17],[17,18],[18,19],[19,20],
+      [5,9],[9,13],[13,17]
+    ];
+
+    p.strokeWeight(6);
+    p.stroke(color[0], color[1], color[2], 18);
+    p.noFill();
+    connections.forEach(([a, b]) => {
+      p.drawingContext.shadowBlur = 15;
+      p.drawingContext.shadowColor = `rgba(${color[0]},${color[1]},${color[2]},0.3)`;
+      p.line(pts[a].x, pts[a].y, pts[b].x, pts[b].y);
+    });
+
+    p.drawingContext.restore();
+  }
+
+  function drawLandmarks(p, landmarks, colorA, colorB) {
+    landmarks.forEach((lm, i) => {
+      const x = mapX(lm.x), y = mapY(lm.y);
+      const t = i / (ALL_LANDMARKS - 1);
+      const r = lerpColor(colorA, colorB, t);
+      const isTip = FINGERTIPS.includes(i);
+      const size = isTip ? 9 : 5;
+
+      p.drawingContext.save();
+      p.drawingContext.shadowColor = r;
+      p.drawingContext.shadowBlur = isTip ? 22 : 12;
+      p.noStroke();
+      p.fill(r);
+      p.ellipse(x, y, size, size);
+      // Second glow ring on fingertips
+      if (isTip) {
+        p.drawingContext.shadowBlur = 35;
+        p.fill(r + '44');
+        p.ellipse(x, y, size + 8, size + 8);
+      }
+      p.drawingContext.restore();
+    });
+  }
+
+  // Interpolate two hex colors
+  function lerpColor(hexA, hexB, t) {
+    const a = hexToRgb(hexA), b = hexToRgb(hexB);
+    const r = Math.round(a[0] + (b[0]-a[0])*t);
+    const g = Math.round(a[1] + (b[1]-a[1])*t);
+    const bl = Math.round(a[2] + (b[2]-a[2])*t);
+    return `rgb(${r},${g},${bl})`;
+  }
+
+  function hexToRgb(hex) {
+    hex = hex.replace('#','');
+    return [
+      parseInt(hex.substring(0,2),16),
+      parseInt(hex.substring(2,4),16),
+      parseInt(hex.substring(4,6),16)
+    ];
+  }
+
+  let prevTouchState = [false,false,false,false,false];
+
+  function checkTouchExplosions(p, leftHand, rightHand) {
+    let anyTouch = false;
+    FINGERTIPS.forEach((tipIdx, fi) => {
+      const lx = mapX(leftHand[tipIdx].x), ly = mapY(leftHand[tipIdx].y);
+      const rx = mapX(rightHand[tipIdx].x), ry = mapY(rightHand[tipIdx].y);
+      const d = Math.hypot(lx-rx, ly-ry);
+      const touching = d < 35;
+      if (touching && !prevTouchState[fi]) {
+        // Explosion!
+        const mx = (lx+rx)/2, my = (ly+ry)/2;
+        const colors = ['#00f5ff','#ff00e5','#ffe600','#ffffff'];
+        for (let k = 0; k < 28; k++) {
+          particles.push(new Particle(mx, my, colors[Math.floor(Math.random()*colors.length)]));
+        }
+        anyTouch = true;
+      }
+      prevTouchState[fi] = touching;
+    });
+    document.getElementById('hud-touch').textContent = anyTouch ? 'TOUCH: YES ✦' : 'TOUCH: NO';
+  }
+
+  function drawCradleStrings(p, leftHand, rightHand) {
+    const leftTips = FINGERTIPS.map(i => ({ x: mapX(leftHand[i].x), y: mapY(leftHand[i].y) }));
+    const rightTips = FINGERTIPS.map(i => ({ x: mapX(rightHand[i].x), y: mapY(rightHand[i].y) }));
+
+    // Compute average distance for color/thickness modulation
+    let totalDist = 0;
+    leftTips.forEach((lt, i) => {
+      totalDist += Math.hypot(lt.x - rightTips[i].x, lt.y - rightTips[i].y);
+    });
+    const avgDist = totalDist / 5;
+    const maxDist = Math.hypot(W, H) * 0.5;
+    const tension = Math.min(avgDist / maxDist, 1); // 0=close, 1=far
+
+    document.getElementById('hud-dist').textContent = `SPAN: ${Math.round(avgDist)}px`;
+    document.getElementById('hud-strings').textContent = `TENSION: ${Math.round(tension*100)}%`;
+
+    // String color gradient: cyan(close) → magenta → yellow(far)
+    let strColor;
+    if (tension < 0.5) {
+      strColor = lerpColorRgb([0,245,255], [255,0,229], tension*2);
+    } else {
+      strColor = lerpColorRgb([255,0,229], [255,230,0], (tension-0.5)*2);
+    }
+
+    // Thickness inversely related to distance (thicker when close, thin when far)
+    const thickness = p.map(tension, 0, 1, 3.5, 1.0);
+    const glowStr = p.map(tension, 0, 1, 30, 8);
+
+    // Draw strings with a slight curve (quadratic bezier through midpoint)
+    leftTips.forEach((lt, i) => {
+      const rt = rightTips[i];
+
+      // Midpoint with a slight vertical offset for elastic sag
+      const sag = tension * 40 * Math.sin(p.millis() * 0.001 + i * 0.8);
+      const mx = (lt.x + rt.x) / 2;
+      const my = (lt.y + rt.y) / 2 + sag;
+
+      p.drawingContext.save();
+
+      // Outer glow pass
+      p.drawingContext.shadowColor = `rgb(${strColor[0]},${strColor[1]},${strColor[2]})`;
+      p.drawingContext.shadowBlur = glowStr * 2.5;
+      p.strokeWeight(thickness * 2);
+      p.stroke(strColor[0], strColor[1], strColor[2], 40);
+      p.noFill();
+      p.beginShape();
+      p.vertex(lt.x, lt.y);
+      p.quadraticVertex(mx, my, rt.x, rt.y);
+      p.endShape();
+
+      // Core laser line
+      p.drawingContext.shadowBlur = glowStr;
+      p.strokeWeight(thickness);
+      p.stroke(strColor[0], strColor[1], strColor[2], 210);
+      p.beginShape();
+      p.vertex(lt.x, lt.y);
+      p.quadraticVertex(mx, my, rt.x, rt.y);
+      p.endShape();
+
+      // Bright white core for laser feel
+      p.drawingContext.shadowBlur = 6;
+      p.drawingContext.shadowColor = 'white';
+      p.strokeWeight(thickness * 0.35);
+      p.stroke(255, 255, 255, 160);
+      p.beginShape();
+      p.vertex(lt.x, lt.y);
+      p.quadraticVertex(mx, my, rt.x, rt.y);
+      p.endShape();
+
+      p.drawingContext.restore();
+    });
+
+    // Cross-strings: connect each left tip to non-matching right tip (cat's cradle pattern)
+    const crossPairs = [[0,4],[1,3],[2,2],[3,1],[4,0]];
+    crossPairs.forEach(([li, ri], idx) => {
+      const lt = leftTips[li], rt = rightTips[ri];
+      const sag = tension * 25 * Math.sin(p.millis() * 0.0007 + idx * 1.2);
+      const mx = (lt.x + rt.x) / 2;
+      const my = (lt.y + rt.y) / 2 + sag;
+
+      // Pick offset color
+      const crossColor = idx % 2 === 0
+        ? [255, 230, 0]
+        : [0, 245, 255];
+
+      p.drawingContext.save();
+      p.drawingContext.shadowColor = `rgb(${crossColor[0]},${crossColor[1]},${crossColor[2]})`;
+      p.drawingContext.shadowBlur = 14;
+      p.strokeWeight(thickness * 0.7);
+      p.stroke(crossColor[0], crossColor[1], crossColor[2], 100);
+      p.noFill();
+      p.beginShape();
+      p.vertex(lt.x, lt.y);
+      p.quadraticVertex(mx, my, rt.x, rt.y);
+      p.endShape();
+      p.drawingContext.restore();
+    });
+  }
+
+  function lerpColorRgb(a, b, t) {
+    return [
+      Math.round(a[0] + (b[0]-a[0])*t),
+      Math.round(a[1] + (b[1]-a[1])*t),
+      Math.round(a[2] + (b[2]-a[2])*t)
+    ];
+  }
+
+  function updateParticles(p) {
+    particles = particles.filter(pt => !pt.isDead());
+    particles.forEach(pt => {
+      pt.update();
+      p.drawingContext.save();
+      p.drawingContext.shadowColor = pt.color;
+      p.drawingContext.shadowBlur = 15;
+      p.noStroke();
+      p.fill(pt.color + Math.floor(pt.life * 255).toString(16).padStart(2,'0'));
+      p.ellipse(pt.x, pt.y, pt.size * pt.life, pt.size * pt.life);
+      p.drawingContext.restore();
+    });
+  }
+};
+
+// ─── INIT p5 ──────────────────────────────────────────────────────────────────
+new p5(sketch, document.getElementById('app'));
+
+// ─── INIT MEDIAPIPE ──────────────────────────────────────────────────────────
+async function initMediaPipe() {
+  const videoEl = document.getElementById('videoEl');
+  const statusEl = document.getElementById('status');
+
+  statusEl.textContent = 'MEMINTA AKSES KAMERA...';
+
+  // Wait for Hands to be available (CDN may load async)
+  let attempts = 0;
+  while (typeof Hands === 'undefined' && attempts < 30) {
+    await new Promise(r => setTimeout(r, 200));
+    attempts++;
+  }
+  if (typeof Hands === 'undefined') {
+    statusEl.textContent = 'GAGAL LOAD MEDIAPIPE — CEK KONEKSI INTERNET';
+    statusEl.style.color = '#ff4444';
+    return;
+  }
+
+  hands = new Hands({
+    locateFile: (file) =>
+      `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/${file}`
+  });
+
+  hands.setOptions({
+    maxNumHands: 2,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.65,
+    minTrackingConfidence: 0.55
+  });
+
+  hands.onResults((results) => {
+    handResults = results;
+  });
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+        facingMode: 'user'
+      }
+    });
+
+    videoEl.srcObject = stream;
+    await new Promise((resolve, reject) => {
+      videoEl.onloadedmetadata = resolve;
+      videoEl.onerror = reject;
+      setTimeout(resolve, 3000); // fallback timeout
+    });
+    videoEl.play();
+
+    statusEl.textContent = 'KAMERA AKTIF — INISIALISASI MODEL...';
+
+    // Processing loop using rAF — no camera_utils needed
+    let processing = false;
+    async function processFrame() {
+      if (!processing && videoEl.readyState >= 2) {
+        processing = true;
+        try {
+          await hands.send({ image: videoEl });
+        } catch (e) {
+          console.warn('Frame skip:', e);
+        }
+        processing = false;
+      }
+      requestAnimationFrame(processFrame);
+    }
+
+    // Small delay to let model warm up
+    setTimeout(() => {
+      processFrame();
+      statusEl.textContent = 'TRACKING AKTIF — TUNJUKKAN KEDUA TANGAN';
+      setTimeout(() => { statusEl.style.opacity = '0'; }, 3500);
+    }, 800);
+
+  } catch (err) {
+    console.error('Camera error:', err);
+    if (err.name === 'NotAllowedError') {
+      statusEl.textContent = 'AKSES KAMERA DITOLAK — IZINKAN KAMERA DI BROWSER';
+    } else if (err.name === 'NotFoundError') {
+      statusEl.textContent = 'KAMERA TIDAK DITEMUKAN';
+    } else {
+      statusEl.textContent = `ERROR KAMERA: ${err.name}`;
+    }
+    statusEl.style.color = '#ff4444';
+  }
+}
+
+initMediaPipe();
+</script>
+</body>
+</html>
