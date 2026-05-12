@@ -24,48 +24,148 @@
         .status-popup.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         .icon-wrapper { display: flex; align-items: center; justify-content: center; }
 
+        /* ══════════ LOGIN SPLIT-PANEL (kiri ↔ kanan) ══════════ */
         #loginOverlay {
           position: fixed; inset: 0;
-          background: linear-gradient(135deg, rgba(15,23,42,0.8), rgba(30,58,138,0.75));
-          z-index: 20000; display: flex; align-items: center; justify-content: center;
-          padding: 1rem; backdrop-filter: blur(8px);
+          z-index: 20000;
+          pointer-events: auto;
+          overflow: hidden;
         }
+
+        /* ── Dua panel: kiri & kanan ── */
+        .login-half {
+          position: absolute; top: 0; bottom: 0;
+          width: 50%;
+          background: #000000;
+          transition: transform 0.75s cubic-bezier(0.77, 0, 0.18, 1);
+          will-change: transform;
+          overflow: hidden;
+        }
+        .login-half-left  { left: 0;  transform: translateX(0); }
+        .login-half-right { right: 0; transform: translateX(0); }
+
+        /* ── Subtle dot-grid texture, no colored lines ── */
+        .login-half::before {
+          content: '';
+          position: absolute; inset: 0;
+          background-image: radial-gradient(circle, #333333 1px, transparent 1px);
+          background-size: 28px 28px;
+          opacity: 0.6;
+          pointer-events: none;
+        }
+
+        /* ── Terbuka: panel geser keluar kiri / kanan ── */
+        #loginOverlay.split-open .login-half-left  { transform: translateX(-100%); }
+        #loginOverlay.split-open .login-half-right { transform: translateX(100%); }
+
+        /* ── Menutup: panel geser masuk dari kiri / kanan ── */
+        #loginOverlay.split-close .login-half-left  { transform: translateX(0); }
+        #loginOverlay.split-close .login-half-right { transform: translateX(0); }
+
+        /* ── Setelah animasi buka selesai, sembunyikan seluruh overlay ── */
+        #loginOverlay.gone { display: none !important; }
+
+        /* ── Center card ── */
+        #loginCard {
+          position: absolute; inset: 0;
+          display: flex; align-items: center; justify-content: center;
+          padding: 1rem;
+          z-index: 2;
+          pointer-events: auto;
+          transition: opacity 0.25s ease, transform 0.25s ease;
+          opacity: 1;
+          transform: scale(1);
+        }
+        /* Card menghilang saat panel terbuka */
+        #loginOverlay.split-open #loginCard {
+          opacity: 0;
+          transform: scale(0.92);
+          pointer-events: none;
+        }
+
         #loginBox {
-          background: white; width: 100%; max-width: 420px; border-radius: 1.25rem;
-          padding: 2.5rem 2rem 2rem; box-shadow: 0 25px 60px rgba(0,0,0,0.3); text-align: center;
+          background: #ffffff;
+          width: 100%; max-width: 400px;
+          border-radius: 1.5rem;
+          padding: 2.75rem 2rem 2rem;
+          box-shadow: 0 4px 32px rgba(0,0,0,0.08), 0 1px 6px rgba(0,0,0,0.04);
+          text-align: center;
+          pointer-events: auto;
+          position: relative;
+          border: 1px solid #f1f5f9;
+          animation: loginCardIn 0.55s cubic-bezier(0.34,1.4,0.64,1) both;
         }
-        #loginBox .login-icon {
-          width: 56px; height: 56px; background: linear-gradient(135deg, #3b82f6, #6366f1);
-          border-radius: 1rem; display: flex; align-items: center; justify-content: center;
-          margin: 0 auto 1.25rem;
+        @keyframes loginCardIn {
+          from { opacity: 0; transform: scale(0.9) translateY(16px); }
+          to   { opacity: 1; transform: scale(1) translateY(0); }
         }
-        #loginBox .login-icon i { font-size: 1.5rem; color: white; }
-        #loginBox h2 { margin-bottom: 0.35rem; font-size: 1.4rem; font-weight: 800; color: #0f172a; }
-        #loginBox p { margin-bottom: 1.5rem; color: #64748b; font-size: 0.88rem; line-height: 1.5; }
-        #loginBox .file-upload-area {
-          border: 2px dashed #cbd5e1; border-radius: 0.75rem; padding: 1.5rem 1rem;
-          cursor: pointer; transition: all 0.2s; background: #f8fafc; margin-bottom: 1rem;
+
+        /* ── Lock icon ── */
+        .login-lock-wrap {
+          width: 64px; height: 64px;
+          background: linear-gradient(135deg, #3b82f6, #6366f1);
+          border-radius: 1.25rem;
+          display: flex; align-items: center; justify-content: center;
+          margin: 0 auto 1.5rem;
+          box-shadow: 0 8px 24px rgba(59,130,246,0.25);
+          transition: transform 0.2s ease;
         }
-        #loginBox .file-upload-area:hover { border-color: #3b82f6; background: #eff6ff; }
-        #loginBox .file-upload-area.dragover { border-color: #3b82f6; background: #dbeafe; }
-        #loginBox .file-upload-area i { font-size: 1.75rem; color: #94a3b8; margin-bottom: 0.5rem; }
-        #loginBox .file-upload-area p { margin: 0; font-size: 0.82rem; color: #64748b; }
-        #loginBox .file-upload-area .file-name { margin-top: 0.5rem; font-size: 0.8rem; color: #3b82f6; font-weight: 600; }
+        .login-lock-wrap:hover { transform: scale(1.06) rotate(-3deg); }
+        .login-lock-wrap i { font-size: 1.6rem; color: white; }
+
+        #loginBox h2 {
+          font-size: 1.45rem; font-weight: 800; color: #0f172a;
+          margin-bottom: 0.3rem; letter-spacing: -0.02em;
+        }
+        #loginBox .login-sub {
+          color: #94a3b8; font-size: 0.84rem; margin-bottom: 1.75rem; line-height: 1.5;
+        }
+
+        /* ── Upload zone ── */
+        .file-upload-area {
+          border: 2px dashed #e2e8f0; border-radius: 1rem;
+          padding: 1.5rem 1rem; cursor: pointer;
+          transition: all 0.2s; background: #f8fafc; margin-bottom: 1rem;
+          position: relative;
+        }
+        .file-upload-area:hover { border-color: #3b82f6; background: #eff6ff; }
+        .file-upload-area.dragover { border-color: #3b82f6; background: #dbeafe; transform: scale(1.01); }
+        .file-upload-area .upload-icon {
+          width: 44px; height: 44px;
+          background: linear-gradient(135deg, #e0e7ff, #dbeafe);
+          border-radius: 0.75rem;
+          display: flex; align-items: center; justify-content: center;
+          margin: 0 auto 0.75rem;
+        }
+        .file-upload-area .upload-icon i { font-size: 1.25rem; color: #3b82f6; }
+        .file-upload-area .upload-label { font-size: 0.82rem; color: #64748b; margin: 0; font-weight: 500; }
+        .file-upload-area .upload-hint { font-size: 0.72rem; color: #cbd5e1; margin-top: 0.25rem; }
+        .file-upload-area .file-name {
+          margin-top: 0.6rem; font-size: 0.8rem; color: #3b82f6;
+          font-weight: 600; word-break: break-all;
+        }
         #loginFileInput { display: none; }
-        #loginMsg { min-height: 1.25rem; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 500; border-radius: 0.5rem; padding: 0; transition: all 0.3s; }
-        #loginMsg.has-msg { padding: 0.6rem 1rem; }
-        #loginMsg.error { background: #fef2f2; color: #b91c1c; }
+
+        /* ── Message ── */
+        #loginMsg {
+          min-height: 1rem; margin-bottom: 0.5rem;
+          font-size: 0.82rem; font-weight: 500;
+          border-radius: 0.625rem; padding: 0; transition: all 0.3s;
+        }
+        #loginMsg.has-msg { padding: 0.55rem 0.875rem; }
+        #loginMsg.error   { background: #fef2f2; color: #b91c1c; }
         #loginMsg.success { background: #f0fdf4; color: #15803d; }
+
         #logoutBtn {
-          display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.75rem;
-          background: transparent; border: 1px solid #e2e8f0; padding: 0.5rem 1rem;
-          border-radius: 0.5rem; cursor: pointer; font-size: 0.8rem; color: #64748b; transition: all 0.2s;
+          display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.5rem;
+          background: transparent; border: 1px solid #e2e8f0; padding: 0.45rem 1rem;
+          border-radius: 0.5rem; cursor: pointer; font-size: 0.78rem; color: #94a3b8; transition: all 0.2s;
         }
         #logoutBtn:hover { background: #f1f5f9; color: #334155; }
 
         body.lock-scroll { overflow: hidden; }
-        #pageContent.blurred { filter: blur(6px) saturate(0.95); transition: filter 0.25s ease; pointer-events: none; user-select: none; }
-        #pageContent { transition: filter 0.25s ease; }
+        #pageContent { transition: none; }
+        #pageContent.blurred { pointer-events: none; user-select: none; }
 
         .filter-scroller-wrapper { position: relative; margin-bottom: 0.75rem; }
         .filter-scroller {
@@ -441,20 +541,28 @@
 </head>
 <body class="bg-gray-100 p-0">
 
-  <!-- LOGIN -->
+  <!-- LOGIN SPLIT PANEL -->
   <div id="loginOverlay" role="dialog" aria-modal="true" aria-label="Login file .bat">
-    <div id="loginBox" role="document">
-      <div class="login-icon"><i class="fa-solid fa-lock"></i></div>
-      <h2>Masuk ke Halaman</h2>
-      <p>Unggah file akses Anda untuk melanjutkan</p>
-      <div class="file-upload-area" id="fileUploadArea">
-        <i class="fa-solid fa-cloud-arrow-up"></i>
-        <p>Klik atau seret file ke sini</p>
-        <div class="file-name" id="fileNameDisplay" style="display:none;"></div>
+    <!-- Left half -->
+    <div class="login-half login-half-left"></div>
+    <!-- Right half -->
+    <div class="login-half login-half-right"></div>
+    <!-- Center card -->
+    <div id="loginCard">
+      <div id="loginBox" role="document">
+        <div class="login-lock-wrap"><i class="fa-solid fa-lock"></i></div>
+        <h2>Masuk ke Halaman</h2>
+        <p class="login-sub">Unggah file akses Anda untuk melanjutkan</p>
+        <div class="file-upload-area" id="fileUploadArea">
+          <div class="upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+          <p class="upload-label">Klik atau seret file ke sini</p>
+          <p class="upload-hint">.bat · file akses</p>
+          <div class="file-name" id="fileNameDisplay" style="display:none;"></div>
+        </div>
+        <input id="loginFileInput" type="file" accept=".bat,text/plain" />
+        <div id="loginMsg" aria-live="polite"></div>
+        <button id="logoutBtn" style="display:none;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar</button>
       </div>
-      <input id="loginFileInput" type="file" accept=".bat,text/plain" />
-      <div id="loginMsg" aria-live="polite"></div>
-      <button id="logoutBtn" style="display:none;"><i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar</button>
     </div>
   </div>
 
@@ -612,36 +720,73 @@
       const fileNameDisplay=document.getElementById('fileNameDisplay');
       const sidebarLogoutBtn=document.getElementById('sidebarLogoutBtn');
 
-      function lockPage(){
-        overlay.style.display='flex';
-        document.documentElement.classList.add('lock-scroll');
-        document.body.classList.add('lock-scroll');
-        if(pageContent)pageContent.classList.add('blurred');
-      }
-      function unlockPage(){
-        overlay.style.display='none';
-        document.documentElement.classList.remove('lock-scroll');
-        document.body.classList.remove('lock-scroll');
-        if(pageContent)pageContent.classList.remove('blurred');
-        logoutBtn.style.display='inline-flex';
+      // ── BUKA: panel geser keluar kiri/kanan, card menghilang ──
+      function openOverlay(animated){
+        if(animated){
+          overlay.classList.remove('gone','split-close');
+          overlay.style.display = '';
+          overlay.offsetHeight; // force reflow
+          overlay.classList.add('split-open');
+          setTimeout(()=>{
+            overlay.classList.add('gone');
+            document.documentElement.classList.remove('lock-scroll');
+            document.body.classList.remove('lock-scroll');
+            if(pageContent) pageContent.classList.remove('blurred');
+            logoutBtn.style.display='inline-flex';
+          }, 800);
+        } else {
+          overlay.classList.add('gone');
+          document.documentElement.classList.remove('lock-scroll');
+          document.body.classList.remove('lock-scroll');
+          if(pageContent) pageContent.classList.remove('blurred');
+          logoutBtn.style.display='inline-flex';
+        }
         localStorage.setItem(LS_KEY,'true');
       }
+
+      // ── TUTUP (logout): panel masuk dari kiri/kanan, card muncul kembali ──
+      function closeOverlay(){
+        // Reset state bersih
+        overlay.classList.remove('gone','split-open','split-close');
+        overlay.style.display = '';
+
+        // Posisikan panel di luar layar (tanpa transisi sementara)
+        const halves = overlay.querySelectorAll('.login-half');
+        halves.forEach(h=>{ h.style.transition='none'; });
+        overlay.classList.add('split-open');  // panel off-screen
+        overlay.offsetHeight; // reflow
+
+        // Aktifkan transisi, lalu tutup (panel masuk ke tengah)
+        halves.forEach(h=>{ h.style.transition=''; });
+        overlay.classList.remove('split-open');
+        // split-close hanya dibutuhkan untuk reset state card, tidak perlu class ekstra
+
+        document.documentElement.classList.add('lock-scroll');
+        document.body.classList.add('lock-scroll');
+        if(pageContent) pageContent.classList.add('blurred');
+        logoutBtn.style.display='none';
+      }
+
       function resetAccess(){
         fileInput.value='';
         msg.textContent='';
         msg.className='';
         fileNameDisplay.style.display='none';
-        logoutBtn.style.display='none';
         localStorage.removeItem(LS_KEY);
-        lockPage();
+        closeOverlay();
       }
-      function showLoginMsg(t,type){msg.textContent=t;msg.className='has-msg '+type;}
 
-      // ── Cek localStorage: jika sudah login sebelumnya, langsung buka ──
+      function showLoginMsg(t,type){ msg.textContent=t; msg.className='has-msg '+type; }
+
+      // ── Init ──
       if(localStorage.getItem(LS_KEY)==='true'){
-        unlockPage();
+        openOverlay(false);
       } else {
-        lockPage();
+        overlay.classList.remove('gone','split-open');
+        overlay.style.display='';
+        document.documentElement.classList.add('lock-scroll');
+        document.body.classList.add('lock-scroll');
+        if(pageContent) pageContent.classList.add('blurred');
       }
 
       fileUploadArea.addEventListener('click',()=>fileInput.click());
@@ -652,30 +797,33 @@
       function processFile(f){
         msg.textContent='';msg.className='';
         if(!f){showLoginMsg('Tidak ada file terpilih.','error');return;}
-        const name=f.name||'';
-        if(!name.toLowerCase().endsWith('.bat')){showLoginMsg('Harap unggah file yang benar.','error');fileInput.value='';fileNameDisplay.style.display='none';return;}
-        fileNameDisplay.textContent=name;fileNameDisplay.style.display='block';
+        if(!f.name.toLowerCase().endsWith('.bat')){showLoginMsg('Harap unggah file yang benar.','error');fileInput.value='';fileNameDisplay.style.display='none';return;}
+        fileNameDisplay.textContent=f.name;fileNameDisplay.style.display='block';
         const reader=new FileReader();
         reader.onload=function(e){
           let text=String(e.target.result||'');
           if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);
-          const cleaned=text.trim();
-          if(cleaned===SECRET_TEXT){unlockPage();showLoginMsg('Berhasil — akses diberikan.','success');}
-          else{showLoginMsg('Isi file tidak cocok. Coba lagi.','error');fileInput.value='';fileNameDisplay.style.display='none';}
+          if(text.trim()===SECRET_TEXT){
+            showLoginMsg('Berhasil — akses diberikan.','success');
+            setTimeout(()=>openOverlay(true), 300);
+          }else{
+            showLoginMsg('Isi file tidak cocok. Coba lagi.','error');
+            fileInput.value='';fileNameDisplay.style.display='none';
+          }
         };
-        reader.onerror=function(){showLoginMsg('Gagal membaca file.','error');fileInput.value='';fileNameDisplay.style.display='none';};
+        reader.onerror=()=>{ showLoginMsg('Gagal membaca file.','error');fileInput.value='';fileNameDisplay.style.display='none'; };
         reader.readAsText(f);
       }
 
       fileInput.addEventListener('change',(ev)=>{const f=ev.target.files&&ev.target.files[0];processFile(f);});
       logoutBtn.addEventListener('click',()=>{if(confirm('Apakah Anda yakin ingin keluar?'))resetAccess();});
-      overlay.addEventListener('click',(e)=>{if(e.target===overlay)showLoginMsg('Silakan unggah file untuk masuk.','error');});
+      overlay.addEventListener('click',(e)=>{
+        if(e.target.closest('#loginBox'))return;
+        showLoginMsg('Silakan unggah file untuk masuk.','error');
+      });
 
-      // Tombol logout di sidebar
       if(sidebarLogoutBtn){
-        sidebarLogoutBtn.addEventListener('click',()=>{
-          if(confirm('Apakah Anda yakin ingin keluar?'))resetAccess();
-        });
+        sidebarLogoutBtn.addEventListener('click',()=>{if(confirm('Apakah Anda yakin ingin keluar?'))resetAccess();});
       }
     })();
   </script>
