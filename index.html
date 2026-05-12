@@ -580,9 +580,21 @@
         <i class="fa-solid fa-plus text-gray-700 w-5 h-5"></i> Tambah Konten
     </a>
     <!-- Realtime indicator -->
-    <div style="position:absolute;bottom:1rem;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:0.4rem;">
+    <div style="display:flex;align-items:center;justify-content:center;gap:0.4rem;margin-bottom:0.75rem;">
       <span id="rtDot" style="width:8px;height:8px;border-radius:50%;background:#94a3b8;display:inline-block;transition:background 0.3s;flex-shrink:0;"></span>
       <span id="rtLabel" style="font-size:0.7rem;color:#94a3b8;font-weight:600;"></span>
+    </div>
+    <!-- Logout button at bottom -->
+    <div style="position:absolute;bottom:1rem;left:1rem;right:1rem;">
+      <button id="sidebarLogoutBtn" style="
+        width:100%;display:flex;align-items:center;justify-content:center;gap:0.5rem;
+        padding:0.6rem 1rem;border-radius:0.5rem;cursor:pointer;
+        font-size:0.82rem;font-weight:600;
+        background:#fff1f2;border:1.5px solid #fecaca;color:#dc2626;
+        transition:all 0.2s;
+      " onmouseover="this.style.background='#fee2e2';this.style.borderColor='#f87171';" onmouseout="this.style.background='#fff1f2';this.style.borderColor='#fecaca';">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout
+      </button>
     </div>
   </div>
 
@@ -590,20 +602,81 @@
   <script>
     (function(){
       const SECRET_TEXT='YQDYIpjYnF7PZtDYs6e8yZJmGqTuB4rgZQSaenc618nmy4x095';
-      const overlay=document.getElementById('loginOverlay');const fileInput=document.getElementById('loginFileInput');const msg=document.getElementById('loginMsg');const logoutBtn=document.getElementById('logoutBtn');const pageContent=document.getElementById('pageContent');const fileUploadArea=document.getElementById('fileUploadArea');const fileNameDisplay=document.getElementById('fileNameDisplay');
-      function lockPage(){overlay.style.display='flex';document.documentElement.classList.add('lock-scroll');document.body.classList.add('lock-scroll');if(pageContent)pageContent.classList.add('blurred');}
-      function unlockPage(){overlay.style.display='none';document.documentElement.classList.remove('lock-scroll');document.body.classList.remove('lock-scroll');if(pageContent)pageContent.classList.remove('blurred');logoutBtn.style.display='inline-flex';localStorage.setItem('dekrip_logged_in','true');}
-      function resetAccess(){fileInput.value='';msg.textContent='';msg.className='';fileNameDisplay.style.display='none';logoutBtn.style.display='none';localStorage.removeItem('dekrip_logged_in');lockPage();}
+      const LS_KEY='dekrip_logged_in';
+      const overlay=document.getElementById('loginOverlay');
+      const fileInput=document.getElementById('loginFileInput');
+      const msg=document.getElementById('loginMsg');
+      const logoutBtn=document.getElementById('logoutBtn');
+      const pageContent=document.getElementById('pageContent');
+      const fileUploadArea=document.getElementById('fileUploadArea');
+      const fileNameDisplay=document.getElementById('fileNameDisplay');
+      const sidebarLogoutBtn=document.getElementById('sidebarLogoutBtn');
+
+      function lockPage(){
+        overlay.style.display='flex';
+        document.documentElement.classList.add('lock-scroll');
+        document.body.classList.add('lock-scroll');
+        if(pageContent)pageContent.classList.add('blurred');
+      }
+      function unlockPage(){
+        overlay.style.display='none';
+        document.documentElement.classList.remove('lock-scroll');
+        document.body.classList.remove('lock-scroll');
+        if(pageContent)pageContent.classList.remove('blurred');
+        logoutBtn.style.display='inline-flex';
+        localStorage.setItem(LS_KEY,'true');
+      }
+      function resetAccess(){
+        fileInput.value='';
+        msg.textContent='';
+        msg.className='';
+        fileNameDisplay.style.display='none';
+        logoutBtn.style.display='none';
+        localStorage.removeItem(LS_KEY);
+        lockPage();
+      }
       function showLoginMsg(t,type){msg.textContent=t;msg.className='has-msg '+type;}
-      lockPage();
+
+      // ── Cek localStorage: jika sudah login sebelumnya, langsung buka ──
+      if(localStorage.getItem(LS_KEY)==='true'){
+        unlockPage();
+      } else {
+        lockPage();
+      }
+
       fileUploadArea.addEventListener('click',()=>fileInput.click());
       fileUploadArea.addEventListener('dragover',(e)=>{e.preventDefault();fileUploadArea.classList.add('dragover');});
       fileUploadArea.addEventListener('dragleave',()=>{fileUploadArea.classList.remove('dragover');});
       fileUploadArea.addEventListener('drop',(e)=>{e.preventDefault();fileUploadArea.classList.remove('dragover');if(e.dataTransfer.files.length>0){fileInput.files=e.dataTransfer.files;fileInput.dispatchEvent(new Event('change'));}});
-      function processFile(f){msg.textContent='';msg.className='';if(!f){showLoginMsg('Tidak ada file terpilih.','error');return;}const name=f.name||'';if(!name.toLowerCase().endsWith('.bat')){showLoginMsg('Harap unggah file yang benar.','error');fileInput.value='';fileNameDisplay.style.display='none';return;}fileNameDisplay.textContent=name;fileNameDisplay.style.display='block';const reader=new FileReader();reader.onload=function(e){let text=String(e.target.result||'');if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);const cleaned=text.trim();if(cleaned===SECRET_TEXT){unlockPage();showLoginMsg('Berhasil — akses diberikan.','success');}else{showLoginMsg('Isi file tidak cocok. Coba lagi.','error');fileInput.value='';fileNameDisplay.style.display='none';}};reader.onerror=function(){showLoginMsg('Gagal membaca file.','error');fileInput.value='';fileNameDisplay.style.display='none';};reader.readAsText(f);}
+
+      function processFile(f){
+        msg.textContent='';msg.className='';
+        if(!f){showLoginMsg('Tidak ada file terpilih.','error');return;}
+        const name=f.name||'';
+        if(!name.toLowerCase().endsWith('.bat')){showLoginMsg('Harap unggah file yang benar.','error');fileInput.value='';fileNameDisplay.style.display='none';return;}
+        fileNameDisplay.textContent=name;fileNameDisplay.style.display='block';
+        const reader=new FileReader();
+        reader.onload=function(e){
+          let text=String(e.target.result||'');
+          if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);
+          const cleaned=text.trim();
+          if(cleaned===SECRET_TEXT){unlockPage();showLoginMsg('Berhasil — akses diberikan.','success');}
+          else{showLoginMsg('Isi file tidak cocok. Coba lagi.','error');fileInput.value='';fileNameDisplay.style.display='none';}
+        };
+        reader.onerror=function(){showLoginMsg('Gagal membaca file.','error');fileInput.value='';fileNameDisplay.style.display='none';};
+        reader.readAsText(f);
+      }
+
       fileInput.addEventListener('change',(ev)=>{const f=ev.target.files&&ev.target.files[0];processFile(f);});
-      logoutBtn.addEventListener('click',()=>{if(confirm('Apakah Anda yakin ingin menghapus akses dan keluar?'))resetAccess();});
+      logoutBtn.addEventListener('click',()=>{if(confirm('Apakah Anda yakin ingin keluar?'))resetAccess();});
       overlay.addEventListener('click',(e)=>{if(e.target===overlay)showLoginMsg('Silakan unggah file untuk masuk.','error');});
+
+      // Tombol logout di sidebar
+      if(sidebarLogoutBtn){
+        sidebarLogoutBtn.addEventListener('click',()=>{
+          if(confirm('Apakah Anda yakin ingin keluar?'))resetAccess();
+        });
+      }
     })();
   </script>
 
