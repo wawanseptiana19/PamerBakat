@@ -576,8 +576,8 @@
         <div class="info-row-value url-value" id="infoUrlValue" data-column="url"></div>
       </div>
       <div class="info-row">
-        <div class="info-row-label">Kode Shift</div>
-        <div class="info-row-value shift-value" id="infoShiftValue" data-column="shift_code"></div>
+        <div class="info-row-label">Password AES</div>
+        <div class="info-row-value shift-value" id="infoShiftValue" data-column="password"></div>
       </div>
       <div class="info-hint">Klik 3× pada nilai untuk mengedit</div>
     </div>
@@ -970,7 +970,7 @@
     function getFilteredData(){
         const searchTerm=searchInput.value.toLowerCase().trim();
         return allLinksData.filter(link=>{
-            const text=`${link.name||''} ${link.person_name||''} ${link.category||'Belum Dikategorikan'} ${link.url||''} ${link.shift_code||''} ${link.created_at||''}`.toLowerCase();
+            const text=`${link.name||''} ${link.person_name||''} ${link.category||'Belum Dikategorikan'} ${link.url||''} ${link.created_at||''}`.toLowerCase();
             const cardName=(link.person_name||'').toLowerCase();
             const cardCat=(link.category||'Belum Dikategorikan').toLowerCase();
             let show=true;
@@ -998,7 +998,7 @@
             const card=createCardElement(link);
             linksGrid.appendChild(card);
             const smallQrId=`qr-${link.id}`;
-            const qrData=`${link.url||''} || ${link.shift_code||''}`;
+            const qrData=`${link.url||''}`;
             const canvasEl=document.getElementById(smallQrId);
             if(canvasEl){
                 QRCode.toCanvas(canvasEl,qrData,{errorCorrectionLevel:'L',margin:1,width:100,color:{dark:'#000000',light:'#ffffff'}});
@@ -1013,12 +1013,12 @@
         const card=document.createElement('div');
         card.classList.add('link-card');card.dataset.id=link.id;
         const category=link.category||'Belum Dikategorikan';
-        card.dataset.searchtext=`${link.name||''} ${link.person_name||''} ${category} ${link.url||''} ${link.shift_code||''} ${link.created_at||''}`;
+        card.dataset.searchtext=`${link.name||''} ${link.person_name||''} ${category} ${link.url||''} ${link.created_at||''}`;
         card.dataset.personname=(link.person_name||'').toLowerCase();
         card.dataset.category=category.toLowerCase();
 
         const formattedDate=link.created_at?new Date(link.created_at).toLocaleString():'-';
-        const qrData=`${link.url||''} || ${link.shift_code||''}`;
+        const qrData=`${link.url||''}`;
         let qrFilenameBase=`${link.person_name||'anonim'} - ${link.name||'tanpa-nama'}`;
         qrFilenameBase=qrFilenameBase.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');
         const smallQrId=`qr-${link.id}`;
@@ -1057,7 +1057,7 @@
             </div>
         `;
 
-        card.querySelector('.card-info-btn').addEventListener('click',(e)=>{e.stopPropagation();openInfoPopup(link.id,link.name,link.url,link.shift_code);});
+        card.querySelector('.card-info-btn').addEventListener('click',(e)=>{e.stopPropagation();openInfoPopup(link.id,link.name,link.url);});
 
         // Back-face close button
         card.querySelector('.back-close-btn').addEventListener('click',(e)=>{
@@ -1077,7 +1077,7 @@
         const viewBtn=card.querySelector('.view-description-btn');
         if(viewBtn){
             viewBtn.addEventListener('click',()=>{
-                const targetUrl=`dekripsi.html?url=${encodeURIComponent(link.url||'')}&shift=${encodeURIComponent(link.shift_code||'')}&person=${encodeURIComponent(link.person_name||'')}&name=${encodeURIComponent(link.name||'')}`;
+                const targetUrl=`dekripsi.html?url=${encodeURIComponent(link.url||'')}&password=${encodeURIComponent(link.password||'')}&person=${encodeURIComponent(link.person_name||'')}&name=${encodeURIComponent(link.name||'')}`;
                 window.open(targetUrl,'_blank');
             });
         }
@@ -1291,11 +1291,12 @@
     clearSearchBtn.addEventListener('click',()=>{searchInput.value='';currentPage=1;applyFilters();searchInput.focus();});
 
     // --- Info Popup ---
-    function openInfoPopup(linkId,linkName,url,shiftCode){
+    function openInfoPopup(linkId,linkName,url){
         currentInfoCardId=linkId;infoPopupTitle.textContent=linkName||'Detail';
-        infoUrlValue.textContent=url||'-';infoShiftValue.textContent=shiftCode||'-';
-        infoUrlValue.contentEditable='false';infoShiftValue.contentEditable='false';
-        infoUrlValue.classList.remove('editable');infoShiftValue.classList.remove('editable');
+        infoUrlValue.textContent=url||'-';
+        if(infoShiftValue){const linkData=allLinksData.find(l=>String(l.id)===String(linkId));infoShiftValue.textContent=linkData?.password||'-';infoShiftValue.contentEditable='false';infoShiftValue.classList.remove('editable');}
+        infoUrlValue.contentEditable='false';
+        infoUrlValue.classList.remove('editable');
         infoPopupOverlay.classList.add('show');
     }
     function closeInfoPopup(){infoPopupOverlay.classList.remove('show');currentInfoCardId=null;}
@@ -1358,7 +1359,7 @@
         downloadAllQrBtn.disabled=true;downloadAllQrBtn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
         showStatus('Mempersiapkan file ZIP QR Code...','success');
         for(const link of allLinksData){
-            const qrData=`${link.url||''} || ${link.shift_code||''}`;
+            const qrData=`${link.url||''}`;
             let filename=`${link.person_name||'anonim'} - ${link.name||'tanpa-nama'}.png`;
             filename=filename.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');
             promises.push(generateQrCodeWithPadding(qrData,512,20).then(canvas=>new Promise(resolve=>{canvas.toBlob(blob=>{zip.file(filename,blob);resolve();},'image/png');})));
@@ -1374,7 +1375,6 @@
     }
     downloadAllQrBtn.addEventListener('click',downloadAllQRCodes);
 
-    function decryptCaesar(text,shift){if(typeof text!=='string')return text;const s=Number(shift);if(isNaN(s))return text;let result='';for(let i=0;i<text.length;i++){let code=text.charCodeAt(i);if(code>=65&&code<=90)code=((code-65-s+260)%26)+65;else if(code>=97&&code<=122)code=((code-97-s+260)%26)+97;result+=String.fromCharCode(code);}return result;}
     function normalizeBase64(b64){if(!b64||typeof b64!=='string')return'';let s=b64.replace(/\s+/g,'');const m=s.match(/^data:.*;base64,(.*)$/i);if(m)s=m[1];s=s.replace(/-/g,'+').replace(/_/g,'/');const pad=s.length%4;if(pad===2)s+='==';else if(pad===3)s+='=';return s;}
     function isBase64String(s){if(!s||typeof s!=='string')return false;const c=normalizeBase64(s);return c.length%4===0&&/^[A-Za-z0-9+/=]+$/.test(c);}
     function getMimeFromBase64Sample(b64){try{const cleaned=normalizeBase64(b64).slice(0,2000);if(!cleaned)return null;const bin=atob(cleaned);const c0=bin.charCodeAt(0),c1=bin.charCodeAt(1);if(c0===0x89&&bin[1]==='P'&&bin[2]==='N'&&bin[3]==='G')return'image/png';if(c0===0xFF&&c1===0xD8)return'image/jpeg';if(bin.startsWith('GIF87a')||bin.startsWith('GIF89a'))return'image/gif';if(bin.trim().startsWith('<svg'))return'image/svg+xml';if(bin.indexOf('ftyp')!==-1)return'video/mp4';if(bin.toLowerCase().indexOf('webm')!==-1)return'video/webm';const prefix=normalizeBase64(b64).slice(0,8);if(prefix.startsWith('iVBOR')||prefix.startsWith('iVBORw0K'))return'image/png';if(prefix.startsWith('/9j/'))return'image/jpeg';if(prefix.startsWith('R0lG'))return'image/gif';return null;}catch(e){return null;}}
@@ -1390,9 +1390,9 @@
         return{blob,mime};
     }
 
-    async function showDescriptionModal(url,shiftCode,personName,linkName){
+    async function showDescriptionModal(url,aesPassword,personName,linkName){
         descriptionModal.classList.remove('hidden');descriptionContent.innerHTML='';descriptionMessage.classList.add('hidden');descriptionLoading.classList.remove('hidden');downloadBtn.classList.add('hidden');
-        try{if(!url||!url.startsWith('http'))throw new Error('URL deskripsi tidak valid.');const response=await fetch(url);if(!response.ok)throw new Error(`Gagal memuat file dari URL. Status: ${response.status}`);const encryptedText=await response.text();const urlPath=(url||'').split('?')[0].toLowerCase();const isEncFile=urlPath.endsWith('.enc');const shiftNum=Number(shiftCode);let decrypted='';if(!isEncFile&&shiftCode&&!isNaN(shiftNum)&&shiftNum!==0){decrypted=decryptCaesar(encryptedText,shiftNum);}else{decrypted=await decryptAES(encryptedText.trim(),'dakota775');}const probableBase64=decrypted.trim();const mimeHint=getMimeFromBase64Sample(probableBase64);const previewResult=setPreviewFromBase64(probableBase64,mimeHint,true);const blob=previewResult.blob;const mime=previewResult.mime;if(isBase64String(probableBase64)){const fileExt=mime?mime.split('/')[1]:'bin';let baseFilename=`${personName||'anonim'} - ${linkName||'tanpa-nama'}`;baseFilename=baseFilename.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');currentDownloadFilename=`${baseFilename}.${fileExt}`;currentDownloadBlob=blob;}else{currentDownloadBlob=new Blob([decrypted],{type:'text/plain'});currentDownloadFilename=`${personName||'anonim'} - ${linkName||'tanpa-nama'}.txt`;}downloadBtn.textContent='Unduh Konten';downloadBtn.classList.remove('hidden');descriptionLoading.classList.add('hidden');}catch(error){descriptionMessage.textContent=`Gagal memuat atau mendekripsi: ${error.message}`;descriptionLoading.classList.add('hidden');descriptionMessage.classList.remove('hidden');}
+        try{if(!url||!url.startsWith('http'))throw new Error('URL deskripsi tidak valid.');if(!aesPassword)throw new Error('Password AES tidak ditemukan di database.');const response=await fetch(url);if(!response.ok)throw new Error(`Gagal memuat file dari URL. Status: ${response.status}`);const encryptedText=await response.text();let decrypted=await decryptAES(encryptedText.trim(),aesPassword);const probableBase64=decrypted.trim();const mimeHint=getMimeFromBase64Sample(probableBase64);const previewResult=setPreviewFromBase64(probableBase64,mimeHint,true);const blob=previewResult.blob;const mime=previewResult.mime;if(isBase64String(probableBase64)){const fileExt=mime?mime.split('/')[1]:'bin';let baseFilename=`${personName||'anonim'} - ${linkName||'tanpa-nama'}`;baseFilename=baseFilename.replace(/[^a-zA-Z0-9\s-.]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'');currentDownloadFilename=`${baseFilename}.${fileExt}`;currentDownloadBlob=blob;}else{currentDownloadBlob=new Blob([decrypted],{type:'text/plain'});currentDownloadFilename=`${personName||'anonim'} - ${linkName||'tanpa-nama'}.txt`;}downloadBtn.textContent='Unduh Konten';downloadBtn.classList.remove('hidden');descriptionLoading.classList.add('hidden');}catch(error){descriptionMessage.textContent=`Gagal memuat atau mendekripsi: ${error.message}`;descriptionLoading.classList.add('hidden');descriptionMessage.classList.remove('hidden');}
     }
 
     function hideDescriptionModal(){descriptionModal.classList.add('hidden');descriptionContent.innerHTML='';descriptionMessage.classList.add('hidden');descriptionLoading.classList.add('hidden');downloadBtn.classList.add('hidden');if(currentDownloadBlob){URL.revokeObjectURL(URL.createObjectURL(currentDownloadBlob));currentDownloadBlob=null;currentDownloadFilename=null;}}
@@ -1587,23 +1587,16 @@
 
         try{
             const url = link.url || '';
-            const shiftCode = link.shift_code || '';
             if(!url || !url.startsWith('http')) throw new Error('URL tidak valid.');
-
-            const urlPath = url.split('?')[0].toLowerCase();
-            const isEncFile = urlPath.endsWith('.enc');
 
             const response = await fetch(url);
             if(!response.ok) throw new Error(`Gagal memuat file (${response.status})`);
             const encryptedText = await response.text();
 
             let decrypted = '';
-            const shiftNum = Number(shiftCode);
-            if(!isEncFile && shiftCode && !isNaN(shiftNum) && shiftNum !== 0){
-                decrypted = decryptCaesar(encryptedText, shiftNum);
-            } else {
-                decrypted = await decryptAES(encryptedText.trim(), 'dakota775');
-            }
+            const aesPassword = link.password || '';
+            if(!aesPassword) throw new Error('Password AES tidak ditemukan di database.');
+            decrypted = await decryptAES(encryptedText.trim(), aesPassword);
 
             const cleaned = decrypted.trim();
             previewArea.innerHTML = '';
@@ -1646,125 +1639,22 @@
     async function decryptAES(ciphertext, password){
         const clean = ciphertext.trim();
 
-        // === Strategi 1: CryptoJS OpenSSL (format: U2FsdGVkX1...) ===
-        // Format ini digunakan oleh CryptoJS.AES.encrypt(data, passphrase)
-        if(typeof CryptoJS !== 'undefined' && clean.startsWith('U2FsdGVkX1')){
-            try{
-                const bytes = CryptoJS.AES.decrypt(clean, password);
-                // Periksa apakah WordArray valid (sigBytes > 0)
-                if(bytes && bytes.sigBytes > 0){
-                    // Coba decode sebagai UTF-8 teks dulu
-                    try{
-                        const resultUtf8 = bytes.toString(CryptoJS.enc.Utf8);
-                        if(resultUtf8 && resultUtf8.length > 0) return resultUtf8;
-                    }catch(utf8Err){
-                        // Bukan UTF-8 valid → kemungkinan binary (gambar/video)
-                        // Kembalikan sebagai Base64 agar bisa dirender
-                    }
-                    // Kembalikan sebagai Base64 (untuk gambar/video/binary)
-                    const resultBase64 = bytes.toString(CryptoJS.enc.Base64);
-                    if(resultBase64 && resultBase64.length > 0) return resultBase64;
-                }
-            }catch(e){
-                // Lanjut ke strategi berikutnya jika gagal
-            }
-        }
+        if(typeof CryptoJS === 'undefined') throw new Error('CryptoJS tidak tersedia.');
 
-        // === Strategi 2: CryptoJS passphrase generik (semua format base64) ===
-        if(typeof CryptoJS !== 'undefined'){
-            try{
-                const bytes = CryptoJS.AES.decrypt(clean, password);
-                if(bytes && bytes.sigBytes > 0){
-                    try{
-                        const res = bytes.toString(CryptoJS.enc.Utf8);
-                        if(res && res.length > 0) return res;
-                    }catch(e){}
-                    const resB64 = bytes.toString(CryptoJS.enc.Base64);
-                    if(resB64 && resB64.length > 0) return resB64;
-                }
-            }catch(e){}
-
-            // === Strategi 3: CryptoJS dengan key eksplisit CBC ===
-            try{
-                const key = CryptoJS.enc.Utf8.parse(password.padEnd(32, '0').slice(0,32));
-                const iv  = CryptoJS.enc.Utf8.parse(password.padEnd(16, '0').slice(0,16));
-                const bytes = CryptoJS.AES.decrypt(clean, key, {iv, mode:CryptoJS.mode.CBC, padding:CryptoJS.pad.Pkcs7});
-                if(bytes && bytes.sigBytes > 0){
-                    try{
-                        const res = bytes.toString(CryptoJS.enc.Utf8);
-                        if(res && res.length > 0) return res;
-                    }catch(e){}
-                    const resB64 = bytes.toString(CryptoJS.enc.Base64);
-                    if(resB64 && resB64.length > 0) return resB64;
-                }
-            }catch(e){}
-
-            // === Strategi 4: CryptoJS ECB ===
-            try{
-                const key = CryptoJS.enc.Utf8.parse(password.padEnd(32, '0').slice(0,32));
-                const bytes = CryptoJS.AES.decrypt(clean, key, {mode:CryptoJS.mode.ECB, padding:CryptoJS.pad.Pkcs7});
-                if(bytes && bytes.sigBytes > 0){
-                    try{
-                        const res = bytes.toString(CryptoJS.enc.Utf8);
-                        if(res && res.length > 0) return res;
-                    }catch(e){}
-                    const resB64 = bytes.toString(CryptoJS.enc.Base64);
-                    if(resB64 && resB64.length > 0) return resB64;
-                }
-            }catch(e){}
-        }
-
-        // === Strategi 5: Web Crypto AES-GCM (format: base64(iv[12]+data)) ===
+        // CryptoJS AES decrypt (OpenSSL passphrase format: U2FsdGVkX1... atau base64 lainnya)
         try{
-            const enc = new TextEncoder();
-            const rawData = Uint8Array.from(atob(clean), c=>c.charCodeAt(0));
-            if(rawData.length > 12){
-                const keyMat = await crypto.subtle.importKey('raw', enc.encode(password), {name:'PBKDF2'}, false, ['deriveKey']);
-                const salt = enc.encode('dakotasalt');
-                const key = await crypto.subtle.deriveKey(
-                    {name:'PBKDF2', salt, iterations:100000, hash:'SHA-256'},
-                    keyMat, {name:'AES-GCM', length:256}, false, ['decrypt']
-                );
-                const iv = rawData.slice(0,12);
-                const data = rawData.slice(12);
-                const decBuffer = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, data);
-                return new TextDecoder().decode(decBuffer);
+            const bytes = CryptoJS.AES.decrypt(clean, password);
+            if(bytes && bytes.sigBytes > 0){
+                try{
+                    const resultUtf8 = bytes.toString(CryptoJS.enc.Utf8);
+                    if(resultUtf8 && resultUtf8.length > 0) return resultUtf8;
+                }catch(utf8Err){}
+                const resultBase64 = bytes.toString(CryptoJS.enc.Base64);
+                if(resultBase64 && resultBase64.length > 0) return resultBase64;
             }
         }catch(e){}
 
-        // === Strategi 6: Web Crypto AES-GCM dengan salt ===
-        try{
-            const enc = new TextEncoder();
-            const rawData = Uint8Array.from(atob(clean), c=>c.charCodeAt(0));
-            if(rawData.length > 16){
-                const salt = rawData.slice(0,16);
-                const iv   = rawData.slice(16,28);
-                const data = rawData.slice(28);
-                const keyMat = await crypto.subtle.importKey('raw', enc.encode(password), {name:'PBKDF2'}, false, ['deriveKey']);
-                const key = await crypto.subtle.deriveKey(
-                    {name:'PBKDF2', salt, iterations:100000, hash:'SHA-256'},
-                    keyMat, {name:'AES-GCM', length:256}, false, ['decrypt']
-                );
-                const decBuffer = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, data);
-                return new TextDecoder().decode(decBuffer);
-            }
-        }catch(e){}
-
-        // === Strategi 7: Web Crypto AES-CBC ===
-        try{
-            const enc = new TextEncoder();
-            const rawData = Uint8Array.from(atob(clean), c=>c.charCodeAt(0));
-            if(rawData.length > 16){
-                const iv   = rawData.slice(0,16);
-                const data = rawData.slice(16);
-                const digest = await crypto.subtle.digest('SHA-256', enc.encode(password));
-                const key = await crypto.subtle.importKey('raw', digest, {name:'AES-CBC'}, false, ['decrypt']);
-                const decBuffer = await crypto.subtle.decrypt({name:'AES-CBC', iv}, key, data);
-                return new TextDecoder().decode(decBuffer);
-            }
-        }catch(e){}
-
-        throw new Error('Dekripsi gagal. Periksa password atau format file enkripsi.');
+        throw new Error('Dekripsi AES gagal. Periksa password di database atau format file enkripsi.');
     }
 
     function openFullscreen(mediaType, src, text){
