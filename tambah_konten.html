@@ -86,6 +86,32 @@
                     <label for="category" class="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
                     <input type="text" id="category" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
                 </div>
+
+                <!-- Password enkripsi (dari Tab 2, readonly) -->
+                <div id="encryptionPasswordWrapper" class="mb-4 hidden">
+                    <label for="tab1Password" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-key mr-1 text-yellow-500"></i> Password Enkripsi (100 karakter)
+                    </label>
+                    <div class="relative">
+                        <input id="tab1Password" type="text" readonly
+                            class="w-full px-4 py-3 pr-20 border border-yellow-300 rounded-lg bg-yellow-50 cursor-not-allowed text-xs font-mono text-gray-600 tracking-wide">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full border border-yellow-300 pointer-events-none select-none">
+                            <i class="fas fa-lock text-yellow-500"></i> Terkunci
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1"><i class="fas fa-info-circle mr-1 text-blue-400"></i>Diisi otomatis dari proses enkripsi. Tidak bisa diubah.</p>
+                </div>
+
+                <!-- Nama file hasil (.pb) (dari Tab 2, readonly) -->
+                <div id="encryptionFilenameWrapper" class="mb-6 hidden">
+                    <label for="tab1Filename" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-file-alt mr-1 text-blue-400"></i> Nama File Hasil (.pb)
+                    </label>
+                    <input id="tab1Filename" type="text" readonly
+                        class="w-full px-4 py-3 border border-blue-200 rounded-lg bg-blue-50 cursor-not-allowed text-sm font-mono text-gray-600">
+                    <p class="text-xs text-gray-400 mt-1"><i class="fas fa-info-circle mr-1 text-blue-400"></i>Nama file enkripsi — diisi otomatis, tidak bisa diubah.</p>
+                </div>
+
                 <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
                     <i class="fas fa-save mr-2"></i> Simpan
                 </button>
@@ -107,9 +133,18 @@
                 <label for="aesKey" class="block text-sm font-medium text-gray-700 mb-2">
                     <i class="fas fa-key mr-1 text-yellow-500"></i> Kunci AES (password enkripsi)
                 </label>
-                <input id="aesKey" type="password" placeholder="Masukkan kunci rahasia..."
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-colors">
-                <p class="text-xs text-gray-400 mt-1">Simpan kunci ini. Diperlukan untuk dekripsi.</p>
+                <div class="relative">
+                    <input id="aesKey" type="text" readonly
+                        placeholder="Pilih file untuk generate kunci otomatis..."
+                        class="w-full px-4 py-3 pr-24 border border-yellow-300 rounded-lg bg-yellow-50 cursor-not-allowed text-xs font-mono text-gray-600 tracking-wide">
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full border border-yellow-300 pointer-events-none select-none">
+                        <i class="fas fa-lock text-yellow-500"></i> Auto
+                    </span>
+                </div>
+                <p class="text-xs text-gray-400 mt-1">
+                    <i class="fas fa-info-circle mr-1 text-blue-400"></i>
+                    Kunci 100 karakter acak — di-generate otomatis setiap pilih file. Disimpan ke Supabase setelah enkripsi.
+                </p>
             </div>
 
             <!-- Output filename -->
@@ -288,6 +323,8 @@
             const linkName = document.getElementById('linkName').value.trim();
             const linkUrl = document.getElementById('linkUrl').value.trim();
             const category = document.getElementById('category').value.trim();
+            const password = document.getElementById('tab1Password').value.trim();
+            const namaFile = document.getElementById('tab1Filename').value.trim();
 
             if (!personName || !linkName || !linkUrl) {
                 showNotification('Semua field wajib diisi.', true);
@@ -297,9 +334,12 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
 
-            const { error } = await supabaseClient.from('links').insert([
-                { person_name: personName, name: linkName, url: linkUrl, category: category }
-            ]);
+            // Bangun payload — sertakan password & nama_file jika tersedia
+            const payload = { person_name: personName, name: linkName, url: linkUrl, category: category };
+            if (password) payload.password = password;
+            if (namaFile) payload.nama_file = namaFile;
+
+            const { error } = await supabaseClient.from('links').insert([payload]);
 
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Simpan';
@@ -310,6 +350,11 @@
             } else {
                 showNotification('Konten berhasil ditambahkan.');
                 form.reset();
+                // Bersihkan juga field enkripsi dan sembunyikan wrapper-nya
+                document.getElementById('tab1Password').value = '';
+                document.getElementById('tab1Filename').value = '';
+                document.getElementById('encryptionPasswordWrapper').classList.add('hidden');
+                document.getElementById('encryptionFilenameWrapper').classList.add('hidden');
             }
         });
 
@@ -420,6 +465,44 @@
             return btoa(binary);
         }
 
+        // ─── GENERATE RANDOM AES KEY (100 chars: huruf, angka, simbol, kapital) ───
+        function generateAesKey() {
+            const lower   = 'abcdefghijklmnopqrstuvwxyz';
+            const upper   = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const digits  = '0123456789';
+            const symbols = '!@#$%^&*()-_=+[]{}|;:,.<>?/~`';
+            const allChars = lower + upper + digits + symbols;
+
+            // Pastikan minimal 1 dari setiap kategori
+            const mandatory = [
+                lower  [Math.floor(Math.random() * lower.length)],
+                upper  [Math.floor(Math.random() * upper.length)],
+                digits [Math.floor(Math.random() * digits.length)],
+                symbols[Math.floor(Math.random() * symbols.length)],
+            ];
+
+            const rest = Array.from({ length: 96 }, () =>
+                allChars[Math.floor(Math.random() * allChars.length)]
+            );
+
+            // Gabung & acak posisi
+            const combined = [...mandatory, ...rest];
+            for (let i = combined.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [combined[i], combined[j]] = [combined[j], combined[i]];
+            }
+            return combined.join('');
+        }
+
+        // Generate kunci baru setiap kali file dipilih
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files && fileInput.files.length > 0) {
+                aesKey.value = generateAesKey();
+            } else {
+                aesKey.value = '';
+            }
+        });
+
         // ─── AES ENCRYPT ─────────────────────────────────────────────────────────
         function aesEncrypt(base64Data, key) {
             return CryptoJS.AES.encrypt(base64Data, key).toString();
@@ -429,7 +512,7 @@
         encryptBtn.addEventListener('click', async function () {
             try { getToken(); } catch(e) { showModal('Peringatan', e.message); return; }
             const key = aesKey.value.trim();
-            if (!key) { showModal('Peringatan', 'Masukkan kunci AES terlebih dahulu.'); return; }
+            if (!key) { showModal('Peringatan', 'Pilih file terlebih dahulu agar kunci AES ter-generate otomatis.'); return; }
             if (!fileInput.files || fileInput.files.length === 0) { showModal('Peringatan', 'Pilih file gambar atau video terlebih dahulu.'); return; }
             if (!selectedRepo) { showModal('Peringatan', 'Pilih atau buat repo GitHub terlebih dahulu.'); return; }
 
@@ -477,12 +560,18 @@
                         body: JSON.stringify(body)
                     });
 
-                    setProgress('Mengambil raw URL...', 85);
+                    setProgress('Menyiapkan data ke Tab Tambah Tautan...', 85);
+
+                    // ─── ISI FIELD TAB 1 (password & nama file) ───────────────────
+                    document.getElementById('tab1Password').value = key;
+                    document.getElementById('tab1Filename').value = newFilename;
+                    document.getElementById('encryptionPasswordWrapper').classList.remove('hidden');
+                    document.getElementById('encryptionFilenameWrapper').classList.remove('hidden');
+
+                    setProgress('Selesai!', 100);
 
                     // Build raw URL
                     const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${newFilename}`;
-
-                    setProgress('Selesai!', 100);
 
                     // Auto-fill Tab 1 URL Link
                     document.getElementById('linkUrl').value = rawUrl;
@@ -494,7 +583,7 @@
                     encryptBtn.disabled = false;
                     encryptBtn.innerHTML = '<i class="fas fa-lock mr-2"></i> Enkripsi & Upload ke GitHub';
 
-                    showModal('Berhasil! 🎉', `File terenkripsi berhasil diunggah.\n\nFile: ${newFilename}\nRepo: ${selectedRepo.full_name}\n\nRaw URL sudah otomatis dimasukkan ke kolom URL Link di Tab Tambah Tautan.`);
+                    showModal('Berhasil! 🎉', `File terenkripsi berhasil diunggah.\n\nFile: ${newFilename}\nRepo: ${selectedRepo.full_name}\n\nPassword & nama file sudah otomatis diisi di Tab Tambah Tautan.\nTekan tombol Simpan di sana untuk menyimpan ke Supabase.`);
 
                 } catch (err) {
                     hideProgress();
