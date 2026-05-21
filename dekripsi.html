@@ -8,10 +8,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
-    window.createClient = createClient;
-  </script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
@@ -590,15 +586,15 @@
           <span id="infoFileName" style="font-size:.8125rem;font-weight:600;color:#e2e8f0;word-break:break-all;">-</span>
         </div>
       </div>
-      <!-- Kode Shift & Jenis Enkripsi -->
+      <!-- Password AES & Jenis Enkripsi -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem;">
-        <div>
-          <div style="font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748b;margin-bottom:.375rem;">Kode Shift</div>
+        <div id="infoPasswordRow" style="display:none;">
+          <div style="font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748b;margin-bottom:.375rem;">Password AES</div>
           <div style="display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:.625rem;padding:.625rem .875rem;">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="15" height="15" style="color:#a78bfa;flex-shrink:0;">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 0 1 21.75 8.25Z"/>
             </svg>
-            <span id="infoShift" style="font-size:.8125rem;font-weight:600;color:#e2e8f0;">-</span>
+            <span id="infoPassword" style="font-size:.8125rem;font-weight:600;color:#e2e8f0;word-break:break-all;">-</span>
           </div>
         </div>
         <div>
@@ -691,19 +687,6 @@
   <script>
     function q(name){
       return new URLSearchParams(window.location.search).get(name)||'';
-    }
-
-    function decryptCaesar(text,shift){
-      if(typeof text!=='string')return text;
-      const s=Number(shift);if(isNaN(s))return text;
-      let result='';
-      for(let i=0;i<text.length;i++){
-        let code=text.charCodeAt(i);
-        if(code>=65&&code<=90)code=((code-65-s+260)%26)+65;
-        else if(code>=97&&code<=122)code=((code-97-s+260)%26)+97;
-        result+=String.fromCharCode(code);
-      }
-      return result;
     }
 
     /* ── AES-256-CBC Decrypt ── */
@@ -865,15 +848,16 @@
       if(!person){relatedSection.classList.add('hidden');return;}
       const supabaseUrl='https://qzdvdfebkzlwkhvxwsju.supabase.co';
       const supabaseKey='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
-      const supabase=window.createClient(supabaseUrl,supabaseKey);
-      const currentUrl=q('url');const currentShift=q('shift');
+      const {createClient:_ccR}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm');
+      const supabase=_ccR(supabaseUrl,supabaseKey);
+      const currentUrl=q('url');
       try{
-        const{data,error}=await supabase.from('links').select('id, person_name, name, category, url, shift_code').ilike('person_name',person);
+        const{data,error}=await supabase.from('links').select('id, person_name, name, category, url').ilike('person_name',person);
         if(error)throw error;
         if(!data||data.length<1){relatedSection.classList.add('hidden');return;}
         const grouped={};
         data.forEach(item=>{
-          if(item.url===currentUrl&&item.shift_code===currentShift)return;
+          if(item.url===currentUrl)return;
           const cat=item.category||'Belum Dikategorikan';
           if(!grouped[cat])grouped[cat]=[];
           grouped[cat].push(item);
@@ -892,7 +876,7 @@
             const li=document.createElement('li');
             li.textContent=`${item.person_name||'Anonim'} — ${item.name||'Tanpa Judul'}`;
             li.addEventListener('click',()=>{
-              window.location.href=`dekripsi.html?url=${encodeURIComponent(item.url)}&shift=${encodeURIComponent(item.shift_code)}&person=${encodeURIComponent(item.person_name)}&name=${encodeURIComponent(item.name)}`;
+              window.location.href=`dekripsi.html?url=${encodeURIComponent(item.url)}&person=${encodeURIComponent(item.person_name)}&name=${encodeURIComponent(item.name)}`;
             });
             sublist.appendChild(li);
           });
@@ -1054,12 +1038,30 @@
 
         statusEl.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 text-blue-400 animate-spin"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Mendekripsi konten...`;
 
-        /* ── Pilih metode dekripsi ── */
-        const useAES=!shift||shift===''||shift==='-';
+        /* ── Ambil password AES dari Supabase berdasarkan URL ── */
+        const _supUrl='https://qzdvdfebkzlwkhvxwsju.supabase.co';
+        const _supKey='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
+        const {createClient:_cc}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm');
+        const _supClient=_cc(_supUrl,_supKey);
+        let AES_PASSWORD='';
+        try{
+          const{data:linkRow,error:linkErr}=await _supClient.from('links').select('password').eq('url',url).maybeSingle();
+          if(linkErr)throw linkErr;
+          if(linkRow&&linkRow.password){AES_PASSWORD=linkRow.password;}
+          else{throw new Error('Password tidak ditemukan di database untuk URL ini.');}
+        }catch(e){
+          throw new Error('Gagal mengambil password dari Supabase: '+e.message);
+        }
+
+        // Tampilkan password di Informasi File
+        const pwRow=document.getElementById('infoPasswordRow');
+        const pwEl=document.getElementById('infoPassword');
+        if(pwEl)pwEl.textContent=AES_PASSWORD;
+        if(pwRow)pwRow.style.display='';
+
+        /* ── Dekripsi AES-256-CBC ── */
         let cleaned='';
-        if(useAES){
-          // AES-256-CBC dengan password dakota775
-          const AES_PASSWORD='dakota775';
+        {
           let decryptedBytes;
           try{
             decryptedBytes=await decryptAES(encryptedText.trim(),AES_PASSWORD);
@@ -1074,7 +1076,6 @@
           const isMP4=magic[4]===0x66&&magic[5]===0x74&&magic[6]===0x79&&magic[7]===0x70;
           const isWEBM=magic[0]===0x1A&&magic[1]===0x45;
           if(isPNG||isJPEG||isGIF||isMP4||isWEBM){
-            // Hasil dekripsi sudah binary — langsung buat blob
             if(isPNG)detectedMime='image/png';
             else if(isJPEG)detectedMime='image/jpeg';
             else if(isGIF)detectedMime='image/gif';
@@ -1084,13 +1085,9 @@
             objectUrl=URL.createObjectURL(currentBlob);
             showFileMeta(bytesToMB(currentBlob.size),detectedMime);
           }else{
-            // Coba konversi ke string (mungkin base64 atau teks)
             decryptedContent=new TextDecoder().decode(decryptedBytes);
             cleaned=normalizeBase64(decryptedContent.trim());
           }
-        }else{
-          decryptedContent=decryptCaesar(encryptedText,shift);
-          cleaned=normalizeBase64(decryptedContent.trim());
         }
 
         const looksLikeBase64=!objectUrl&&cleaned&&/^[A-Za-z0-9+/=]+$/.test(cleaned);
@@ -1205,30 +1202,7 @@
         // Sembunyikan status card setelah dekripsi berhasil
         statusEl.closest('.card').classList.add('hidden');
 
-        if(url&&!useAES&&shift){
-          const qrData=`${url} || ${shift}`;
-          const safePerson=(person||'Anonim').replace(/[^a-zA-Z0-9 -]/g,'');
-          const safeName=(name||'Konten').replace(/[^a-zA-Z0-9 -]/g,'');
-          const qrFilename=`${safePerson} - ${safeName} - QR.png`.replace(/  +/g,' ').trim();
-
-          const paddedCanvas=await generateQrCodeWithPadding(qrData,200,10);
-          const qrCanvas=document.getElementById('qrCanvas');
-          qrCanvas.width=paddedCanvas.width;qrCanvas.height=paddedCanvas.height;
-          qrCanvas.getContext('2d').drawImage(paddedCanvas,0,0);
-
-          document.getElementById('qrWrapper').addEventListener('click',()=>{
-            openModalSingle(paddedCanvas.toDataURL('image/png'),qrFilename);
-          });
-
-          document.getElementById('downloadQrBtn').onclick=()=>{
-            const a=document.createElement('a');
-            a.href=paddedCanvas.toDataURL('image/png');
-            a.download=qrFilename;a.click();
-          };
-
-          // qrSection hidden (sidebar removed)
-          // document.getElementById('qrSection').classList.remove('hidden');
-        }
+        // QR code section removed (AES-only mode)
 
         window.addEventListener('beforeunload',()=>{
           if(objectUrl)URL.revokeObjectURL(objectUrl);
@@ -1240,11 +1214,10 @@
       }
     }
 
-    function populateFileInfo(url,shift){
+    function populateFileInfo(url){
       const card=document.getElementById('fileInfoCard');
       const nameEl=document.getElementById('infoFileName');
       const urlEl=document.getElementById('infoRawUrl');
-      const shiftEl=document.getElementById('infoShift');
       const encEl=document.getElementById('infoEncType');
       if(!url){card.style.display='none';return;}
       let fileName='-';
@@ -1258,9 +1231,7 @@
       nameEl.textContent=fileName;
       urlEl.href=url;
       urlEl.textContent=url;
-      const useAES=!shift||shift===''||shift==='-';
-      shiftEl.textContent=useAES?'—':shift;
-      encEl.textContent=useAES?'AES-256-CBC':'Caesar Shift';
+      encEl.textContent='AES-256-CBC';
       card.style.display='';
     }
 
@@ -1282,14 +1253,12 @@
     async function ensureAndRunMain(){
       if(ensureAndRunMain._started)return;
       ensureAndRunMain._started=true;
-      // shift kosong atau '-' → mode AES; jangan default '0'
       const params=new URLSearchParams(window.location.search);
       const url=params.get('url')||'';
-      const shiftRaw=params.has('shift')?params.get('shift'):'';
       const person=params.get('person')||'';
       const name=params.get('name')||'';
-      populateFileInfo(url,shiftRaw);
-      await loadAndDecrypt(url,shiftRaw,person,name);
+      populateFileInfo(url);
+      await loadAndDecrypt(url,'',person,name);
       await fetchRelatedLinks(person);
     }
 
