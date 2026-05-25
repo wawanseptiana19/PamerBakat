@@ -51,6 +51,257 @@
         #progress-bar {
             transition: width 0.3s ease;
         }
+
+        /* Multi-row table */
+        .link-row {
+            display: grid;
+            grid-template-columns: 3fr 4fr 2fr 2fr auto;
+            gap: 6px;
+            align-items: center;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 6px 8px;
+        }
+        .link-row input {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .link-row input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px #bfdbfe; }
+        .link-row input[readonly] {
+            background: #fefce8;
+            border-color: #fde68a;
+            color: #92400e;
+            font-family: monospace;
+            font-size: 0.7rem;
+            cursor: default;
+        }
+        .link-row .del-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+        .link-row .del-btn:hover { background: #fee2e2; }
+
+        /* ── Thumbnail shared ── */
+        .fq-thumb-wrap, .lr-thumb-wrap {
+            flex-shrink: 0;
+        }
+        .fq-thumb, .lr-thumb {
+            width: 44px; height: 44px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            cursor: zoom-in;
+            display: block;
+            transition: transform 0.15s, box-shadow 0.15s;
+            background: #f3f4f6;
+        }
+        .fq-thumb:hover, .lr-thumb:hover {
+            transform: scale(1.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+        }
+        .lr-thumb-empty {
+            width: 32px; height: 32px;
+            border-radius: 6px;
+            border: 1px dashed #d1d5db;
+            display: flex; align-items: center; justify-content: center;
+            background: #f9fafb;
+        }
+
+        /* ── Lightbox ── */
+        #lightbox {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.88);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: lbIn 0.18s ease-out;
+        }
+        #lightbox.open { display: flex; }
+        @keyframes lbIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        #lightbox-inner {
+            position: relative;
+            max-width: 92vw;
+            max-height: 88vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #lightbox-inner img, #lightbox-inner video {
+            max-width: 92vw;
+            max-height: 84vh;
+            border-radius: 10px;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+            object-fit: contain;
+        }
+        #lightbox-close {
+            position: absolute;
+            top: -36px; right: 0;
+            background: none; border: none;
+            color: white; font-size: 1.5rem;
+            cursor: pointer; opacity: 0.8;
+            transition: opacity 0.15s;
+        }
+        #lightbox-close:hover { opacity: 1; }
+
+        /* File queue row */
+        .file-queue-row {
+            display: grid;
+            grid-template-columns: 3fr 4fr 4fr auto;
+            gap: 6px;
+            align-items: center;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 6px 8px;
+        }
+        .file-queue-row .file-name-cell {
+            font-size: 0.75rem;
+            color: #374151;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .file-queue-row input {
+            width: 100%;
+            padding: 5px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            outline: none;
+        }
+        .file-queue-row input:focus { border-color: #10b981; box-shadow: 0 0 0 2px #a7f3d0; }
+        .file-queue-row .pw-field {
+            font-family: monospace;
+            background: #fefce8;
+            border-color: #fde68a;
+            color: #92400e;
+            font-size: 0.65rem;
+        }
+        .file-queue-row .row-actions { display: flex; gap: 4px; }
+        .file-queue-row .row-actions button {
+            background: none; border: none; cursor: pointer;
+            padding: 4px 5px; border-radius: 4px; font-size: 0.75rem;
+            transition: background 0.15s;
+        }
+        .file-queue-row .row-actions .regen-btn { color: #3b82f6; }
+        .file-queue-row .row-actions .regen-btn:hover { background: #dbeafe; }
+        .file-queue-row .row-actions .del-btn { color: #ef4444; }
+        .file-queue-row .row-actions .del-btn:hover { background: #fee2e2; }
+        .file-queue-row.done { border-color: #10b981; background: #f0fdf4; }
+        .file-queue-row.error { border-color: #ef4444; background: #fef2f2; }
+        .status-badge {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 99px;
+            font-weight: 600;
+        }
+
+        /* AUTOCOMPLETE STYLES */
+        .autocomplete-wrapper {
+            position: relative;
+        }
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            box-shadow: 0 12px 24px -4px rgb(0 0 0 / 0.12), 0 4px 8px -2px rgb(0 0 0 / 0.08);
+            max-height: 260px;
+            overflow-y: auto;
+            z-index: 50;
+            margin-top: 6px;
+            display: none;
+            animation: dropIn 0.15s ease-out;
+        }
+        @keyframes dropIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .autocomplete-header {
+            padding: 6px 14px 4px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            color: #9ca3af;
+            text-transform: uppercase;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .autocomplete-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 14px;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+        .autocomplete-item:last-child { border-radius: 0 0 10px 10px; }
+        .autocomplete-item:hover,
+        .autocomplete-item.highlight {
+            background-color: #eff6ff;
+            color: #1d4ed8;
+        }
+        .autocomplete-item .ac-avatar {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            text-transform: uppercase;
+            overflow: hidden;
+            border: 1.5px solid #e5e7eb;
+        }
+        .autocomplete-item .ac-name { flex: 1; }
+        .autocomplete-item .ac-name mark {
+            background: #bfdbfe;
+            color: #1e40af;
+            border-radius: 2px;
+            font-weight: 600;
+            padding: 0 1px;
+        }
+        .autocomplete-item .ac-tab-hint {
+            font-size: 10px;
+            color: #9ca3af;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 1px 5px;
+            font-family: monospace;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+        .autocomplete-item.highlight .ac-tab-hint,
+        .autocomplete-item:first-of-type .ac-tab-hint {
+            opacity: 1;
+        }
+        .autocomplete-empty {
+            padding: 14px 16px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
     </style>
 </head>
 <body class="flex items-start justify-center min-h-screen p-4 bg-gray-100">
@@ -67,91 +318,47 @@
             </button>
         </div>
 
-        <!-- Tab 1: Tambah Tautan -->
+        <!-- Tab 1: Tambah Tautan (Multi-baris) -->
         <div id="tab1-content" class="tab-content">
-            <form id="singleAddForm">
-                <div class="mb-4">
-                    <label for="personName" class="block text-sm font-medium text-gray-700 mb-2">Nama Orang</label>
-                    <input type="text" id="personName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" required>
+            <!-- Header nama orang (shared untuk semua baris) -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Nama Orang</label>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="personName"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                           placeholder="Ketik nama orang..." autocomplete="off">
+                    <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
                 </div>
-                <div class="mb-4">
-                    <label for="linkName" class="block text-sm font-medium text-gray-700 mb-2">Nama Tautan</label>
-                    <input type="text" id="linkName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" required>
-                </div>
-                <div class="mb-4">
-                    <label for="linkUrl" class="block text-sm font-medium text-gray-700 mb-2">URL Link</label>
-                    <input type="url" id="linkUrl" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" placeholder="https://contoh.com" required>
-                </div>
-                <div class="mb-6">
-                    <label for="category" class="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
-                    <input type="text" id="category" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
-                </div>
+            </div>
 
-                <!-- Password enkripsi (dari Tab 2, readonly) -->
-                <div id="encryptionPasswordWrapper" class="mb-4 hidden">
-                    <label for="tab1Password" class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fas fa-key mr-1 text-yellow-500"></i> Password Enkripsi (100 karakter)
-                    </label>
-                    <div class="relative">
-                        <input id="tab1Password" type="text" readonly
-                            class="w-full px-4 py-3 pr-20 border border-yellow-300 rounded-lg bg-yellow-50 cursor-not-allowed text-xs font-mono text-gray-600 tracking-wide">
-                        <span class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full border border-yellow-300 pointer-events-none select-none">
-                            <i class="fas fa-lock text-yellow-500"></i> Terkunci
-                        </span>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-1"><i class="fas fa-info-circle mr-1 text-blue-400"></i>Diisi otomatis dari proses enkripsi. Tidak bisa diubah.</p>
-                </div>
+            <!-- Header kolom -->
+            <div class="grid grid-cols-12 gap-2 mb-1 px-1">
+                <div class="col-span-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Nama Tautan</div>
+                <div class="col-span-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">URL Link</div>
+                <div class="col-span-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Kategori</div>
+                <div class="col-span-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Password / File</div>
+                <div class="col-span-1"></div>
+            </div>
 
-                <!-- Nama file hasil (.pb) (dari Tab 2, readonly) -->
-                <div id="encryptionFilenameWrapper" class="mb-6 hidden">
-                    <label for="tab1Filename" class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fas fa-file-alt mr-1 text-blue-400"></i> Nama File Hasil (.pb)
-                    </label>
-                    <input id="tab1Filename" type="text" readonly
-                        class="w-full px-4 py-3 border border-blue-200 rounded-lg bg-blue-50 cursor-not-allowed text-sm font-mono text-gray-600">
-                    <p class="text-xs text-gray-400 mt-1"><i class="fas fa-info-circle mr-1 text-blue-400"></i>Nama file enkripsi — diisi otomatis, tidak bisa diubah.</p>
-                </div>
+            <!-- Container baris-baris tautan -->
+            <div id="linkRowsContainer" class="space-y-2 mb-3"></div>
 
-                <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
-                    <i class="fas fa-save mr-2"></i> Simpan
-                </button>
-            </form>
+            <!-- Tombol tambah baris -->
+            <button id="addRowBtn" type="button"
+                class="w-full py-2 border-2 border-dashed border-blue-300 text-blue-500 rounded-lg text-sm font-medium hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center justify-center gap-2 mb-4">
+                <i class="fas fa-plus"></i> Tambah Baris
+            </button>
+
+            <!-- Simpan semua -->
+            <button id="saveAllBtn" type="button"
+                class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
+                <i class="fas fa-save mr-2"></i> Simpan Semua
+            </button>
             <div id="notification" class="mt-4 text-center text-sm font-medium transition-opacity duration-300 opacity-0"></div>
         </div>
 
-        <!-- Tab 2: Enkripsi File -->
+        <!-- Tab 2: Enkripsi Multi-File -->
         <div id="tab2-content" class="tab-content tab-hidden">
-
-            <!-- File Input -->
-            <div class="mb-4">
-                <label for="fileInput" class="block text-sm font-medium text-gray-700 mb-2">Pilih gambar atau video</label>
-                <input id="fileInput" type="file" class="w-full px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" accept="image/*,video/*">
-            </div>
-
-            <!-- AES Key -->
-            <div class="mb-4">
-                <label for="aesKey" class="block text-sm font-medium text-gray-700 mb-2">
-                    <i class="fas fa-key mr-1 text-yellow-500"></i> Kunci AES (password enkripsi)
-                </label>
-                <div class="relative">
-                    <input id="aesKey" type="text" readonly
-                        placeholder="Pilih file untuk generate kunci otomatis..."
-                        class="w-full px-4 py-3 pr-24 border border-yellow-300 rounded-lg bg-yellow-50 cursor-not-allowed text-xs font-mono text-gray-600 tracking-wide">
-                    <span class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full border border-yellow-300 pointer-events-none select-none">
-                        <i class="fas fa-lock text-yellow-500"></i> Auto
-                    </span>
-                </div>
-                <p class="text-xs text-gray-400 mt-1">
-                    <i class="fas fa-info-circle mr-1 text-blue-400"></i>
-                    Kunci 100 karakter acak — di-generate otomatis setiap pilih file. Disimpan ke Supabase setelah enkripsi.
-                </p>
-            </div>
-
-            <!-- Output filename -->
-            <div class="mb-4">
-                <label for="filenameDisplay" class="block text-sm font-medium text-gray-700 mb-2">Nama file hasil (.pb)</label>
-                <input id="filenameDisplay" type="text" readonly class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
-            </div>
 
             <!-- GitHub Repo Section -->
             <div class="border border-gray-200 rounded-lg p-4 mb-4 bg-white">
@@ -161,27 +368,17 @@
                         <i class="fas fa-sync-alt mr-1"></i> Muat Repo
                     </button>
                 </div>
-
-                <!-- GitHub Token: otomatis diambil dari Supabase -->
                 <div class="mb-3">
                     <div id="tokenStatusBadge" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs text-gray-500">
                         <i class="fas fa-circle-notch fa-spin text-gray-400"></i>
                         <span id="tokenStatusText">Mengambil token dari Supabase...</span>
                     </div>
                 </div>
-
-                <!-- Repo List -->
-                <div id="repoList" class="max-h-36 overflow-y-auto border border-gray-200 rounded-lg mb-3 hidden">
-                    <!-- repos populated here -->
-                </div>
-
-                <!-- Selected repo display -->
+                <div id="repoList" class="max-h-36 overflow-y-auto border border-gray-200 rounded-lg mb-3 hidden"></div>
                 <div id="selectedRepoDisplay" class="hidden mb-3">
                     <span class="text-xs text-gray-500">Repo dipilih:</span>
                     <span id="selectedRepoName" class="ml-1 text-sm font-semibold text-blue-600"></span>
                 </div>
-
-                <!-- Create new repo -->
                 <div class="flex gap-2">
                     <input id="newRepoName" type="text" placeholder="Nama repo baru..."
                         class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400">
@@ -191,23 +388,53 @@
                 </div>
             </div>
 
-            <!-- Progress -->
+            <!-- Antrian file -->
+            <div class="mb-3">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-gray-700">Antrian File</span>
+                    <label class="text-xs bg-green-600 text-white px-3 py-1 rounded-full hover:bg-green-700 cursor-pointer transition-colors">
+                        <i class="fas fa-plus mr-1"></i> Tambah File
+                        <input id="fileQueueInput" type="file" accept="image/*,video/*" multiple class="hidden">
+                    </label>
+                </div>
+
+                <!-- Header kolom antrian -->
+                <div class="grid grid-cols-12 gap-2 mb-1 px-1">
+                    <div class="col-span-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">File</div>
+                    <div class="col-span-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Nama File Output</div>
+                    <div class="col-span-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Password (auto)</div>
+                    <div class="col-span-1"></div>
+                </div>
+
+                <div id="fileQueueContainer" class="space-y-2 mb-3 max-h-64 overflow-y-auto"></div>
+
+                <p class="text-xs text-gray-400"><i class="fas fa-info-circle mr-1 text-blue-400"></i>Setiap file mendapat password & nama file unik. Klik <i class="fas fa-sync-alt"></i> untuk generate ulang.</p>
+            </div>
+
+            <!-- Progress per file -->
             <div id="progressContainer" class="hidden mb-4">
                 <div class="flex justify-between text-xs text-gray-500 mb-1">
                     <span id="progressLabel">Mengenkripsi...</span>
                     <span id="progressPercent">0%</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div id="progress-bar" class="bg-blue-500 h-2 rounded-full" style="width:0%"></div>
+                    <div id="progress-bar" class="bg-green-500 h-2 rounded-full" style="width:0%"></div>
                 </div>
             </div>
 
-            <!-- Encrypt Button -->
+            <!-- Tombol enkripsi semua -->
             <button id="encryptBtn" class="w-full bg-green-600 text-white font-semibold py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center mt-2">
-                <i class="fas fa-lock mr-2"></i> Enkripsi & Upload ke GitHub
+                <i class="fas fa-lock mr-2"></i> Enkripsi & Upload Semua ke GitHub
             </button>
-
             <p class="text-xs text-gray-400 mt-4 text-center">Teknik: File &rarr; Base64 &rarr; <strong>AES-256</strong> &rarr; Upload GitHub &rarr; Raw URL otomatis ke Tab 1</p>
+        </div>
+    </div>
+
+    <!-- Lightbox -->
+    <div id="lightbox">
+        <div id="lightbox-inner">
+            <button id="lightbox-close" title="Tutup (Esc)"><i class="fas fa-times"></i></button>
+            <!-- content injected by JS -->
         </div>
     </div>
 
@@ -227,8 +454,10 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let GITHUB_TOKEN = null; // diambil dari Supabase secara otomatis
+        let GITHUB_TOKEN = null;
         const GITHUB_API = 'https://api.github.com';
+
+        let allPersonNames = []; // untuk autocomplete
 
         // ─── AMBIL TOKEN DARI SUPABASE ───────────────────────────────────────────
         async function loadGithubToken() {
@@ -250,41 +479,273 @@
                 badge.innerHTML = `<i class="fas fa-exclamation-circle text-red-500"></i><span>Gagal ambil token: ${err.message}</span>`;
             }
         }
-        // Langsung load saat halaman dibuka
         loadGithubToken();
 
-        // ─── UI ELEMENTS ─────────────────────────────────────────────────────────
-        const tab1Btn = document.getElementById('tab1-btn');
-        const tab2Btn = document.getElementById('tab2-btn');
-        const tab1Content = document.getElementById('tab1-content');
-        const tab2Content = document.getElementById('tab2-content');
-        const form = document.getElementById('singleAddForm');
-        const notification = document.getElementById('notification');
-        const fileInput = document.getElementById('fileInput');
-        const aesKey = document.getElementById('aesKey');
-        const filenameDisplay = document.getElementById('filenameDisplay');
-        const encryptBtn = document.getElementById('encryptBtn');
-        const modalContainer = document.getElementById('modal-container');
-        const modalTitle = document.getElementById('modal-title');
-        const modalMessage = document.getElementById('modal-message');
-        const modalCloseBtn = document.getElementById('modal-close-btn');
-        const loadReposBtn = document.getElementById('loadReposBtn');
-        const repoList = document.getElementById('repoList');
-        const createRepoBtn = document.getElementById('createRepoBtn');
-        const newRepoName = document.getElementById('newRepoName');
-        const selectedRepoDisplay = document.getElementById('selectedRepoDisplay');
-        const selectedRepoNameEl = document.getElementById('selectedRepoName');
-        const progressContainer = document.getElementById('progressContainer');
-        const progressBar = document.getElementById('progress-bar');
-        const progressLabel = document.getElementById('progressLabel');
-        const progressPercent = document.getElementById('progressPercent');
+        // ─── LOAD PERSON NAMES + FOTO UNTUK AUTOCOMPLETE ────────────────────────
+        async function loadPersonNames() {
+            try {
+                // 1. Ambil unique person_name dari tabel links
+                const { data, error } = await supabaseClient
+                    .from('links')
+                    .select('person_name')
+                    .order('person_name');
+                if (error) throw error;
 
-        let selectedRepo = null; // { full_name, name, owner }
-        let ghUsername = null;
+                const uniqueNames = [...new Set(data.map(item => item.person_name).filter(Boolean))].sort();
+
+                // 2. Ambil daftar file di bucket person-photos
+                const { data: files, error: storageErr } = await supabaseClient
+                    .storage
+                    .from('person-photos')
+                    .list('', { limit: 500 });
+
+                // Buat map: nama_file_tanpa_ekstensi (lowercase) → public URL
+                const photoMap = {};
+                if (!storageErr && files) {
+                    files.forEach(file => {
+                        const baseName = file.name.replace(/\.[^.]+$/, '').toLowerCase().trim().replace(/\s+/g, '-');
+                        const { data: urlData } = supabaseClient
+                            .storage
+                            .from('person-photos')
+                            .getPublicUrl(file.name);
+                        photoMap[baseName] = urlData.publicUrl;
+                    });
+                }
+
+                // 3. Gabungkan nama + foto
+                allPersonNames = uniqueNames.map(name => ({
+                    name,
+                    photoUrl: photoMap[name.toLowerCase().trim().replace(/\s+/g, '-')] || null
+                }));
+
+            } catch (err) {
+                console.warn('Gagal memuat daftar nama orang:', err.message);
+                allPersonNames = [];
+            }
+        }
+
+
+        // ─── GENERIC AUTOCOMPLETE FACTORY ───────────────────────────────────────
+        function createAutocomplete({ inputId, dropdownId, getList, nextInputId, iconClass, headerLabel }) {
+            const input    = document.getElementById(inputId);
+            const dropdown = document.getElementById(dropdownId);
+            let currentFocus = -1;
+
+            function getInitials(name) {
+                return name.trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+            }
+
+            function highlightMatch(name, query) {
+                if (!query) return document.createTextNode(name);
+                const idx = name.toLowerCase().indexOf(query.toLowerCase());
+                if (idx === -1) return document.createTextNode(name);
+                const span = document.createElement('span');
+                span.appendChild(document.createTextNode(name.slice(0, idx)));
+                const mark = document.createElement('mark');
+                mark.textContent = name.slice(idx, idx + query.length);
+                span.appendChild(mark);
+                span.appendChild(document.createTextNode(name.slice(idx + query.length)));
+                return span;
+            }
+
+            function showSuggestions(filtered, query = '') {
+                dropdown.innerHTML = '';
+                currentFocus = -1;
+
+                if (filtered.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'autocomplete-empty';
+                    empty.innerHTML = `<i class="fas fa-search mr-1"></i> Tidak ditemukan`;
+                    dropdown.appendChild(empty);
+                    dropdown.style.display = 'block';
+                    return;
+                }
+
+                const header = document.createElement('div');
+                header.className = 'autocomplete-header';
+                header.textContent = query ? `${filtered.length} hasil ditemukan` : (headerLabel || 'Semua');
+                dropdown.appendChild(header);
+
+                filtered.forEach((item) => {
+                    // item bisa berupa objek {name, photoUrl} atau string biasa
+                    const displayValue = (typeof item === 'object') ? item.name : item;
+                    const photoUrl     = (typeof item === 'object') ? item.photoUrl : null;
+
+                    const div = document.createElement('div');
+                    div.className = 'autocomplete-item';
+                    div.dataset.fullValue = displayValue;
+
+                    // ── Avatar: foto jika ada, inisial jika tidak ──
+                    const avatar = document.createElement('div');
+                    avatar.className = 'ac-avatar';
+                    if (iconClass) {
+                        avatar.innerHTML = `<i class="${iconClass}" style="font-size:12px"></i>`;
+                    } else if (photoUrl) {
+                        const img = document.createElement('img');
+                        img.src = photoUrl;
+                        img.alt = displayValue;
+                        img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%';
+                        img.onerror = () => {
+                            // Fallback ke inisial jika foto gagal dimuat
+                            avatar.innerHTML = '';
+                            avatar.textContent = getInitials(displayValue);
+                        };
+                        avatar.appendChild(img);
+                    } else {
+                        avatar.textContent = getInitials(displayValue);
+                    }
+
+                    const nameEl = document.createElement('div');
+                    nameEl.className = 'ac-name';
+                    nameEl.appendChild(highlightMatch(displayValue, query));
+
+                    const hint = document.createElement('span');
+                    hint.className = 'ac-tab-hint';
+                    hint.textContent = 'Tab ↹';
+
+                    div.appendChild(avatar);
+                    div.appendChild(nameEl);
+                    div.appendChild(hint);
+
+                    div.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        input.value = displayValue;
+                        dropdown.style.display = 'none';
+                        currentFocus = -1;
+                        input.focus();
+                    });
+
+                    dropdown.appendChild(div);
+                });
+
+                dropdown.style.display = 'block';
+            }
+
+            function getItems() {
+                return dropdown.querySelectorAll('.autocomplete-item');
+            }
+
+            function doHighlight(items) {
+                items.forEach(i => i.classList.remove('highlight'));
+                if (currentFocus >= 0 && items[currentFocus]) {
+                    items[currentFocus].classList.add('highlight');
+                    items[currentFocus].scrollIntoView({ block: 'nearest' });
+                }
+            }
+
+            function filterList(list, query) {
+                if (!query) return list;
+                const q = query.toLowerCase();
+                return list.filter(item => {
+                    const name = (typeof item === 'object') ? item.name : item;
+                    return name.toLowerCase().includes(q);
+                });
+            }
+
+            input.addEventListener('input', () => {
+                const query = input.value.trim();
+                const list = getList();
+                showSuggestions(filterList(list, query), query);
+            });
+
+            input.addEventListener('keydown', (e) => {
+                const items = getItems();
+                const isOpen = dropdown.style.display !== 'none';
+
+                if (e.key === 'ArrowDown') {
+                    if (!isOpen) { showSuggestions(getList(), ''); return; }
+                    e.preventDefault();
+                    currentFocus = (currentFocus + 1) % items.length;
+                    doHighlight(items);
+                } else if (e.key === 'ArrowUp') {
+                    if (!isOpen) return;
+                    e.preventDefault();
+                    currentFocus = (currentFocus - 1 + items.length) % items.length;
+                    doHighlight(items);
+                } else if (e.key === 'Enter') {
+                    if (!isOpen) return;
+                    e.preventDefault();
+                    const target = currentFocus >= 0 ? items[currentFocus] : items[0];
+                    if (target) {
+                        input.value = target.dataset.fullValue;
+                        dropdown.style.display = 'none';
+                        currentFocus = -1;
+                    }
+                } else if (e.key === 'Tab') {
+                    if (isOpen && items.length > 0) {
+                        e.preventDefault();
+                        const target = currentFocus >= 0 ? items[currentFocus] : items[0];
+                        input.value = target.dataset.fullValue;
+                        dropdown.style.display = 'none';
+                        currentFocus = -1;
+                        if (nextInputId) setTimeout(() => document.getElementById(nextInputId).focus(), 0);
+                    }
+                } else if (e.key === 'Escape') {
+                    dropdown.style.display = 'none';
+                    currentFocus = -1;
+                }
+            });
+
+            input.addEventListener('focus', () => {
+                const query = input.value.trim();
+                const list = getList();
+                if (list.length > 0) {
+                    showSuggestions(filterList(list, query), query);
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                    currentFocus = -1;
+                }
+            });
+        }
+
+        function setupAutocomplete() {
+            createAutocomplete({
+                inputId:    'personName',
+                dropdownId: 'autocompleteDropdown',
+                getList:    () => allPersonNames,
+                nextInputId:'linkName',
+                headerLabel:'Semua nama'
+            });
+        }
+
+        // ─── UI ELEMENTS ─────────────────────────────────────────────────────────
+        const tab1Btn           = document.getElementById('tab1-btn');
+        const tab2Btn           = document.getElementById('tab2-btn');
+        const tab1Content       = document.getElementById('tab1-content');
+        const tab2Content       = document.getElementById('tab2-content');
+        const notification      = document.getElementById('notification');
+        const encryptBtn        = document.getElementById('encryptBtn');
+        const modalContainer    = document.getElementById('modal-container');
+        const modalTitle        = document.getElementById('modal-title');
+        const modalMessage      = document.getElementById('modal-message');
+        const modalCloseBtn     = document.getElementById('modal-close-btn');
+        const loadReposBtn      = document.getElementById('loadReposBtn');
+        const repoList          = document.getElementById('repoList');
+        const createRepoBtn     = document.getElementById('createRepoBtn');
+        const newRepoName       = document.getElementById('newRepoName');
+        const selectedRepoDisplay = document.getElementById('selectedRepoDisplay');
+        const selectedRepoNameEl  = document.getElementById('selectedRepoName');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar       = document.getElementById('progress-bar');
+        const progressLabel     = document.getElementById('progressLabel');
+        const progressPercent   = document.getElementById('progressPercent');
+        const linkRowsContainer = document.getElementById('linkRowsContainer');
+        const addRowBtn         = document.getElementById('addRowBtn');
+        const saveAllBtn        = document.getElementById('saveAllBtn');
+        const fileQueueInput    = document.getElementById('fileQueueInput');
+        const fileQueueContainer= document.getElementById('fileQueueContainer');
+
+        let selectedRepo = null;
+        let ghUsername   = null;
+        let fileQueue    = []; // [{file, outputName, password, status}]
 
         // ─── MODAL ────────────────────────────────────────────────────────────────
         function showModal(title, message) {
-            modalTitle.textContent = title;
+            modalTitle.textContent   = title;
             modalMessage.textContent = message;
             modalContainer.classList.add('show');
         }
@@ -308,7 +769,7 @@
         tab1Btn.addEventListener('click', () => switchTab(1));
         tab2Btn.addEventListener('click', () => switchTab(2));
 
-        // ─── TAB 1: SIMPAN KE SUPABASE ────────────────────────────────────────────
+        // ─── NOTIFICATION ─────────────────────────────────────────────────────────
         function showNotification(msg, isError = false) {
             notification.textContent = msg;
             notification.style.opacity = 1;
@@ -317,48 +778,117 @@
             setTimeout(() => { notification.style.opacity = 0; }, 3500);
         }
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const personName = document.getElementById('personName').value.trim();
-            const linkName = document.getElementById('linkName').value.trim();
-            const linkUrl = document.getElementById('linkUrl').value.trim();
-            const category = document.getElementById('category').value.trim();
-            const password = document.getElementById('tab1Password').value.trim();
-            const namaFile = document.getElementById('tab1Filename').value.trim();
+        // ─── TAB 1: MULTI-BARIS TAMBAH TAUTAN ────────────────────────────────────
+        let rowCount = 0;
 
-            if (!personName || !linkName || !linkUrl) {
-                showNotification('Semua field wajib diisi.', true);
+        function createLinkRow(prefill = {}) {
+            rowCount++;
+            const id = rowCount;
+            const row = document.createElement('div');
+            row.className = 'link-row';
+            row.dataset.rowId = id;
+
+            // Thumbnail untuk baris dari enkripsi
+            let thumbHtml = '';
+            if (prefill.previewUrl) {
+                if (prefill.isVideo) {
+                    thumbHtml = `<video src="${prefill.previewUrl}" class="lr-thumb" muted playsinline preload="metadata" data-src="${prefill.previewUrl}" data-type="video"></video>`;
+                } else {
+                    thumbHtml = `<img src="${prefill.previewUrl}" class="lr-thumb" data-src="${prefill.previewUrl}" data-type="image" alt="">`;
+                }
+            } else {
+                thumbHtml = `<div class="lr-thumb-empty"><i class="fas fa-link" style="font-size:10px;color:#9ca3af;"></i></div>`;
+            }
+
+            row.innerHTML = `
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <div class="lr-thumb-wrap">${thumbHtml}</div>
+                    <input type="text" class="row-linkname" placeholder="Nama tautan" value="${prefill.name || ''}" style="flex:1;">
+                </div>
+                <input type="text"  class="row-linkurl"  placeholder="https://..." value="${prefill.url || ''}">
+                <input type="text"  class="row-category" placeholder="Kategori"    value="${prefill.category || ''}">
+                <div style="display:flex;gap:4px;align-items:center;">
+                    <input type="text" class="row-password" readonly placeholder="—"
+                        value="${prefill.password || ''}"
+                        style="flex:1;padding:5px 6px;border:1px solid ${prefill.password ? '#fde68a' : '#e5e7eb'};
+                               border-radius:6px;font-size:0.65rem;font-family:monospace;
+                               background:${prefill.password ? '#fefce8' : '#f9fafb'};
+                               color:${prefill.password ? '#92400e' : '#9ca3af'};cursor:default;"
+                        title="${prefill.password || ''}">
+                    ${prefill.namaFile ? `<span style="font-size:0.6rem;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60px;" title="${prefill.namaFile}">${prefill.namaFile}</span>` : ''}
+                </div>
+                <button class="del-btn" title="Hapus baris"><i class="fas fa-times"></i></button>
+            `;
+
+            // Thumbnail click → lightbox
+            const thumb = row.querySelector('.lr-thumb');
+            if (thumb) {
+                thumb.addEventListener('click', () => openLightbox(prefill.previewUrl, prefill.isVideo));
+            }
+
+            row.querySelector('.del-btn').addEventListener('click', () => row.remove());
+            linkRowsContainer.appendChild(row);
+            return row;
+        }
+
+        // Mulai dengan 1 baris kosong
+        createLinkRow();
+
+        addRowBtn.addEventListener('click', () => {
+            createLinkRow();
+            // fokus ke nama tautan baris baru
+            const rows = linkRowsContainer.querySelectorAll('.link-row');
+            rows[rows.length - 1].querySelector('.row-linkname').focus();
+        });
+
+        saveAllBtn.addEventListener('click', async () => {
+            const personName = document.getElementById('personName').value.trim();
+            if (!personName) { showNotification('Nama orang wajib diisi.', true); return; }
+
+            const rows = [...linkRowsContainer.querySelectorAll('.link-row')];
+            const payloads = [];
+
+            for (const row of rows) {
+                const name     = row.querySelector('.row-linkname').value.trim();
+                const url      = row.querySelector('.row-linkurl').value.trim();
+                const category = row.querySelector('.row-category').value.trim();
+                const password = row.querySelector('.row-password').value.trim();
+                const namaFile = row.querySelector('span[title]')?.getAttribute('title') || '';
+
+                if (!name || !url) continue; // lewati baris kosong
+
+                const p = { person_name: personName, name, url, category };
+                if (password) p.password = password;
+                if (namaFile) p.nama_file = namaFile;
+                payloads.push(p);
+            }
+
+            if (payloads.length === 0) {
+                showNotification('Tidak ada baris valid untuk disimpan.', true);
                 return;
             }
-            const submitBtn = form.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
 
-            // Bangun payload — sertakan password & nama_file jika tersedia
-            const payload = { person_name: personName, name: linkName, url: linkUrl, category: category };
-            if (password) payload.password = password;
-            if (namaFile) payload.nama_file = namaFile;
+            saveAllBtn.disabled = true;
+            saveAllBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan...';
 
-            const { error } = await supabaseClient.from('links').insert([payload]);
+            const { error } = await supabaseClient.from('links').insert(payloads);
 
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Simpan';
+            saveAllBtn.disabled = false;
+            saveAllBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Simpan Semua';
 
             if (error) {
                 console.error(error);
-                showNotification('Gagal menyimpan konten.', true);
+                showNotification('Gagal menyimpan. ' + error.message, true);
             } else {
-                showNotification('Konten berhasil ditambahkan.');
-                form.reset();
-                // Bersihkan juga field enkripsi dan sembunyikan wrapper-nya
-                document.getElementById('tab1Password').value = '';
-                document.getElementById('tab1Filename').value = '';
-                document.getElementById('encryptionPasswordWrapper').classList.add('hidden');
-                document.getElementById('encryptionFilenameWrapper').classList.add('hidden');
+                showNotification(`${payloads.length} tautan berhasil disimpan!`);
+                linkRowsContainer.innerHTML = '';
+                rowCount = 0;
+                createLinkRow();
+                await loadPersonNames();
             }
         });
 
-        // ─── GITHUB HELPERS ──────────────────────────────────────────────────────
+        // ─── GITHUB HELPERS ───────────────────────────────────────────────────────
         async function ghFetch(path, options = {}) {
             const res = await fetch(`${GITHUB_API}${path}`, {
                 ...options,
@@ -381,226 +911,332 @@
             return ghUsername;
         }
 
-        // Helper: pastikan token sudah tersedia sebelum request GitHub
         function getToken() {
-            if (!GITHUB_TOKEN) throw new Error('Token GitHub belum siap. Tunggu sebentar atau cek koneksi Supabase.');
+            if (!GITHUB_TOKEN) throw new Error('Token GitHub belum siap.');
             return GITHUB_TOKEN;
         }
 
-        // ─── LOAD REPOS ──────────────────────────────────────────────────────────
-        loadReposBtn.addEventListener('click', async () => {
-            try { getToken(); } catch(e) { showModal('Peringatan', e.message); return; }
-            loadReposBtn.disabled = true;
-            loadReposBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Memuat...';
-            try {
-                const repos = await ghFetch('/user/repos?per_page=100&sort=updated');
-                repoList.innerHTML = '';
-                if (repos.length === 0) {
-                    repoList.innerHTML = '<p class="text-xs text-gray-400 p-3">Belum ada repo.</p>';
-                } else {
-                    repos.forEach(r => {
-                        const div = document.createElement('div');
-                        div.className = 'repo-item border-b border-gray-100 px-3 py-2 flex items-center gap-2';
-                        div.innerHTML = `<i class="fab fa-github text-gray-400 text-xs"></i><span class="text-sm text-gray-700">${r.full_name}</span>`;
-                        div.addEventListener('click', () => {
-                            document.querySelectorAll('.repo-item').forEach(el => el.classList.remove('selected'));
-                            div.classList.add('selected');
-                            selectedRepo = { full_name: r.full_name, name: r.name, owner: r.owner.login };
-                            selectedRepoNameEl.textContent = r.full_name;
-                            selectedRepoDisplay.classList.remove('hidden');
-                        });
-                        repoList.appendChild(div);
-                    });
-                }
-                repoList.classList.remove('hidden');
-            } catch (err) {
-                showModal('Gagal', 'Tidak bisa memuat repo: ' + err.message);
-            }
-            loadReposBtn.disabled = false;
-            loadReposBtn.innerHTML = '<i class="fas fa-sync-alt mr-1"></i> Muat Repo';
-        });
-
-        // ─── CREATE REPO ─────────────────────────────────────────────────────────
-        createRepoBtn.addEventListener('click', async () => {
-            const name = newRepoName.value.trim().replace(/\s+/g, '-');
-            if (!name) { showModal('Peringatan', 'Masukkan nama repo terlebih dahulu.'); return; }
-            try { getToken(); } catch(e) { showModal('Peringatan', e.message); return; }
-            createRepoBtn.disabled = true;
-            createRepoBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>';
-            try {
-                const repo = await ghFetch('/user/repos', {
-                    method: 'POST',
-                    body: JSON.stringify({ name, private: false, auto_init: true })
-                });
-                selectedRepo = { full_name: repo.full_name, name: repo.name, owner: repo.owner.login };
-                selectedRepoNameEl.textContent = repo.full_name;
-                selectedRepoDisplay.classList.remove('hidden');
-                newRepoName.value = '';
-                showModal('Berhasil', `Repo "${repo.full_name}" berhasil dibuat dan dipilih.`);
-            } catch (err) {
-                showModal('Gagal', 'Gagal membuat repo: ' + err.message);
-            }
-            createRepoBtn.disabled = false;
-            createRepoBtn.innerHTML = '<i class="fas fa-plus mr-1"></i> Buat Repo';
-        });
-
-        // ─── SET PROGRESS ─────────────────────────────────────────────────────────
-        function setProgress(label, pct) {
-            progressContainer.classList.remove('hidden');
-            progressLabel.textContent = label;
-            progressPercent.textContent = pct + '%';
-            progressBar.style.width = pct + '%';
-        }
-        function hideProgress() { progressContainer.classList.add('hidden'); }
-
-        // ─── BASE64 SAFE ENCODER FOR GITHUB ──────────────────────────────────────
-        function toGitHubBase64(str) {
-            const bytes = new TextEncoder().encode(str);
-            let binary = '';
-            const chunkSize = 8192;
-            for (let i = 0; i < bytes.length; i += chunkSize) {
-                const chunk = bytes.subarray(i, i + chunkSize);
-                binary += String.fromCharCode(...chunk);
-            }
-            return btoa(binary);
-        }
-
-        // ─── GENERATE RANDOM AES KEY (100 chars: huruf, angka, simbol, kapital) ───
         function generateAesKey() {
-            const lower   = 'abcdefghijklmnopqrstuvwxyz';
-            const upper   = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            const digits  = '0123456789';
-            const symbols = '!@#$%^&*()-_=+[]{}|;:,.<>?/~`';
-            const allChars = lower + upper + digits + symbols;
-
-            // Pastikan minimal 1 dari setiap kategori
-            const mandatory = [
-                lower  [Math.floor(Math.random() * lower.length)],
-                upper  [Math.floor(Math.random() * upper.length)],
-                digits [Math.floor(Math.random() * digits.length)],
-                symbols[Math.floor(Math.random() * symbols.length)],
-            ];
-
-            const rest = Array.from({ length: 96 }, () =>
-                allChars[Math.floor(Math.random() * allChars.length)]
-            );
-
-            // Gabung & acak posisi
-            const combined = [...mandatory, ...rest];
-            for (let i = combined.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [combined[i], combined[j]] = [combined[j], combined[i]];
-            }
-            return combined.join('');
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+            let key = '';
+            for (let i = 0; i < 100; i++) key += chars[Math.floor(Math.random() * chars.length)];
+            return key;
         }
 
-        // Generate kunci baru setiap kali file dipilih
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files && fileInput.files.length > 0) {
-                aesKey.value = generateAesKey();
-            } else {
-                aesKey.value = '';
-            }
-        });
+        function generateOutputName() {
+            // Nama acak murni, tidak ada jejak nama file asli
+            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            let name = '';
+            for (let i = 0; i < 16; i++) name += chars[Math.floor(Math.random() * chars.length)];
+            return name + '.pb';
+        }
 
-        // ─── AES ENCRYPT ─────────────────────────────────────────────────────────
+        function toGitHubBase64(str) {
+            return btoa(unescape(encodeURIComponent(str)));
+        }
+
         function aesEncrypt(base64Data, key) {
             return CryptoJS.AES.encrypt(base64Data, key).toString();
         }
 
-        // ─── ENCRYPT & UPLOAD ─────────────────────────────────────────────────────
-        encryptBtn.addEventListener('click', async function () {
-            try { getToken(); } catch(e) { showModal('Peringatan', e.message); return; }
-            const key = aesKey.value.trim();
-            if (!key) { showModal('Peringatan', 'Pilih file terlebih dahulu agar kunci AES ter-generate otomatis.'); return; }
-            if (!fileInput.files || fileInput.files.length === 0) { showModal('Peringatan', 'Pilih file gambar atau video terlebih dahulu.'); return; }
-            if (!selectedRepo) { showModal('Peringatan', 'Pilih atau buat repo GitHub terlebih dahulu.'); return; }
+        function setProgress(label, pct) {
+            progressContainer.classList.remove('hidden');
+            progressLabel.textContent  = label;
+            progressPercent.textContent = pct + '%';
+            progressBar.style.width    = pct + '%';
+        }
+
+        function hideProgress() {
+            progressContainer.classList.add('hidden');
+            progressBar.style.width = '0%';
+        }
+
+        // ─── TAB 2: ANTRIAN FILE ──────────────────────────────────────────────────
+        function renderFileQueueRow(idx) {
+            const item = fileQueue[idx];
+            let row = document.querySelector(`.file-queue-row[data-idx="${idx}"]`);
+            if (!row) {
+                row = document.createElement('div');
+                row.className = 'file-queue-row';
+                row.dataset.idx = idx;
+                fileQueueContainer.appendChild(row);
+            }
+            const statusHtml = item.status === 'done'
+                ? '<span class="status-badge" style="background:#d1fae5;color:#065f46;">✓ Selesai</span>'
+                : item.status === 'error'
+                ? '<span class="status-badge" style="background:#fee2e2;color:#991b1b;">✗ Error</span>'
+                : item.status === 'processing'
+                ? '<span class="status-badge" style="background:#dbeafe;color:#1e40af;">⏳</span>'
+                : '';
+
+            // Thumbnail HTML
+            const thumbHtml = item.isVideo
+                ? `<video src="${item.previewUrl}" class="fq-thumb" muted playsinline preload="metadata" data-idx="${idx}" data-type="video"></video>`
+                : `<img src="${item.previewUrl}" class="fq-thumb" data-idx="${idx}" data-type="image" alt="">`;
+
+            row.innerHTML = `
+                <div class="file-name-cell" title="${item.file.name}">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div class="fq-thumb-wrap">${thumbHtml}</div>
+                        <div>
+                            <div style="font-size:0.75rem;font-weight:600;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;">${item.file.name}</div>
+                            <div style="font-size:0.6rem;color:#9ca3af;">${(item.file.size/1024).toFixed(1)} KB</div>
+                            ${statusHtml}
+                        </div>
+                    </div>
+                </div>
+                <input type="text" value="${item.outputName}" placeholder="nama-output.pb"
+                    style="font-size:0.75rem;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;outline:none;"
+                    ${item.status === 'done' ? 'disabled' : ''}>
+                <input type="text" class="pw-field" value="${item.password}" readonly
+                    title="${item.password}" ${item.status === 'done' ? 'disabled' : ''}>
+                <div class="row-actions">
+                    ${item.status !== 'done' ? `<button class="regen-btn" title="Generate ulang password"><i class="fas fa-sync-alt"></i></button>` : ''}
+                    <button class="del-btn" title="Hapus"><i class="fas fa-times"></i></button>
+                </div>
+            `;
+
+            // Thumbnail click → lightbox
+            const thumb = row.querySelector('.fq-thumb');
+            if (thumb) thumb.addEventListener('click', () => openLightbox(item.previewUrl, item.isVideo));
+
+            // Events
+            const nameInput = row.querySelectorAll('input')[0];
+            nameInput.addEventListener('input', e => { fileQueue[idx].outputName = e.target.value; });
+
+            const regenBtn = row.querySelector('.regen-btn');
+            if (regenBtn) {
+                regenBtn.addEventListener('click', () => {
+                    fileQueue[idx].password = generateAesKey();
+                    renderFileQueueRow(idx);
+                });
+            }
+
+            row.querySelector('.del-btn').addEventListener('click', () => {
+                fileQueue.splice(idx, 1);
+                renderAllFileQueueRows();
+            });
+
+            if (item.status === 'done') row.classList.add('done');
+            if (item.status === 'error') row.classList.add('error');
+        }
+
+        function renderAllFileQueueRows() {
+            fileQueueContainer.innerHTML = '';
+            fileQueue.forEach((_, i) => renderFileQueueRow(i));
+        }
+
+        fileQueueInput.addEventListener('change', () => {
+            const files = [...fileQueueInput.files];
+            files.forEach(file => {
+                const previewUrl = URL.createObjectURL(file);
+                const isVideo    = file.type.startsWith('video/');
+                fileQueue.push({
+                    file,
+                    outputName: generateOutputName(),
+                    password:   generateAesKey(),
+                    status:     'pending',
+                    previewUrl,
+                    isVideo
+                });
+            });
+            renderAllFileQueueRows();
+            fileQueueInput.value = '';
+        });
+
+        // ─── LOAD & SELECT REPOS ──────────────────────────────────────────────────
+        loadReposBtn.addEventListener('click', async () => {
+            try {
+                getToken();
+                loadReposBtn.disabled = true;
+                loadReposBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>';
+                const username = await getGhUser();
+                const repos    = await ghFetch(`/users/${username}/repos?per_page=100&sort=updated`);
+                repoList.innerHTML = '';
+                repos.forEach(r => {
+                    const div = document.createElement('div');
+                    div.className = 'repo-item px-3 py-2 text-sm flex items-center gap-2';
+                    div.innerHTML = `<i class="fab fa-github text-gray-400"></i>${r.name}`;
+                    div.addEventListener('click', () => {
+                        repoList.querySelectorAll('.repo-item').forEach(x => x.classList.remove('selected'));
+                        div.classList.add('selected');
+                        selectedRepo = r.name;
+                        selectedRepoDisplay.classList.remove('hidden');
+                        selectedRepoNameEl.textContent = r.name;
+                    });
+                    repoList.appendChild(div);
+                });
+                repoList.classList.remove('hidden');
+            } catch (err) {
+                showModal('Error', err.message);
+            } finally {
+                loadReposBtn.disabled = false;
+                loadReposBtn.innerHTML = '<i class="fas fa-sync-alt mr-1"></i> Muat Repo';
+            }
+        });
+
+        createRepoBtn.addEventListener('click', async () => {
+            const name = newRepoName.value.trim();
+            if (!name) return;
+            try {
+                getToken();
+                createRepoBtn.disabled = true;
+                await ghFetch('/user/repos', {
+                    method: 'POST',
+                    body: JSON.stringify({ name, private: false, auto_init: true })
+                });
+                selectedRepo = name;
+                selectedRepoDisplay.classList.remove('hidden');
+                selectedRepoNameEl.textContent = name;
+                newRepoName.value = '';
+                showModal('Berhasil', `Repo "${name}" berhasil dibuat dan dipilih.`);
+            } catch (err) {
+                showModal('Error', err.message);
+            } finally {
+                createRepoBtn.disabled = false;
+            }
+        });
+
+        // ─── ENKRIPSI SEMUA FILE ──────────────────────────────────────────────────
+        encryptBtn.addEventListener('click', async () => {
+            if (fileQueue.length === 0) { showModal('Info', 'Tambahkan file terlebih dahulu.'); return; }
+            if (!selectedRepo)          { showModal('Info', 'Pilih atau buat repo GitHub terlebih dahulu.'); return; }
+
+            try {
+                getToken();
+            } catch(e) { showModal('Error', e.message); return; }
+
+            const username  = await getGhUser();
+            const pending   = fileQueue.filter(f => f.status !== 'done');
+            let doneCount   = 0;
 
             encryptBtn.disabled = true;
-            encryptBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-2"></i> Memproses...';
-            setProgress('Membaca file...', 10);
+            encryptBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
 
-            const file = fileInput.files[0];
-            const randomId = crypto.randomUUID().split('-')[0];
-            const newFilename = `${randomId}.pb`;
-            filenameDisplay.value = newFilename;
+            for (let i = 0; i < fileQueue.length; i++) {
+                const item = fileQueue[i];
+                if (item.status === 'done') continue;
 
-            const reader = new FileReader();
+                item.status = 'processing';
+                renderAllFileQueueRows();
+                setProgress(`[${i+1}/${fileQueue.length}] Membaca ${item.file.name}...`, Math.round((i / fileQueue.length) * 100));
 
-            reader.onload = async function (e) {
                 try {
-                    setProgress('Mengenkripsi dengan AES...', 35);
+                    // Baca file → Base64
+                    const base64 = await new Promise((res, rej) => {
+                        const reader = new FileReader();
+                        reader.onload  = e => res(e.target.result.split(',')[1]);
+                        reader.onerror = () => rej(new Error('Gagal membaca file'));
+                        reader.readAsDataURL(item.file);
+                    });
 
-                    // AES encrypt the base64 data URL
-                    const encrypted = aesEncrypt(e.target.result, key);
+                    setProgress(`[${i+1}/${fileQueue.length}] Mengenkripsi ${item.file.name}...`, Math.round(((i + 0.4) / fileQueue.length) * 100));
 
-                    setProgress('Mengunggah ke GitHub...', 60);
+                    // Enkripsi AES
+                    const encrypted = aesEncrypt(base64, item.password);
 
-                    // Safely encode for GitHub API
-                    const contentBase64 = toGitHubBase64(encrypted);
+                    setProgress(`[${i+1}/${fileQueue.length}] Upload ${item.outputName}...`, Math.round(((i + 0.7) / fileQueue.length) * 100));
 
-                    const owner = selectedRepo.owner;
-                    const repo = selectedRepo.name;
-
-                    // Check if file exists (for SHA, required for update)
-                    let sha = undefined;
+                    // Cek apakah file sudah ada (perlu SHA untuk update)
+                    let sha = null;
                     try {
-                        const existing = await ghFetch(`/repos/${owner}/${repo}/contents/${newFilename}`);
+                        const existing = await ghFetch(`/repos/${username}/${selectedRepo}/contents/${item.outputName}`);
                         sha = existing.sha;
-                    } catch (_) { /* new file, no sha needed */ }
+                    } catch {}
 
-                    const body = {
-                        message: `Upload encrypted file ${newFilename}`,
-                        content: contentBase64
-                    };
+                    const body = { message: `Enkripsi: ${item.outputName}`, content: toGitHubBase64(encrypted) };
                     if (sha) body.sha = sha;
 
-                    await ghFetch(`/repos/${owner}/${repo}/contents/${newFilename}`, {
+                    const uploaded = await ghFetch(`/repos/${username}/${selectedRepo}/contents/${item.outputName}`, {
                         method: 'PUT',
                         body: JSON.stringify(body)
                     });
 
-                    setProgress('Menyiapkan data ke Tab Tambah Tautan...', 85);
+                    const rawUrl = `https://raw.githubusercontent.com/${username}/${selectedRepo}/main/${item.outputName}`;
 
-                    // ─── ISI FIELD TAB 1 (password & nama file) ───────────────────
-                    document.getElementById('tab1Password').value = key;
-                    document.getElementById('tab1Filename').value = newFilename;
-                    document.getElementById('encryptionPasswordWrapper').classList.remove('hidden');
-                    document.getElementById('encryptionFilenameWrapper').classList.remove('hidden');
+                    // Simpan ke Supabase (password & nama file)
+                    await supabaseClient.from('encryption_keys').insert([{
+                        file_name: item.outputName,
+                        password:  item.password,
+                        raw_url:   rawUrl
+                    }]).then(() => {});
 
-                    setProgress('Selesai!', 100);
-
-                    // Build raw URL
-                    const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${newFilename}`;
-
-                    // Auto-fill Tab 1 URL Link
-                    document.getElementById('linkUrl').value = rawUrl;
-
-                    // Switch to Tab 1
+                    // Tambah baris ke Tab 1 otomatis
                     switchTab(1);
+                    createLinkRow({
+                        url:        rawUrl,
+                        name:       item.outputName.replace('.pb', ''),
+                        password:   item.password,
+                        namaFile:   item.outputName,
+                        previewUrl: item.previewUrl,
+                        isVideo:    item.isVideo
+                    });
 
-                    setTimeout(hideProgress, 800);
-                    encryptBtn.disabled = false;
-                    encryptBtn.innerHTML = '<i class="fas fa-lock mr-2"></i> Enkripsi & Upload ke GitHub';
-
-                    showModal('Berhasil! 🎉', `File terenkripsi berhasil diunggah.\n\nFile: ${newFilename}\nRepo: ${selectedRepo.full_name}\n\nPassword & nama file sudah otomatis diisi di Tab Tambah Tautan.\nTekan tombol Simpan di sana untuk menyimpan ke Supabase.`);
+                    item.status = 'done';
+                    doneCount++;
 
                 } catch (err) {
-                    hideProgress();
-                    encryptBtn.disabled = false;
-                    encryptBtn.innerHTML = '<i class="fas fa-lock mr-2"></i> Enkripsi & Upload ke GitHub';
-                    showModal('Gagal', 'Terjadi kesalahan: ' + err.message);
+                    console.error(err);
+                    item.status = 'error';
                 }
-            };
 
-            reader.onerror = function () {
-                hideProgress();
-                encryptBtn.disabled = false;
-                encryptBtn.innerHTML = '<i class="fas fa-lock mr-2"></i> Enkripsi & Upload ke GitHub';
-                showModal('Gagal', 'Gagal membaca file. Coba ulangi.');
-            };
+                renderAllFileQueueRows();
+            }
 
-            reader.readAsDataURL(file);
+            hideProgress();
+            encryptBtn.disabled = false;
+            encryptBtn.innerHTML = '<i class="fas fa-lock mr-2"></i> Enkripsi & Upload Semua ke GitHub';
+
+            if (doneCount > 0) {
+                showModal('Selesai', `${doneCount} file berhasil dienkripsi & diupload.\n\nBaris sudah ditambahkan otomatis di Tab 1. Isi Nama Orang lalu klik Simpan Semua.`);
+            }
+        });
+
+        // ─── LIGHTBOX ─────────────────────────────────────────────────────────────
+        const lightbox      = document.getElementById('lightbox');
+        const lightboxInner = document.getElementById('lightbox-inner');
+        const lightboxClose = document.getElementById('lightbox-close');
+
+        function openLightbox(src, isVideo) {
+            // Hapus konten lama
+            const old = lightboxInner.querySelector('img, video');
+            if (old) old.remove();
+
+            let el;
+            if (isVideo) {
+                el = document.createElement('video');
+                el.src = src;
+                el.controls = true;
+                el.autoplay = true;
+                el.style.maxWidth  = '92vw';
+                el.style.maxHeight = '84vh';
+            } else {
+                el = document.createElement('img');
+                el.src = src;
+                el.alt = 'Preview';
+            }
+            lightboxInner.appendChild(el);
+            lightbox.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('open');
+            document.body.style.overflow = '';
+            const v = lightboxInner.querySelector('video');
+            if (v) v.pause();
+            const old = lightboxInner.querySelector('img, video');
+            if (old) old.remove();
+        }
+
+        lightboxClose.addEventListener('click', closeLightbox);
+        lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+        // ─── INIT ───────────────────────────────────────────────────────────────
+        window.addEventListener('load', async () => {
+            await loadPersonNames();
+            setupAutocomplete();
         });
     </script>
 </body>
