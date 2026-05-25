@@ -815,7 +815,7 @@
                                background:${prefill.password ? '#fefce8' : '#f9fafb'};
                                color:${prefill.password ? '#92400e' : '#9ca3af'};cursor:default;"
                         title="${prefill.password || ''}">
-                    ${prefill.namaFile ? `<span style="font-size:0.6rem;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60px;" title="${prefill.namaFile}">${prefill.namaFile}</span>` : ''}
+
                 </div>
                 <button class="del-btn" title="Hapus baris"><i class="fas fa-times"></i></button>
             `;
@@ -831,8 +831,7 @@
             return row;
         }
 
-        // Mulai dengan 1 baris kosong
-        createLinkRow();
+
 
         addRowBtn.addEventListener('click', () => {
             createLinkRow();
@@ -924,10 +923,9 @@
         }
 
         function generateOutputName() {
-            // Nama acak murni, tidak ada jejak nama file asli
             const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
             let name = '';
-            for (let i = 0; i < 16; i++) name += chars[Math.floor(Math.random() * chars.length)];
+            for (let i = 0; i < 8; i++) name += chars[Math.floor(Math.random() * chars.length)];
             return name + '.pb';
         }
 
@@ -1237,6 +1235,7 @@
         window.addEventListener('load', async () => {
             await loadPersonNames();
             setupAutocomplete();
+
         });
     </script>
 </body>
