@@ -173,7 +173,10 @@
             overflow-x: auto; overflow-y: hidden; padding-bottom: 0.5rem;
             scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;
             -webkit-overflow-scrolling: touch; scroll-behavior: smooth;
+            align-items: flex-end;
         }
+        /* Name scroller needs extra height for avatar + wrapped label */
+        #nameTagsScroller { min-height: 150px; align-items: flex-start; gap: 0.75rem; padding-top: 0.25rem; }
         .filter-scroller::-webkit-scrollbar { height: 4px; }
         .filter-scroller::-webkit-scrollbar-track { background: transparent; }
         .filter-scroller::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
@@ -206,6 +209,175 @@
             transition: all 0.2s;
         }
         .filter-tag.active .tag-count { background: rgba(255,255,255,0.25); }
+
+        /* ===== NAME TAG AVATAR ===== */
+        .name-tag-wrap {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 0.3rem; flex-shrink: 0; cursor: pointer;
+            padding: 0.4rem 0.5rem 0.5rem;
+            border-radius: 0.75rem;
+            transition: background 0.15s;
+            -webkit-user-select: none; user-select: none;
+            min-width: 90px; max-width: 110px;
+        }
+        .name-tag-wrap:hover { background: rgba(59,130,246,0.06); }
+        .name-tag-avatar {
+            width: 86px; height: 86px; border-radius: 50%;
+            border: 2.5px solid #e2e8f0;
+            background: #f1f5f9; flex-shrink: 0;
+            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.2rem; color: #94a3b8; overflow: hidden;
+            position: relative;
+        }
+        .name-tag-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+        .name-tag-avatar.has-photo { border-color: #3b82f6; }
+        .name-tag-wrap:hover .name-tag-avatar { border-color: #3b82f6; transform: scale(1.05); }
+        .name-tag-wrap.active .name-tag-avatar {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(59,130,246,0.22);
+        }
+        /* Long-press ripple ring */
+        .name-tag-avatar.pressing {
+            animation: lpRing 0.65s ease forwards;
+        }
+        @keyframes lpRing {
+            0%   { box-shadow: 0 0 0 0px rgba(239,68,68,0.4); }
+            100% { box-shadow: 0 0 0 10px rgba(239,68,68,0); border-color:#ef4444; }
+        }
+        /* Long-press overlay icon */
+        .name-tag-avatar-overlay {
+            position:absolute; inset:0; border-radius:50%;
+            background: rgba(0,0,0,0.45);
+            display:flex; align-items:center; justify-content:center;
+            opacity:0; transition: opacity 0.2s; pointer-events:none;
+            font-size:1.2rem; color:white;
+        }
+        .name-tag-wrap.pressing-active .name-tag-avatar-overlay { opacity:1; }
+        .name-tag-avatar-wrap { position: relative; width: 86px; height: 86px; flex-shrink: 0; }
+
+        .name-tag-label {
+            font-size: 0.69rem; font-weight: 700; color: #475569;
+            text-align: center; line-height: 1.25;
+            word-break: break-word; white-space: normal;
+            width: 100%;
+        }
+        .name-tag-wrap.active .name-tag-label { color: #1e40af; }
+        .name-tag-count {
+            font-size: 0.6rem; background: #e2e8f0; color: #64748b;
+            padding: 0.05rem 0.4rem; border-radius: 9999px; font-weight: 700;
+            line-height: 1.5; flex-shrink: 0;
+        }
+        .name-tag-wrap.active .name-tag-count { background: #3b82f6; color: white; }
+
+        /* Long-press context menu */
+        #longPressMenu {
+            position: fixed; z-index: 9500;
+            background: white; border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1);
+            padding: 0.5rem; min-width: 180px;
+            border: 1px solid #f1f5f9;
+            animation: lpMenuIn 0.18s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        @keyframes lpMenuIn {
+            from { opacity:0; transform: scale(0.85); }
+            to   { opacity:1; transform: scale(1); }
+        }
+        .lp-menu-item {
+            display: flex; align-items: center; gap: 0.65rem;
+            padding: 0.65rem 0.9rem; border-radius: 0.625rem;
+            font-size: 0.82rem; font-weight: 600; cursor: pointer;
+            transition: background 0.15s; color: #334155;
+        }
+        .lp-menu-item:hover { background: #f1f5f9; }
+        .lp-menu-item.danger { color: #dc2626; }
+        .lp-menu-item.danger:hover { background: #fef2f2; }
+        .lp-menu-item i { width: 16px; text-align: center; font-size: 0.88rem; }
+        .lp-menu-name {
+            font-size: 0.7rem; color: #94a3b8; font-weight: 500;
+            padding: 0.4rem 0.9rem 0.2rem; border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 0.25rem;
+        }
+
+        /* ===== PHOTO SETTINGS MODAL ===== */
+        #photoSettingsOverlay {
+            display: none; position: fixed; inset: 0; z-index: 9000;
+            background: rgba(0,0,0,0.6); align-items: center; justify-content: center;
+        }
+        #photoSettingsOverlay.show { display: flex; }
+        #photoSettingsBox {
+            background: white; border-radius: 1.25rem; padding: 1.75rem 1.5rem;
+            width: 100%; max-width: 420px; position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        }
+        #photoSettingsBox h3 { font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem; }
+        #photoSettingsBox .ps-sub { font-size: 0.78rem; color: #94a3b8; margin-bottom: 1.25rem; }
+        .ps-close-btn { position: absolute; top: 1rem; right: 1rem; background: #f1f5f9; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 0.8rem; color: #64748b; display: flex; align-items: center; justify-content: center; }
+        .ps-close-btn:hover { background: #e2e8f0; }
+        /* Avatar preview */
+        #psAvatarPreview {
+            width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.25rem;
+            border: 3px solid #e2e8f0; object-fit: cover; background: #f1f5f9;
+            display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #cbd5e1;
+            overflow: hidden;
+        }
+        #psAvatarPreview img { width: 100%; height: 100%; object-fit: cover; }
+        /* Upload zone */
+        #psUploadZone {
+            border: 2px dashed #e2e8f0; border-radius: 0.875rem; padding: 1.25rem 1rem;
+            cursor: pointer; background: #f8fafc; text-align: center;
+            transition: all 0.2s; margin-bottom: 1rem;
+        }
+        #psUploadZone:hover { border-color: #3b82f6; background: #eff6ff; }
+        #psUploadZone.dragover { border-color: #3b82f6; background: #dbeafe; transform: scale(1.01); }
+        #psUploadInput { display: none; }
+        #psSaveBtn {
+            width: 100%; padding: 0.65rem; border-radius: 0.625rem; border: none; cursor: pointer;
+            background: linear-gradient(135deg, #3b82f6, #6366f1); color: white;
+            font-size: 0.88rem; font-weight: 700; transition: opacity 0.2s;
+        }
+        #psSaveBtn:hover { opacity: 0.9; }
+        #psSaveBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+        #psDeleteBtn {
+            width: 100%; padding: 0.55rem; border-radius: 0.625rem; border: 1.5px solid #fca5a5;
+            cursor: pointer; background: #fff1f2; color: #dc2626;
+            font-size: 0.82rem; font-weight: 600; margin-top: 0.5rem; transition: all 0.2s;
+        }
+        #psDeleteBtn:hover { background: #fee2e2; }
+        #psMsg { font-size: 0.78rem; font-weight: 500; text-align: center; min-height: 1.2rem; margin-top: 0.5rem; }
+        #psMsg.error { color: #dc2626; }
+        #psMsg.success { color: #16a34a; }
+
+        /* ===== CROP MODAL ===== */
+        #cropOverlay {
+            display: none; position: fixed; inset: 0; z-index: 10000;
+            background: rgba(0,0,0,0.85); align-items: center; justify-content: center;
+        }
+        #cropOverlay.show { display: flex; }
+        #cropBox {
+            background: #1e293b; border-radius: 1rem; padding: 1.25rem;
+            max-width: 480px; width: 95%; position: relative;
+        }
+        #cropBox h4 { color: white; font-size: 0.9rem; font-weight: 700; margin-bottom: 0.75rem; text-align: center; }
+        #cropContainer {
+            position: relative; width: 100%; height: 320px;
+            overflow: hidden; background: #000; border-radius: 0.5rem;
+            cursor: crosshair;
+        }
+        #cropImg { position: absolute; max-width: none; user-select: none; pointer-events: none; }
+        #cropFrame {
+            position: absolute; border: 2px solid white;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+            cursor: move; border-radius: 50%;
+        }
+        .crop-actions { display: flex; gap: 0.5rem; margin-top: 0.875rem; }
+        .crop-cancel-btn { flex: 1; padding: 0.6rem; border-radius: 0.5rem; border: 1.5px solid #475569; background: transparent; color: #94a3b8; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+        .crop-cancel-btn:hover { background: #334155; }
+        .crop-confirm-btn { flex: 2; padding: 0.6rem; border-radius: 0.5rem; border: none; background: #3b82f6; color: white; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+        .crop-confirm-btn:hover { background: #2563eb; }
+        .crop-zoom { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.6rem; }
+        .crop-zoom label { color: #94a3b8; font-size: 0.75rem; white-space: nowrap; }
+        .crop-zoom input[type=range] { flex: 1; accent-color: #3b82f6; }
 
         .cat-tag { border-color: #e9d5ff; color: #6b21a8; background: #faf5ff; }
         .cat-tag:hover { border-color: #a855f7; color: #581c87; background: #f3e8ff; }
@@ -706,6 +878,56 @@
     </div>
   </div>
 
+  <!-- LONG PRESS CONTEXT MENU -->
+  <div id="longPressMenu" style="display:none;">
+    <div class="lp-menu-name" id="lpMenuName">—</div>
+    <div class="lp-menu-item" id="lpUploadItem">
+      <i class="fa-solid fa-camera"></i> Upload Foto
+    </div>
+    <div class="lp-menu-item danger" id="lpDeleteItem" style="display:none;">
+      <i class="fa-solid fa-trash"></i> Hapus Foto
+    </div>
+  </div>
+
+  <!-- PHOTO SETTINGS MODAL -->
+  <div id="photoSettingsOverlay">
+    <div id="photoSettingsBox">
+      <button class="ps-close-btn" id="psCloseBtn">✕</button>
+      <div id="psAvatarPreview"><span id="psAvatarPlaceholder">👤</span></div>
+      <h3 id="psModalTitle">Foto Profil</h3>
+      <p class="ps-sub" id="psModalSub">Upload foto untuk tampil di filter nama</p>
+      <div id="psUploadZone">
+        <div style="font-size:1.5rem;margin-bottom:0.4rem;">📷</div>
+        <div style="font-size:0.8rem;font-weight:600;color:#475569;">Klik atau seret foto ke sini</div>
+        <div style="font-size:0.7rem;color:#94a3b8;margin-top:0.2rem;">JPG, PNG, WEBP · maks 5MB</div>
+      </div>
+      <input id="psUploadInput" type="file" accept="image/*" />
+      <button id="psSaveBtn" disabled><i class="fa-solid fa-cloud-arrow-up" style="margin-right:0.35rem;"></i>Simpan Foto</button>
+      <button id="psDeleteBtn" style="display:none;"><i class="fa-solid fa-trash" style="margin-right:0.35rem;"></i>Hapus Foto</button>
+      <div id="psMsg"></div>
+    </div>
+  </div>
+
+  <!-- CROP MODAL -->
+  <div id="cropOverlay">
+    <div id="cropBox">
+      <h4><i class="fa-solid fa-crop-simple" style="margin-right:0.4rem;"></i>Potong Foto (1:1)</h4>
+      <div id="cropContainer">
+        <img id="cropImg" alt="crop" draggable="false" />
+        <div id="cropFrame"></div>
+      </div>
+      <div class="crop-zoom">
+        <label><i class="fa-solid fa-magnifying-glass-minus"></i></label>
+        <input type="range" id="cropZoom" min="1" max="3" step="0.05" value="1" />
+        <label><i class="fa-solid fa-magnifying-glass-plus"></i></label>
+      </div>
+      <div class="crop-actions">
+        <button class="crop-cancel-btn" id="cropCancelBtn">Batal</button>
+        <button class="crop-confirm-btn" id="cropConfirmBtn"><i class="fa-solid fa-check" style="margin-right:0.3rem;"></i>Gunakan Foto Ini</button>
+      </div>
+    </div>
+  </div>
+
   <!-- LOGIN SCRIPT -->
   <script>
     (function(){
@@ -880,7 +1102,391 @@
     let activeNameFilter=null;
     let activeCatFilter=null;
 
-    // ===== PAGINATION STATE =====
+    // ===== LONG PRESS CONTEXT MENU =====
+    const lpMenu=document.getElementById('longPressMenu');
+    const lpMenuName=document.getElementById('lpMenuName');
+    const lpUploadItem=document.getElementById('lpUploadItem');
+    const lpDeleteItem=document.getElementById('lpDeleteItem');
+    let lpCurrentName='';
+    let lpTimer=null;
+    const LP_DURATION=600; // ms
+
+    function showLpMenu(name, anchorEl){
+        lpCurrentName=name;
+        lpMenuName.textContent=name;
+        const hasPhoto=!!personPhotos[nameToSlug(name)];
+        lpDeleteItem.style.display=hasPhoto?'flex':'none';
+        // Position near anchor
+        const rect=anchorEl.getBoundingClientRect();
+        lpMenu.style.display='block';
+        const mW=lpMenu.offsetWidth||200;
+        const mH=lpMenu.offsetHeight||100;
+        let left=rect.left+rect.width/2-mW/2;
+        let top=rect.bottom+8;
+        if(left<8) left=8;
+        if(left+mW>window.innerWidth-8) left=window.innerWidth-mW-8;
+        if(top+mH>window.innerHeight-8) top=rect.top-mH-8;
+        lpMenu.style.left=left+'px';
+        lpMenu.style.top=top+'px';
+    }
+
+    function hideLpMenu(){ lpMenu.style.display='none'; }
+
+    lpUploadItem.addEventListener('click',()=>{ hideLpMenu(); openPhotoSettings(lpCurrentName); });
+
+    lpDeleteItem.addEventListener('click',async()=>{
+        hideLpMenu();
+        if(!confirm(`Hapus foto untuk "${lpCurrentName}"?`)) return;
+        const key=nameToSlug(lpCurrentName);
+        const fileName=key+'.jpg';
+        showStatus('Menghapus foto…','success');
+        try{
+            const {error}=await supabase.storage.from(PHOTO_BUCKET).remove([fileName]);
+            if(error) throw error;
+            delete personPhotos[key];
+            showStatus('✓ Foto berhasil dihapus','success');
+            rebuildNameTags();
+        }catch(err){
+            showStatus('Gagal hapus: '+err.message,'error');
+        }
+    });
+
+    // Close menu on outside click
+    document.addEventListener('click',(e)=>{
+        if(!lpMenu.contains(e.target)) hideLpMenu();
+    });
+    document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') hideLpMenu(); });
+
+    function attachLongPress(el, name){
+        let moved=false;
+        let longPressTriggered=false;
+        let startX=0, startY=0;
+
+        function onStart(e){
+            moved=false;
+            longPressTriggered=false;
+            startX=(e.touches?e.touches[0].clientX:e.clientX);
+            startY=(e.touches?e.touches[0].clientY:e.clientY);
+            const avatar=el.querySelector('.name-tag-avatar');
+            if(avatar) avatar.classList.add('pressing');
+            el.classList.add('pressing-active');
+            lpTimer=setTimeout(()=>{
+                if(!moved){
+                    longPressTriggered=true;
+                    if(navigator.vibrate) navigator.vibrate(40);
+                    el.classList.remove('pressing-active');
+                    const av=el.querySelector('.name-tag-avatar');
+                    if(av) av.classList.remove('pressing');
+                    showLpMenu(name, el);
+                }
+            }, LP_DURATION);
+        }
+        function onMove(e){
+            const cx=(e.touches?e.touches[0].clientX:e.clientX);
+            const cy=(e.touches?e.touches[0].clientY:e.clientY);
+            if(Math.abs(cx-startX)>8||Math.abs(cy-startY)>8){
+                moved=true; cancelPress();
+            }
+        }
+        function cancelPress(){
+            clearTimeout(lpTimer);
+            const avatar=el.querySelector('.name-tag-avatar');
+            if(avatar) avatar.classList.remove('pressing');
+            el.classList.remove('pressing-active');
+        }
+        function onEnd(){
+            cancelPress();
+        }
+
+        el.addEventListener('mousedown',(e)=>onStart(e));
+        el.addEventListener('mousemove',(e)=>onMove(e));
+        el.addEventListener('mouseup',()=>onEnd());
+        el.addEventListener('mouseleave',()=>onEnd());
+        el.addEventListener('touchstart',(e)=>onStart(e),{passive:true});
+        el.addEventListener('touchmove',(e)=>onMove(e),{passive:true});
+        el.addEventListener('touchend',()=>onEnd());
+        el.addEventListener('touchcancel',()=>onEnd());
+        el.addEventListener('contextmenu',(e)=>e.preventDefault());
+
+        // Block click from firing filter if long press was triggered
+        el.addEventListener('click',(e)=>{
+            if(longPressTriggered){
+                e.stopImmediatePropagation();
+                longPressTriggered=false;
+                return;
+            }
+            // Normal click → filter
+            if(activeNameFilter===name.toLowerCase()){activeNameFilter=null;}
+            else{activeNameFilter=name.toLowerCase();}
+            currentPage=1;
+            applyFilters();
+        });
+    }
+
+    // ===== PERSON PHOTOS CACHE =====
+    // key: slug dari person_name (huruf kecil, strip → spasi), value: public URL string
+    let personPhotos={};
+    const PHOTO_BUCKET='person-photos';
+
+    // Helper: name → slug yang dipakai sebagai nama file DAN key cache
+    function nameToSlug(name){
+        return name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+    }
+
+    // Load all photos from Supabase storage
+    async function loadPersonPhotos(){
+        try{
+            const {data,error}=await supabase.storage.from(PHOTO_BUCKET).list('',{limit:500});
+            if(error||!data){ console.warn('loadPersonPhotos error',error); return; }
+            personPhotos={}; // reset dulu
+            data.forEach(file=>{
+                if(!file.name||file.name==='.emptyFolderPlaceholder')return;
+                // key = slug tanpa ekstensi, sama persis dengan nameToSlug(personName)
+                const slug=file.name.replace(/\.[^.]+$/,'');
+                const {data:urlData}=supabase.storage.from(PHOTO_BUCKET).getPublicUrl(file.name);
+                if(urlData?.publicUrl){
+                    // Cache-bust dengan updated_at jika ada, atau timestamp acak
+                    const ts = file.updated_at ? new Date(file.updated_at).getTime() : Date.now();
+                    personPhotos[slug]=urlData.publicUrl+'?t='+ts;
+                }
+            });
+        }catch(e){ console.warn('loadPersonPhotos exception',e); }
+    }
+
+    // ===== PHOTO SETTINGS MODAL =====
+    let psCurrentName='';
+    let psCroppedBlob=null;
+    const photoSettingsOverlay=document.getElementById('photoSettingsOverlay');
+    const psCloseBtn=document.getElementById('psCloseBtn');
+    const psModalTitle=document.getElementById('psModalTitle');
+    const psAvatarPreview=document.getElementById('psAvatarPreview');
+    const psAvatarPlaceholder=document.getElementById('psAvatarPlaceholder');
+    const psUploadZone=document.getElementById('psUploadZone');
+    const psUploadInput=document.getElementById('psUploadInput');
+    const psSaveBtn=document.getElementById('psSaveBtn');
+    const psDeleteBtn=document.getElementById('psDeleteBtn');
+    const psMsgEl=document.getElementById('psMsg');
+
+    function openPhotoSettings(name){
+        psCurrentName=name;
+        psCroppedBlob=null;
+        psModalTitle.textContent=`Foto: ${name}`;
+        psSaveBtn.disabled=true;
+        psMsgEl.textContent='';psMsgEl.className='';
+        psUploadInput.value='';
+        // Check existing photo
+        const key=nameToSlug(name);
+        if(personPhotos[key]){
+            psAvatarPreview.innerHTML=`<img src="${personPhotos[key]}" alt="${name}" style="width:100%;height:100%;object-fit:cover;" />`;
+            psDeleteBtn.style.display='block';
+        } else {
+            psAvatarPreview.innerHTML=`<span style="font-size:2rem;">👤</span>`;
+            psDeleteBtn.style.display='none';
+        }
+        photoSettingsOverlay.classList.add('show');
+    }
+
+    psCloseBtn.addEventListener('click',()=>photoSettingsOverlay.classList.remove('show'));
+    photoSettingsOverlay.addEventListener('click',(e)=>{if(e.target===photoSettingsOverlay)photoSettingsOverlay.classList.remove('show');});
+
+    psUploadZone.addEventListener('click',()=>psUploadInput.click());
+    psUploadZone.addEventListener('dragover',(e)=>{e.preventDefault();psUploadZone.classList.add('dragover');});
+    psUploadZone.addEventListener('dragleave',()=>psUploadZone.classList.remove('dragover'));
+    psUploadZone.addEventListener('drop',(e)=>{
+        e.preventDefault();psUploadZone.classList.remove('dragover');
+        if(e.dataTransfer.files[0]) startCrop(e.dataTransfer.files[0]);
+    });
+    psUploadInput.addEventListener('change',(e)=>{
+        if(e.target.files[0]) startCrop(e.target.files[0]);
+    });
+
+    psSaveBtn.addEventListener('click',async()=>{
+        if(!psCroppedBlob){psMsgEl.textContent='Pilih foto terlebih dahulu.';psMsgEl.className='error';return;}
+        psSaveBtn.disabled=true;
+        psSaveBtn.innerHTML='<i class="fa-solid fa-spinner fa-spin" style="margin-right:0.35rem;"></i>Menyimpan...';
+        psMsgEl.textContent='';psMsgEl.className='';
+        try{
+            const slug=nameToSlug(psCurrentName);
+            const fileName=`${slug}.jpg`;
+            const {error}=await supabase.storage.from(PHOTO_BUCKET).upload(fileName,psCroppedBlob,{
+                contentType:'image/jpeg', upsert:true
+            });
+            if(error) throw error;
+            const {data:urlData}=supabase.storage.from(PHOTO_BUCKET).getPublicUrl(fileName);
+            personPhotos[slug]=urlData.publicUrl+'?t='+Date.now();
+            psMsgEl.textContent='✓ Foto berhasil disimpan!';psMsgEl.className='success';
+            psAvatarPreview.innerHTML=`<img src="${personPhotos[slug]}" alt="${psCurrentName}" style="width:100%;height:100%;object-fit:cover;" />`;
+            psDeleteBtn.style.display='block';
+            psSaveBtn.disabled=false;
+            psSaveBtn.innerHTML='<i class="fa-solid fa-cloud-arrow-up" style="margin-right:0.35rem;"></i>Simpan Foto';
+            rebuildNameTags();
+        }catch(err){
+            psMsgEl.textContent='Gagal menyimpan: '+err.message;psMsgEl.className='error';
+            psSaveBtn.disabled=false;
+            psSaveBtn.innerHTML='<i class="fa-solid fa-cloud-arrow-up" style="margin-right:0.35rem;"></i>Simpan Foto';
+        }
+    });
+
+    psDeleteBtn.addEventListener('click',async()=>{
+        if(!confirm(`Hapus foto untuk ${psCurrentName}?`))return;
+        psDeleteBtn.disabled=true;
+        psMsgEl.textContent='';psMsgEl.className='';
+        try{
+            const fileName=`${nameToSlug(psCurrentName)}.jpg`;
+            await supabase.storage.from(PHOTO_BUCKET).remove([fileName]);
+            delete personPhotos[nameToSlug(psCurrentName)];
+            psAvatarPreview.innerHTML=`<span style="font-size:2rem;">👤</span>`;
+            psDeleteBtn.style.display='none';
+            psMsgEl.textContent='✓ Foto dihapus.';psMsgEl.className='success';
+            psCroppedBlob=null;psSaveBtn.disabled=true;
+            rebuildNameTags();
+        }catch(err){
+            psMsgEl.textContent='Gagal menghapus: '+err.message;psMsgEl.className='error';
+        }
+        psDeleteBtn.disabled=false;
+    });
+
+    // ===== CROP SYSTEM =====
+    const cropOverlay=document.getElementById('cropOverlay');
+    const cropImg=document.getElementById('cropImg');
+    const cropFrame=document.getElementById('cropFrame');
+    const cropContainer=document.getElementById('cropContainer');
+    const cropZoom=document.getElementById('cropZoom');
+    const cropCancelBtn=document.getElementById('cropCancelBtn');
+    const cropConfirmBtn=document.getElementById('cropConfirmBtn');
+
+    let cropState={
+        scale:1, imgX:0, imgY:0, imgW:0, imgH:0,
+        frameX:0, frameY:0, frameSize:0,
+        dragging:false, lastMX:0, lastMY:0,
+        naturalW:0, naturalH:0, originalFile:null,
+        containerW:0, containerH:0
+    };
+
+    function startCrop(file){
+        if(!file.type.startsWith('image/')){psMsgEl.textContent='Harap pilih file gambar.';psMsgEl.className='error';return;}
+        if(file.size>5*1024*1024){psMsgEl.textContent='Ukuran file maks 5MB.';psMsgEl.className='error';return;}
+        cropState.originalFile=file;
+        const reader=new FileReader();
+        reader.onload=(e)=>{
+            cropImg.src=e.target.result;
+            cropImg.onload=()=>{
+                cropState.naturalW=cropImg.naturalWidth;
+                cropState.naturalH=cropImg.naturalHeight;
+                cropZoom.value=1;
+                initCrop();
+                cropOverlay.classList.add('show');
+            };
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function initCrop(){
+        const cW=cropContainer.clientWidth||400;
+        const cH=cropContainer.clientHeight||320;
+        cropState.containerW=cW; cropState.containerH=cH;
+        const z=parseFloat(cropZoom.value)||1;
+        // Fit image so shorter side fills container
+        const scaleToFit=Math.max(cW/cropState.naturalW, cH/cropState.naturalH)*z;
+        cropState.scale=scaleToFit;
+        cropState.imgW=cropState.naturalW*scaleToFit;
+        cropState.imgH=cropState.naturalH*scaleToFit;
+        // Center image
+        cropState.imgX=(cW-cropState.imgW)/2;
+        cropState.imgY=(cH-cropState.imgH)/2;
+        // Frame = 80% of smaller container side
+        const fSize=Math.min(cW,cH)*0.8;
+        cropState.frameSize=fSize;
+        cropState.frameX=(cW-fSize)/2;
+        cropState.frameY=(cH-fSize)/2;
+        drawCrop();
+    }
+
+    function drawCrop(){
+        cropImg.style.left=cropState.imgX+'px';
+        cropImg.style.top=cropState.imgY+'px';
+        cropImg.style.width=cropState.imgW+'px';
+        cropImg.style.height=cropState.imgH+'px';
+        cropFrame.style.left=cropState.frameX+'px';
+        cropFrame.style.top=cropState.frameY+'px';
+        cropFrame.style.width=cropState.frameSize+'px';
+        cropFrame.style.height=cropState.frameSize+'px';
+    }
+
+    cropZoom.addEventListener('input',()=>{
+        const z=parseFloat(cropZoom.value);
+        const cW=cropState.containerW; const cH=cropState.containerH;
+        const baseScale=Math.max(cW/cropState.naturalW, cH/cropState.naturalH);
+        const newScale=baseScale*z;
+        const oldScale=cropState.scale;
+        const ratio=newScale/oldScale;
+        // Scale image keeping center of frame fixed
+        const fcX=cropState.frameX+cropState.frameSize/2;
+        const fcY=cropState.frameY+cropState.frameSize/2;
+        cropState.imgX=fcX-(fcX-cropState.imgX)*ratio;
+        cropState.imgY=fcY-(fcY-cropState.imgY)*ratio;
+        cropState.imgW=cropState.naturalW*newScale;
+        cropState.imgH=cropState.naturalH*newScale;
+        cropState.scale=newScale;
+        clampImg();
+        drawCrop();
+    });
+
+    cropFrame.addEventListener('mousedown',(e)=>{e.preventDefault();cropState.dragging=true;cropState.lastMX=e.clientX;cropState.lastMY=e.clientY;});
+    cropFrame.addEventListener('touchstart',(e)=>{cropState.dragging=true;cropState.lastMX=e.touches[0].clientX;cropState.lastMY=e.touches[0].clientY;},{passive:true});
+    document.addEventListener('mousemove',(e)=>{
+        if(!cropState.dragging)return;
+        const dx=e.clientX-cropState.lastMX; const dy=e.clientY-cropState.lastMY;
+        cropState.lastMX=e.clientX; cropState.lastMY=e.clientY;
+        cropState.imgX+=dx; cropState.imgY+=dy;
+        clampImg(); drawCrop();
+    });
+    document.addEventListener('touchmove',(e)=>{
+        if(!cropState.dragging)return;
+        const dx=e.touches[0].clientX-cropState.lastMX; const dy=e.touches[0].clientY-cropState.lastMY;
+        cropState.lastMX=e.touches[0].clientX; cropState.lastMY=e.touches[0].clientY;
+        cropState.imgX+=dx; cropState.imgY+=dy;
+        clampImg(); drawCrop();
+    },{passive:true});
+    document.addEventListener('mouseup',()=>{cropState.dragging=false;});
+    document.addEventListener('touchend',()=>{cropState.dragging=false;});
+
+    function clampImg(){
+        // Image must cover the crop frame
+        const fX=cropState.frameX, fY=cropState.frameY, fS=cropState.frameSize;
+        if(cropState.imgX>fX) cropState.imgX=fX;
+        if(cropState.imgY>fY) cropState.imgY=fY;
+        if(cropState.imgX+cropState.imgW<fX+fS) cropState.imgX=fX+fS-cropState.imgW;
+        if(cropState.imgY+cropState.imgH<fY+fS) cropState.imgY=fY+fS-cropState.imgH;
+    }
+
+    cropCancelBtn.addEventListener('click',()=>cropOverlay.classList.remove('show'));
+
+    cropConfirmBtn.addEventListener('click',()=>{
+        // Render crop to canvas
+        const outputSize=400;
+        const canvas=document.createElement('canvas');
+        canvas.width=outputSize; canvas.height=outputSize;
+        const ctx=canvas.getContext('2d');
+        // Clip circle
+        ctx.beginPath(); ctx.arc(outputSize/2,outputSize/2,outputSize/2,0,Math.PI*2);
+        ctx.clip();
+        // Calculate src rect
+        const fX=cropState.frameX, fY=cropState.frameY, fS=cropState.frameSize;
+        const srcX=(fX-cropState.imgX)/cropState.scale;
+        const srcY=(fY-cropState.imgY)/cropState.scale;
+        const srcW=fS/cropState.scale;
+        const srcH=fS/cropState.scale;
+        ctx.drawImage(cropImg,srcX,srcY,srcW,srcH,0,0,outputSize,outputSize);
+        canvas.toBlob((blob)=>{
+            psCroppedBlob=blob;
+            const url=URL.createObjectURL(blob);
+            psAvatarPreview.innerHTML=`<img src="${url}" alt="preview" style="width:100%;height:100%;object-fit:cover;" />`;
+            psSaveBtn.disabled=false;
+            cropOverlay.classList.remove('show');
+            psMsgEl.textContent='Foto siap disimpan. Klik "Simpan Foto".';psMsgEl.className='success';
+        },'image/jpeg',0.92);
+    });
     const ITEMS_PER_PAGE = 9;
     let currentPage = 1;
     let filteredLinksData = []; // links after filter applied
@@ -1232,7 +1838,7 @@
         filteredLinksData=getFilteredData();
 
         // Update name tag active states
-        document.querySelectorAll('#nameTagsScroller .filter-tag').forEach(t=>{
+        document.querySelectorAll('#nameTagsScroller .name-tag-wrap').forEach(t=>{
             t.classList.toggle('active',activeNameFilter&&t.dataset.name===activeNameFilter);
         });
 
@@ -1809,24 +2415,28 @@
             data.forEach(link=>{const n=link.person_name;if(n)nameCounts[n]=(nameCounts[n]||0)+1;});
             const uniqueNames=Object.keys(nameCounts).sort((a,b)=>a.localeCompare(b,'id',{sensitivity:'base'}));
 
-            const nameLabel=document.createElement('span');
-            nameLabel.className='filter-label';
-            nameLabel.innerHTML='<i class="fa-solid fa-user"></i> Nama';
-            nameTagsContainer.appendChild(nameLabel);
 
             uniqueNames.forEach(name=>{
-                const tag=document.createElement('span');
-                tag.className='filter-tag';
+                const tag=document.createElement('div');
+                tag.className='name-tag-wrap';
                 tag.dataset.name=name.toLowerCase();
-                tag.innerHTML=`${name} <span class="tag-count">${nameCounts[name]}</span>`;
-                tag.title=`Filter "${name}" (${nameCounts[name]} item)`;
+                const photoUrl=personPhotos[nameToSlug(name)]||null;
+                const avatarHtml=photoUrl
+                    ? `<img src="${photoUrl}" alt="${name}" />`
+                    : `<span style="font-size:2.2rem;">👤</span>`;
+                tag.innerHTML=`
+                  <div class="name-tag-avatar-wrap">
+                    <div class="name-tag-avatar${photoUrl?' has-photo':''}">
+                      ${avatarHtml}
+                      <div class="name-tag-avatar-overlay"></div>
+                    </div>
+                  </div>
+                  <span class="name-tag-label">${name}</span>
+                  <span class="name-tag-count">${nameCounts[name]}</span>
+                `;
+                tag.title=`Filter "${name}" · Tahan lama untuk pengaturan foto`;
                 if(activeNameFilter===name.toLowerCase())tag.classList.add('active');
-                tag.addEventListener('click',()=>{
-                    if(activeNameFilter===name.toLowerCase()){activeNameFilter=null;}
-                    else{activeNameFilter=name.toLowerCase();}
-                    currentPage=1;
-                    applyFilters();
-                });
+                attachLongPress(tag, name);
                 nameTagsContainer.appendChild(tag);
             });
 
@@ -1921,24 +2531,28 @@
       allLinksData.forEach(link=>{const n=link.person_name;if(n)nameCounts[n]=(nameCounts[n]||0)+1;});
       const uniqueNames=Object.keys(nameCounts).sort((a,b)=>a.localeCompare(b,'id',{sensitivity:'base'}));
 
-      const nameLabel=document.createElement('span');
-      nameLabel.className='filter-label';
-      nameLabel.innerHTML='<i class="fa-solid fa-user"></i> Nama';
-      nameTagsContainer.appendChild(nameLabel);
 
       uniqueNames.forEach(name=>{
-        const tag=document.createElement('span');
-        tag.className='filter-tag';
+        const tag=document.createElement('div');
+        tag.className='name-tag-wrap';
         tag.dataset.name=name.toLowerCase();
-        tag.innerHTML=`${name} <span class="tag-count">${nameCounts[name]}</span>`;
-        tag.title=`Filter "${name}" (${nameCounts[name]} item)`;
+        const photoUrl=personPhotos[nameToSlug(name)]||null;
+        const avatarHtml=photoUrl
+            ? `<img src="${photoUrl}" alt="${name}" />`
+            : `<span style="font-size:2.2rem;">👤</span>`;
+        tag.innerHTML=`
+          <div class="name-tag-avatar-wrap">
+            <div class="name-tag-avatar${photoUrl?' has-photo':''}">
+              ${avatarHtml}
+              <div class="name-tag-avatar-overlay"></div>
+            </div>
+          </div>
+          <span class="name-tag-label">${name}</span>
+          <span class="name-tag-count">${nameCounts[name]}</span>
+        `;
+        tag.title=`Filter "${name}" · Tahan lama untuk pengaturan foto`;
         if(activeNameFilter===name.toLowerCase())tag.classList.add('active');
-        tag.addEventListener('click',()=>{
-          if(activeNameFilter===name.toLowerCase()){activeNameFilter=null;}
-          else{activeNameFilter=name.toLowerCase();}
-          currentPage=1;
-          applyFilters();
-        });
+        attachLongPress(tag, name);
         nameTagsContainer.appendChild(tag);
       });
 
@@ -1952,8 +2566,10 @@
     }
 
     document.addEventListener('DOMContentLoaded',()=>{
-      fetchLinks().then(()=>{
-        setupRealtime();
+      loadPersonPhotos().then(()=>{
+        fetchLinks().then(()=>{
+          setupRealtime();
+        });
       });
     });
   </script>
