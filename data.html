@@ -128,38 +128,105 @@
                 tr.className = "hover:bg-gray-50 transition-colors divide-x divide-gray-200";
 
                 const shortPassword = item.password ? item.password.substring(0, 8) + '...' : '-';
-                
-                let fileCellContent = '-';
+
+                // ── Kolom No ──
+                const tdNo = document.createElement('td');
+                tdNo.className = "px-4 py-4 whitespace-nowrap text-sm text-center text-gray-500 font-medium";
+                tdNo.textContent = index + 1;
+
+                // ── Kolom Nama Orang ──
+                const tdPerson = document.createElement('td');
+                tdPerson.className = "px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-700";
+                tdPerson.textContent = item.person_name || '-';
+
+                // ── Kolom Nama File ──
+                const tdFile = document.createElement('td');
+                tdFile.className = "px-6 py-4 whitespace-nowrap text-sm bg-gray-50/50";
+
                 if (item.nama_file) {
                     if (item.url) {
-                        fileCellContent = `
-                            <button onclick="downloadAndDecrypt('${escapeJs(item.url)}', '${escapeJs(item.password)}', '${escapeJs(item.nama_file)}')" 
-                                    class="text-blue-600 hover:text-blue-800 hover:underline text-left font-mono focus:outline-none flex items-center gap-1.5 transition-colors">
-                                <i class="fas fa-download text-xs opacity-50"></i>
-                                <span>${escapeHtml(item.nama_file)}</span>
-                            </button>
-                        `;
+                        const btn = document.createElement('button');
+                        btn.className = "text-blue-600 hover:text-blue-800 hover:underline text-left font-mono focus:outline-none flex items-center gap-1.5 transition-colors";
+
+                        const icon = document.createElement('i');
+                        icon.className = "fas fa-download text-xs opacity-50";
+
+                        const nameSpan = document.createElement('span');
+                        nameSpan.textContent = item.nama_file; // textContent aman, tidak perlu escape
+
+                        btn.appendChild(icon);
+                        btn.appendChild(nameSpan);
+
+                        // Simpan data di dataset agar tidak perlu serialisasi ke string JS
+                        btn.dataset.url = item.url;
+                        btn.dataset.password = item.password || '';
+                        btn.dataset.filename = item.nama_file;
+
+                        btn.addEventListener('click', function () {
+                            downloadAndDecrypt(this.dataset.url, this.dataset.password, this.dataset.filename);
+                        });
+
+                        tdFile.appendChild(btn);
                     } else {
-                        fileCellContent = `<span class="text-gray-500 font-mono">${escapeHtml(item.nama_file)}</span>`;
+                        const span = document.createElement('span');
+                        span.className = "text-gray-500 font-mono";
+                        span.textContent = item.nama_file;
+                        tdFile.appendChild(span);
                     }
+                } else {
+                    tdFile.textContent = '-';
                 }
 
-                tr.innerHTML = `
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-center text-gray-500 font-medium">${index + 1}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-700">${escapeHtml(item.person_name)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm bg-gray-50/50">${fileCellContent}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${escapeHtml(item.name)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span class="px-2 py-1 text-xs bg-blue-50 text-blue-600 rounded-full border border-blue-100">${escapeHtml(item.category || 'Umum')}</span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        ${item.password ? `
-                            <button onclick="copyToClipboard('${escapeJs(item.password)}')" class="bg-yellow-50 hover:bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded border border-yellow-200 transition-colors flex items-center inline-flex gap-1" title="Salin Password Lengkap">
-                                <i class="fas fa-key"></i> <span>${shortPassword}</span> <i class="fas fa-copy ml-1 opacity-60"></i>
-                            </button>
-                        ` : '<span class="text-gray-400 text-xs">No Password</span>'}
-                    </td>
-                `;
+                // ── Kolom Nama Konten ──
+                const tdName = document.createElement('td');
+                tdName.className = "px-6 py-4 whitespace-nowrap text-sm text-gray-600";
+                tdName.textContent = item.name || '-';
+
+                // ── Kolom Kategori ──
+                const tdCategory = document.createElement('td');
+                tdCategory.className = "px-6 py-4 whitespace-nowrap text-sm text-gray-500";
+                const categorySpan = document.createElement('span');
+                categorySpan.className = "px-2 py-1 text-xs bg-blue-50 text-blue-600 rounded-full border border-blue-100";
+                categorySpan.textContent = item.category || 'Umum';
+                tdCategory.appendChild(categorySpan);
+
+                // ── Kolom Password ──
+                const tdPassword = document.createElement('td');
+                tdPassword.className = "px-6 py-4 whitespace-nowrap text-sm";
+
+                if (item.password) {
+                    const pwBtn = document.createElement('button');
+                    pwBtn.className = "bg-yellow-50 hover:bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded border border-yellow-200 transition-colors flex items-center inline-flex gap-1";
+                    pwBtn.title = "Salin Password Lengkap";
+                    pwBtn.dataset.password = item.password;
+                    pwBtn.addEventListener('click', function () {
+                        copyToClipboard(this.dataset.password);
+                    });
+
+                    const keyIcon = document.createElement('i');
+                    keyIcon.className = "fas fa-key";
+                    const pwSpan = document.createElement('span');
+                    pwSpan.textContent = shortPassword;
+                    const copyIcon = document.createElement('i');
+                    copyIcon.className = "fas fa-copy ml-1 opacity-60";
+
+                    pwBtn.appendChild(keyIcon);
+                    pwBtn.appendChild(pwSpan);
+                    pwBtn.appendChild(copyIcon);
+                    tdPassword.appendChild(pwBtn);
+                } else {
+                    const noPwSpan = document.createElement('span');
+                    noPwSpan.className = "text-gray-400 text-xs";
+                    noPwSpan.textContent = "No Password";
+                    tdPassword.appendChild(noPwSpan);
+                }
+
+                tr.appendChild(tdNo);
+                tr.appendChild(tdPerson);
+                tr.appendChild(tdFile);
+                tr.appendChild(tdName);
+                tr.appendChild(tdCategory);
+                tr.appendChild(tdPassword);
                 tbody.appendChild(tr);
             });
         }
@@ -215,8 +282,15 @@
 
             showToast("Memproses file Excel...");
 
+            // Urutkan data berdasarkan nama orang (abjad A-Z)
+            const sortedData = [...allData].sort((a, b) => {
+                const nameA = (a.person_name || '').toLowerCase();
+                const nameB = (b.person_name || '').toLowerCase();
+                return nameA.localeCompare(nameB, 'id');
+            });
+
             // Petakan struktur kolom data JSON dari database ke format baris Excel
-            const excelRows = allData.map((item, index) => ({
+            const excelRows = sortedData.map((item, index) => ({
                 "No": index + 1,
                 "Nama Orang": item.person_name || '-',
                 "Nama File": item.nama_file || '-',
