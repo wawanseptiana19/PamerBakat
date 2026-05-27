@@ -211,6 +211,22 @@
             font-weight: 600;
         }
 
+        /* Scrollbar untuk container tautan */
+        #linkRowsContainer::-webkit-scrollbar {
+            width: 5px;
+        }
+        #linkRowsContainer::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 99px;
+        }
+        #linkRowsContainer::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 99px;
+        }
+        #linkRowsContainer::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
         /* AUTOCOMPLETE STYLES */
         .autocomplete-wrapper {
             position: relative;
@@ -340,8 +356,8 @@
                 <div class="col-span-1"></div>
             </div>
 
-            <!-- Container baris-baris tautan -->
-            <div id="linkRowsContainer" class="space-y-2 mb-3"></div>
+            <!-- Container baris-baris tautan (max 5 baris, sisanya scroll) -->
+            <div id="linkRowsContainer" class="space-y-2 mb-3" style="max-height: calc(5 * 56px + 4 * 8px); overflow-y: auto; padding-right: 2px;"></div>
 
             <!-- Tombol tambah baris -->
             <button id="addRowBtn" type="button"
@@ -787,6 +803,7 @@
             const row = document.createElement('div');
             row.className = 'link-row';
             row.dataset.rowId = id;
+            if (prefill.namaFile) row.dataset.namaFile = prefill.namaFile;
 
             // Thumbnail untuk baris dari enkripsi
             let thumbHtml = '';
@@ -837,7 +854,10 @@
             createLinkRow();
             // fokus ke nama tautan baris baru
             const rows = linkRowsContainer.querySelectorAll('.link-row');
-            rows[rows.length - 1].querySelector('.row-linkname').focus();
+            const lastRow = rows[rows.length - 1];
+            lastRow.querySelector('.row-linkname').focus();
+            // scroll ke baris baru
+            setTimeout(() => lastRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
         });
 
         saveAllBtn.addEventListener('click', async () => {
@@ -852,7 +872,7 @@
                 const url      = row.querySelector('.row-linkurl').value.trim();
                 const category = row.querySelector('.row-category').value.trim();
                 const password = row.querySelector('.row-password').value.trim();
-                const namaFile = row.querySelector('span[title]')?.getAttribute('title') || '';
+                const namaFile = row.dataset.namaFile || '';
 
                 if (!name || !url) continue; // lewati baris kosong
 
