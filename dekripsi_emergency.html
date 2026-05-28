@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dekripsi File — AES-256-CBC</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:'Inter',sans-serif;
+      background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);
+      min-height:100vh;color:#e2e8f0;
+      overflow-x:hidden;
+    }
+    body::before{
+      content:'';position:fixed;inset:0;z-index:0;
+      background:
+        radial-gradient(ellipse 600px 600px at 20% 20%, rgba(59,130,246,.08) 0%, transparent 70%),
+        radial-gradient(ellipse 500px 500px at 80% 80%, rgba(139,92,246,.06) 0%, transparent 70%),
+        radial-gradient(ellipse 400px 400px at 50% 50%, rgba(16,185,129,.04) 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .main-container{
+      position:relative;z-index:1;
+      width:100%;max-width:760px;margin:0 auto;
+      padding:2rem 1rem 5rem;
+    }
+    @media(min-width:768px){.main-container{padding:3rem 2rem 5rem;}}
+
+    /* Glass Card */
+    .card{
+      background:rgba(255,255,255,.04);
+      backdrop-filter:blur(20px);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:1.25rem;
+      padding:1.75rem;
+      margin-bottom:1.25rem;
+      transition:all .3s ease;
+    }
+    .card:hover{background:rgba(255,255,255,.055);border-color:rgba(255,255,255,.12);}
+    @media(min-width:768px){.card{padding:2rem;}}
+
+    .card-header{display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;}
+    .card-icon{
+      width:2.75rem;height:2.75rem;border-radius:.75rem;
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    }
+    .card-icon.blue{background:linear-gradient(135deg,#3b82f6,#6366f1);}
+    .card-icon.green{background:linear-gradient(135deg,#10b981,#06b6d4);}
+    .card-icon.purple{background:linear-gradient(135deg,#8b5cf6,#a855f7);}
+    .card-icon.amber{background:linear-gradient(135deg,#f59e0b,#ef4444);}
+
+    .page-title{
+      font-size:1.625rem;font-weight:800;
+      background:linear-gradient(135deg,#f1f5f9,#cbd5e1);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+      line-height:1.3;
+    }
+    .page-subtitle{font-size:.8125rem;color:#94a3b8;margin-top:.2rem;}
+
+    /* Status bar */
+    .status-bar{
+      display:flex;align-items:center;gap:.625rem;
+      border:1px solid rgba(255,255,255,.06);border-radius:.75rem;
+      padding:.75rem 1rem;font-size:.8125rem;color:#94a3b8;
+      background:rgba(255,255,255,.03);transition:all .3s ease;
+    }
+    .status-bar.success{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.07);color:#6ee7b7;}
+    .status-bar.error{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.07);color:#fca5a5;}
+    .status-bar.loading{border-color:rgba(59,130,246,.35);background:rgba(59,130,246,.07);color:#93c5fd;}
+
+    /* Input & Label */
+    .field-label{
+      font-size:.6875rem;font-weight:700;text-transform:uppercase;
+      letter-spacing:.06em;color:#64748b;margin-bottom:.4rem;display:block;
+    }
+    .input-wrap{
+      background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+      border-radius:.75rem;transition:border-color .2s,background .2s;
+    }
+    .input-wrap:focus-within{border-color:rgba(99,102,241,.45);background:rgba(99,102,241,.04);}
+    .input-field{
+      width:100%;background:transparent;border:none;outline:none;
+      padding:.75rem 1rem;font-size:.875rem;color:#e2e8f0;font-family:inherit;
+    }
+    .input-field::placeholder{color:#475569;}
+
+    /* Password field with toggle */
+    .pass-wrap{position:relative;}
+    .pass-wrap .input-field{padding-right:2.75rem;}
+    .toggle-pass{
+      position:absolute;right:.75rem;top:50%;transform:translateY(-50%);
+      background:none;border:none;cursor:pointer;color:#64748b;
+      transition:color .2s;padding:.25rem;
+    }
+    .toggle-pass:hover{color:#94a3b8;}
+
+    /* Drop zone */
+    .drop-zone{
+      border:2px dashed rgba(255,255,255,.1);border-radius:1rem;
+      padding:2.25rem 1.5rem;text-align:center;cursor:pointer;
+      transition:all .25s ease;background:rgba(255,255,255,.02);
+      position:relative;
+    }
+    .drop-zone:hover,.drop-zone.drag-over{
+      border-color:rgba(99,102,241,.5);
+      background:rgba(99,102,241,.05);
+    }
+    .drop-zone input[type=file]{
+      position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
+    }
+    .drop-icon{
+      width:3.25rem;height:3.25rem;
+      background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(139,92,246,.2));
+      border:1px solid rgba(99,102,241,.25);border-radius:1rem;
+      display:inline-flex;align-items:center;justify-content:center;
+      margin-bottom:.875rem;
+    }
+    .drop-title{font-size:.9375rem;font-weight:600;color:#e2e8f0;margin-bottom:.25rem;}
+    .drop-sub{font-size:.75rem;color:#64748b;}
+
+    /* File chip */
+    .file-chip{
+      display:inline-flex;align-items:center;gap:.625rem;
+      background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);
+      border-radius:.625rem;padding:.5rem .875rem;font-size:.8125rem;color:#6ee7b7;
+      margin-top:.75rem;max-width:100%;
+    }
+    .file-chip span{word-break:break-all;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;max-width:260px;}
+    .file-chip button{
+      background:none;border:none;cursor:pointer;color:#6ee7b7;
+      opacity:.6;padding:.1rem;transition:opacity .15s;flex-shrink:0;
+    }
+    .file-chip button:hover{opacity:1;}
+
+    /* Buttons */
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      gap:.5rem;padding:.75rem 1.5rem;border-radius:.75rem;
+      font-size:.875rem;font-weight:600;border:none;cursor:pointer;
+      transition:all .2s ease;position:relative;overflow:hidden;
+      text-decoration:none;
+    }
+    .btn::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(135deg,rgba(255,255,255,.1),transparent);
+      opacity:0;transition:opacity .2s;
+    }
+    .btn:hover::after{opacity:1;}
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none !important;}
+
+    .btn-primary{
+      background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;
+      box-shadow:0 4px 16px rgba(99,102,241,.35);width:100%;
+    }
+    .btn-primary:hover:not(:disabled){box-shadow:0 6px 24px rgba(99,102,241,.45);transform:translateY(-1px);}
+
+    .btn-green{
+      background:linear-gradient(135deg,#10b981,#059669);color:#fff;
+      box-shadow:0 4px 16px rgba(16,185,129,.3);
+    }
+    .btn-green:hover:not(:disabled){box-shadow:0 6px 24px rgba(16,185,129,.4);transform:translateY(-1px);}
+
+    .btn-glass{
+      background:rgba(255,255,255,.06);color:#e2e8f0;
+      border:1px solid rgba(255,255,255,.1);
+    }
+    .btn-glass:hover:not(:disabled){background:rgba(255,255,255,.1);transform:translateY(-1px);}
+
+    .btn-group{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1.25rem;}
+
+    /* Preview area */
+    .preview-area{
+      display:flex;flex-direction:column;align-items:center;gap:1rem;
+    }
+    .preview-area img,.preview-area video{
+      width:100%;max-width:340px;border-radius:1rem;
+      box-shadow:0 8px 32px rgba(0,0,0,.4);
+      border:1px solid rgba(255,255,255,.06);
+    }
+    .preview-label{
+      font-size:.9375rem;font-weight:600;color:#e2e8f0;
+      text-align:center;word-break:break-word;
+      padding:.5rem 1rem;background:rgba(255,255,255,.04);border-radius:.5rem;
+    }
+
+    /* Meta info strip */
+    .meta-strip{
+      display:flex;flex-wrap:wrap;gap:.625rem;margin-top:1rem;justify-content:center;
+    }
+    .meta-badge{
+      display:inline-flex;align-items:center;gap:.375rem;
+      background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+      border-radius:.5rem;padding:.4rem .75rem;font-size:.75rem;color:#94a3b8;
+    }
+
+    /* Frames grid */
+    .frames-grid{
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.625rem;margin-top:.875rem;
+    }
+    @media(min-width:600px){.frames-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}}
+    .frame-thumb{
+      width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:.625rem;cursor:pointer;
+      border:2px solid transparent;transition:all .2s ease;box-shadow:0 2px 8px rgba(0,0,0,.3);
+    }
+    .frame-thumb:hover{transform:scale(1.04);border-color:rgba(59,130,246,.4);}
+    .frame-thumb.active-frame{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.3);}
+
+    /* Progress bar */
+    .progress-wrap{width:100%;margin:.875rem 0;}
+    .progress-bar-bg{height:.375rem;background:rgba(255,255,255,.06);border-radius:1rem;overflow:hidden;}
+    .progress-bar-fill{height:100%;width:0;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:1rem;transition:width .1s ease;}
+    .progress-text{text-align:center;font-size:.75rem;color:#64748b;margin-top:.375rem;}
+
+    /* Image Modal */
+    #imageModal{
+      display:none;position:fixed;inset:0;
+      background:rgba(0,0,0,.88);backdrop-filter:blur(8px);
+      z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:1rem;
+    }
+    #imageModal.open{display:flex;}
+    .modal-content{max-width:90vw;max-height:80vh;object-fit:contain;border-radius:.75rem;}
+    .modal-close{
+      position:fixed;top:1.25rem;right:1.25rem;
+      background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+      color:#fff;border-radius:.625rem;padding:.4rem .75rem;cursor:pointer;
+      font-size:.875rem;font-weight:600;transition:background .15s;
+      display:flex;align-items:center;gap:.375rem;
+    }
+    .modal-close:hover{background:rgba(255,255,255,.15);}
+    .modal-nav{
+      position:fixed;top:50%;transform:translateY(-50%);
+      background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+      color:#fff;border:none;border-radius:.625rem;padding:.625rem;cursor:pointer;
+      transition:background .15s;
+    }
+    .modal-nav:hover{background:rgba(255,255,255,.15);}
+    .modal-nav.prev{left:1rem;}
+    .modal-nav.next{right:1rem;}
+    .modal-nav:disabled{opacity:.25;cursor:not-allowed;}
+    .modal-counter{
+      position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);
+      background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.1);
+      color:#e2e8f0;padding:.35rem .875rem;border-radius:.5rem;font-size:.8125rem;
+    }
+    .modal-download{
+      display:inline-flex;align-items:center;gap:.5rem;
+      background:linear-gradient(135deg,#10b981,#059669);color:#fff;
+      border:none;border-radius:.625rem;padding:.55rem 1.25rem;cursor:pointer;
+      font-size:.8125rem;font-weight:600;text-decoration:none;
+      box-shadow:0 4px 16px rgba(16,185,129,.35);
+    }
+    .modal-download:hover{box-shadow:0 6px 24px rgba(16,185,129,.45);}
+
+    /* Fade in */
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+    .fade-in{animation:fadeIn .4s ease forwards;}
+    .hidden{display:none !important;}
+
+    /* Spin */
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .spin{animation:spin .8s linear infinite;display:inline-block;}
+
+    /* Kbd hint */
+    .kbd-hint{display:flex;align-items:center;gap:.375rem;justify-content:center;font-size:.75rem;color:#475569;margin-top:.5rem;}
+    .kbd{display:inline-flex;align-items:center;justify-content:center;width:1.375rem;height:1.375rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:.3rem;font-size:.7rem;font-weight:600;color:#94a3b8;}
+
+    /* Frame counter badge */
+    .frame-badge{
+      display:inline-flex;align-items:center;gap:.4rem;
+      background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);
+      color:#a5b4fc;padding:.4rem .875rem;border-radius:.5rem;font-size:.8125rem;font-weight:600;
+      margin-top:.625rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+
+    <!-- Header -->
+    <div class="card fade-in" style="margin-bottom:1.5rem;">
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <div class="card-icon purple">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="22" height="22" style="color:#fff;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="page-title">Dekripsi File</div>
+          <div class="page-subtitle">AES-256-CBC · Upload file &amp; masukkan password</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Form Card -->
+    <div class="card fade-in" id="formCard">
+      <div class="card-header">
+        <div class="card-icon blue">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="20" height="20" style="color:#fff;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/>
+          </svg>
+        </div>
+        <div>
+          <div style="font-size:.9375rem;font-weight:700;color:#e2e8f0;">Upload File Terenkripsi</div>
+          <div style="font-size:.75rem;color:#94a3b8;margin-top:.1rem;">Pilih atau seret file ke area di bawah</div>
+        </div>
+      </div>
+
+      <!-- Drop Zone -->
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="fileInput" accept="*/*">
+        <div class="drop-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="26" height="26" style="color:#a5b4fc;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12-3-3m0 0-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
+          </svg>
+        </div>
+        <div class="drop-title">Klik atau seret file ke sini</div>
+        <div class="drop-sub">Mendukung semua jenis file terenkripsi (Base64 / OpenSSL)</div>
+      </div>
+      <div id="fileChipWrap" class="hidden" style="text-align:center;">
+        <div class="file-chip" id="fileChip">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="15" height="15">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a4.5 4.5 0 0 0-4.5-4.5Z"/>
+          </svg>
+          <span id="fileChipName">-</span>
+          <button type="button" id="clearFileBtn" title="Hapus file">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div style="margin-top:1.25rem;">
+        <label class="field-label" for="passwordInput">Password AES</label>
+        <div class="input-wrap pass-wrap">
+          <input class="input-field" type="password" id="passwordInput" placeholder="Masukkan password dekripsi..." autocomplete="current-password">
+          <button class="toggle-pass" type="button" id="togglePass" title="Tampilkan/sembunyikan password">
+            <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="18" height="18">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Optional: nama file output -->
+      <div style="margin-top:1rem;">
+        <label class="field-label" for="outputName">Nama File Output <span style="color:#475569;font-weight:400;text-transform:none;">(opsional)</span></label>
+        <div class="input-wrap">
+          <input class="input-field" type="text" id="outputName" placeholder="contoh: foto.jpg, video.mp4 …">
+        </div>
+      </div>
+
+      <!-- Decrypt button -->
+      <div style="margin-top:1.5rem;">
+        <button class="btn btn-primary" id="decryptBtn" onclick="runDecrypt()" disabled>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="18" height="18">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/>
+          </svg>
+          Dekripsi Sekarang
+        </button>
+      </div>
+    </div>
+
+    <!-- Status Card -->
+    <div class="card fade-in hidden" id="statusCard">
+      <div id="statusBar" class="status-bar loading">
+        <span id="statusText">Mempersiapkan...</span>
+      </div>
+    </div>
+
+    <!-- Preview Card -->
+    <div class="card fade-in hidden" id="previewCard">
+      <div class="card-header">
+        <div class="card-icon green">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="20" height="20" style="color:#fff;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+          </svg>
+        </div>
+        <div>
+          <div style="font-size:.9375rem;font-weight:700;color:#e2e8f0;">Hasil Dekripsi</div>
+          <div id="previewSubtitle" style="font-size:.75rem;color:#94a3b8;margin-top:.1rem;">Berhasil didekripsi</div>
+        </div>
+      </div>
+
+      <!-- Meta badges -->
+      <div class="meta-strip hidden" id="metaStrip">
+        <div class="meta-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="13" height="13" style="color:#10b981;"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 5.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"/></svg>
+          <span id="metaSize">-</span>
+        </div>
+        <div class="meta-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="13" height="13" style="color:#6366f1;"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a4.5 4.5 0 0 0-4.5-4.5Z"/></svg>
+          <span id="metaMime">-</span>
+        </div>
+        <div class="meta-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="13" height="13" style="color:#f59e0b;"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
+          <span>AES-256-CBC</span>
+        </div>
+      </div>
+
+      <!-- Preview area -->
+      <div class="preview-area" id="previewArea" style="margin-top:1.25rem;"></div>
+
+      <!-- Download buttons -->
+      <div class="btn-group hidden" id="actionButtons"></div>
+
+      <!-- Video actions -->
+      <div class="hidden" id="videoActions" style="margin-top:1rem;display:flex;flex-direction:column;align-items:center;gap:.75rem;">
+        <button class="btn btn-glass" id="showFramesBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75.125V5.625m0 12.75v-1.5m0 0a1.125 1.125 0 0 1 1.125-1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12a1.125 1.125 0 0 1-1.125 1.125m0 0h-1.5m-5.25 2.25V16.5m-5.25-5.25v1.5"/></svg>
+          Tampilkan Frame Video
+        </button>
+      </div>
+
+      <!-- Frames section -->
+      <div class="hidden" id="framesSection" style="margin-top:1.25rem;">
+        <div style="font-size:.8125rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.625rem;">Frame Preview</div>
+        <div id="progressWrap" class="progress-wrap hidden">
+          <div class="progress-bar-bg"><div id="progressFill" class="progress-bar-fill"></div></div>
+          <div id="progressText" class="progress-text">Mengekstrak frame...</div>
+        </div>
+        <div id="frameCountBadge" class="frame-badge hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5"/></svg>
+          <span id="frameCountText">0 frame</span>
+        </div>
+        <div class="kbd-hint" id="kbdHint" style="margin-bottom:.625rem;">
+          <span>Gunakan</span><span class="kbd">←</span><span class="kbd">→</span><span>untuk navigasi</span>
+        </div>
+        <div class="frames-grid" id="framesGrid"></div>
+      </div>
+    </div>
+
+    <!-- Reset button -->
+    <div id="resetWrap" class="hidden" style="text-align:center;margin-top:.5rem;">
+      <button class="btn btn-glass" onclick="resetAll()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+        Dekripsi File Lain
+      </button>
+    </div>
+
+  </div><!-- /.main-container -->
+
+  <!-- Image Modal -->
+  <div id="imageModal">
+    <button class="modal-close" onclick="closeModal()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+      Tutup
+    </button>
+    <button class="modal-nav prev" id="modalPrev" onclick="navigateFrame(-1)" disabled>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+    </button>
+    <button class="modal-nav next" id="modalNext" onclick="navigateFrame(1)" disabled>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+    </button>
+    <img class="modal-content" id="modalImage" alt="Preview">
+    <div id="modalCounter" class="modal-counter" style="display:none;"></div>
+    <a id="modalDownload" class="modal-download" download>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+      Download
+    </a>
+  </div>
+
+  <script>
+  /* ═══════════════════════════════════════════
+     STATE
+  ═══════════════════════════════════════════ */
+  let selectedFile = null;
+  let objectUrl = null;
+  let currentBlob = null;
+  let frameImages = [];
+  let currentFrameIdx = -1;
+  let isFrameMode = false;
+  let videoElGlobal = null;
+
+  /* ═══════════════════════════════════════════
+     CRYPTO HELPERS
+  ═══════════════════════════════════════════ */
+
+  /* Pure-JS MD5 */
+  function md5js(dataBytes){
+    function RL(v,n){return(v<<n)|(v>>>(32-n));}
+    function ADD(x,y){return(x+y)|0;}
+    const K=new Int32Array(64);
+    for(let i=0;i<64;i++)K[i]=Math.floor(Math.abs(Math.sin(i+1))*0x100000000)|0;
+    const S=[7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,
+             5, 9,14,20,5, 9,14,20,5, 9,14,20,5, 9,14,20,
+             4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,
+             6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21];
+    const bytes=Array.from(dataBytes);
+    const bitLen=bytes.length*8;
+    bytes.push(0x80);
+    while(bytes.length%64!==56)bytes.push(0);
+    for(let i=0;i<4;i++)bytes.push((bitLen>>>(i*8))&0xFF);
+    for(let i=0;i<4;i++)bytes.push(0);
+    let a0=0x67452301,b0=0xEFCDAB89|0,c0=0x98BADCFE|0,d0=0x10325476|0;
+    for(let blk=0;blk<bytes.length;blk+=64){
+      const W=new Int32Array(16);
+      for(let j=0;j<16;j++){const o=blk+j*4;W[j]=bytes[o]|(bytes[o+1]<<8)|(bytes[o+2]<<16)|(bytes[o+3]<<24);}
+      let A=a0,B=b0,C=c0,D=d0;
+      for(let i=0;i<64;i++){
+        let F2,g;
+        if(i<16){F2=(B&C)|(~B&D);g=i;}
+        else if(i<32){F2=(D&B)|(~D&C);g=(5*i+1)%16;}
+        else if(i<48){F2=B^C^D;g=(3*i+5)%16;}
+        else{F2=C^(B|~D);g=(7*i)%16;}
+        F2=ADD(F2,ADD(A,ADD(K[i],W[g])));
+        A=D;D=C;C=B;B=ADD(B,RL(F2,S[i]));
+      }
+      a0=ADD(a0,A);b0=ADD(b0,B);c0=ADD(c0,C);d0=ADD(d0,D);
+    }
+    const out=new Uint8Array(16);
+    [a0,b0,c0,d0].forEach((v,i)=>{out[i*4]=(v)&0xFF;out[i*4+1]=(v>>>8)&0xFF;out[i*4+2]=(v>>>16)&0xFF;out[i*4+3]=(v>>>24)&0xFF;});
+    return out;
+  }
+
+  /* EVP_BytesToKey (OpenSSL default KDF) */
+  function evpBytesToKey(password,salt,keyLen){
+    let result=new Uint8Array(0),prev=new Uint8Array(0);
+    while(result.length<keyLen){
+      const input=new Uint8Array(prev.length+password.length+salt.length);
+      input.set(prev,0);input.set(password,prev.length);input.set(salt,prev.length+password.length);
+      prev=md5js(input);
+      const tmp=new Uint8Array(result.length+prev.length);
+      tmp.set(result,0);tmp.set(prev,result.length);
+      result=tmp;
+    }
+    return result.slice(0,keyLen);
+  }
+
+  /* AES-256-CBC Decrypt — mendukung format OpenSSL "Salted__" dan raw IV+ciphertext */
+  async function decryptAES(encryptedText,password){
+    const b64=encryptedText.replace(/\s+/g,'');
+    let raw;
+    try{raw=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));}
+    catch(e){throw new Error('Format Base64 tidak valid: '+e.message);}
+
+    let key,iv,ciphertext;
+    const passBytes=new TextEncoder().encode(password);
+    const header=String.fromCharCode(...raw.slice(0,8));
+
+    if(header==='Salted__'){
+      // OpenSSL format: "Salted__" + salt(8) + ciphertext
+      const salt=raw.slice(8,16);
+      ciphertext=raw.slice(16);
+      const keyiv=evpBytesToKey(passBytes,salt,48);
+      key=keyiv.slice(0,32);
+      iv=keyiv.slice(32,48);
+    } else {
+      // Raw format: IV(16 bytes) + ciphertext
+      iv=raw.slice(0,16);
+      ciphertext=raw.slice(16);
+      const keyiv=evpBytesToKey(passBytes,new Uint8Array(8),32);
+      key=keyiv.slice(0,32);
+    }
+
+    const cryptoKey=await crypto.subtle.importKey('raw',key,{name:'AES-CBC'},false,['decrypt']);
+    try{
+      const decrypted=await crypto.subtle.decrypt({name:'AES-CBC',iv},cryptoKey,ciphertext);
+      return new Uint8Array(decrypted);
+    }catch(e){
+      throw new Error('Dekripsi gagal — password salah atau data rusak');
+    }
+  }
+
+  /* ═══════════════════════════════════════════
+     DETECTION / UTILITY HELPERS
+  ═══════════════════════════════════════════ */
+
+  function normalizeBase64(b64){
+    if(!b64||typeof b64!=='string')return'';
+    let s=b64.replace(/\s+/g,'');
+    const m=s.match(/^data:.*;base64,(.*)$/i);
+    if(m)s=m[1];
+    s=s.replace(/-/g,'+').replace(/_/g,'/');
+    const pad=s.length%4;
+    if(pad===2)s+='==';else if(pad===3)s+='=';
+    return s;
+  }
+
+  /* Detect MIME from raw bytes */
+  function detectMimeFromBytes(bytes){
+    if(!bytes||bytes.length<12)return null;
+    const h=Array.from(bytes.slice(0,12));
+    // PNG
+    if(h[0]===0x89&&h[1]===0x50&&h[2]===0x4E&&h[3]===0x47)return'image/png';
+    // JPEG
+    if(h[0]===0xFF&&h[1]===0xD8)return'image/jpeg';
+    // GIF
+    if(h[0]===0x47&&h[1]===0x49&&h[2]===0x46)return'image/gif';
+    // WebP
+    if(h[0]===0x52&&h[1]===0x49&&h[2]===0x46&&h[3]===0x46&&h[8]===0x57&&h[9]===0x45&&h[10]===0x42&&h[11]===0x50)return'image/webp';
+    // PDF
+    if(h[0]===0x25&&h[1]===0x50&&h[2]===0x44&&h[3]===0x46)return'application/pdf';
+    // MP4 / MOV — check ftyp box
+    const str=Array.from(bytes.slice(0,32)).map(b=>String.fromCharCode(b)).join('');
+    if(str.indexOf('ftyp')!==-1)return'video/mp4';
+    if(str.indexOf('moov')!==-1)return'video/mp4';
+    // WebM
+    if(h[0]===0x1A&&h[1]===0x45&&h[2]===0xDF&&h[3]===0xA3)return'video/webm';
+    // ZIP
+    if(h[0]===0x50&&h[1]===0x4B&&h[2]===0x03&&h[3]===0x04)return'application/zip';
+    // MP3
+    if((h[0]===0xFF&&(h[1]&0xE0)===0xE0)||h[0]===0x49&&h[1]===0x44&&h[2]===0x33)return'audio/mpeg';
+    // Check if text
+    const isText=bytes.slice(0,256).every(b=>b===0x09||b===0x0A||b===0x0D||(b>=0x20&&b<=0x7E)||b>0x7F);
+    if(isText)return'text/plain';
+    return'application/octet-stream';
+  }
+
+  /* Detect if content is a nested base64 media */
+  function detectMimeFromBase64Str(b64){
+    try{
+      const cleaned=normalizeBase64(b64).slice(0,1000);
+      if(!cleaned)return null;
+      const bin=atob(cleaned);
+      const bytes=new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+      return detectMimeFromBytes(bytes);
+    }catch{return null;}
+  }
+
+  function bytesToHuman(n){
+    if(typeof n!=='number'||isNaN(n))return'-';
+    if(n<1024)return n+' B';
+    if(n<1024*1024)return(n/1024).toFixed(1)+' KB';
+    return(n/(1024*1024)).toFixed(2)+' MB';
+  }
+
+  function guessExtension(mime,fallbackName){
+    if(fallbackName&&fallbackName.includes('.'))return fallbackName;
+    const map={'image/jpeg':'jpg','image/png':'png','image/gif':'gif','image/webp':'webp',
+               'video/mp4':'mp4','video/webm':'webm','audio/mpeg':'mp3',
+               'application/pdf':'pdf','application/zip':'zip','text/plain':'txt'};
+    return map[mime]||'bin';
+  }
+
+  /* ═══════════════════════════════════════════
+     UI HELPERS
+  ═══════════════════════════════════════════ */
+  function setStatus(html,type='loading'){
+    const card=document.getElementById('statusCard');
+    const bar=document.getElementById('statusBar');
+    const text=document.getElementById('statusText');
+    card.classList.remove('hidden');
+    bar.className='status-bar '+type;
+    text.innerHTML=html;
+  }
+
+  function spinSvg(){
+    return`<span class="spin" style="display:inline-flex;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg></span> `;
+  }
+
+  function checkFormReady(){
+    const hasFile=!!selectedFile;
+    const hasPass=document.getElementById('passwordInput').value.trim().length>0;
+    document.getElementById('decryptBtn').disabled=!(hasFile&&hasPass);
+  }
+
+  /* ═══════════════════════════════════════════
+     FILE INPUT
+  ═══════════════════════════════════════════ */
+  const fileInput=document.getElementById('fileInput');
+  const dropZone=document.getElementById('dropZone');
+
+  fileInput.addEventListener('change',()=>{
+    if(fileInput.files[0])setFile(fileInput.files[0]);
+  });
+
+  dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('drag-over');});
+  dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop',e=>{
+    e.preventDefault();dropZone.classList.remove('drag-over');
+    if(e.dataTransfer.files[0])setFile(e.dataTransfer.files[0]);
+  });
+
+  document.getElementById('clearFileBtn').addEventListener('click',()=>{
+    selectedFile=null;
+    fileInput.value='';
+    document.getElementById('fileChipWrap').classList.add('hidden');
+    dropZone.classList.remove('hidden');
+    checkFormReady();
+  });
+
+  document.getElementById('passwordInput').addEventListener('input',checkFormReady);
+  document.getElementById('passwordInput').addEventListener('keydown',e=>{
+    if(e.key==='Enter')runDecrypt();
+  });
+
+  document.getElementById('togglePass').addEventListener('click',()=>{
+    const inp=document.getElementById('passwordInput');
+    const isPass=inp.type==='password';
+    inp.type=isPass?'text':'password';
+    document.getElementById('togglePass').style.color=isPass?'#a5b4fc':'#64748b';
+  });
+
+  function setFile(file){
+    selectedFile=file;
+    document.getElementById('fileChipName').textContent=file.name;
+    document.getElementById('fileChipWrap').classList.remove('hidden');
+    dropZone.classList.add('hidden');
+    // auto-fill output name if empty
+    const outEl=document.getElementById('outputName');
+    if(!outEl.value)outEl.value=file.name.replace(/\.[^.]+$/,'')||file.name;
+    checkFormReady();
+  }
+
+  /* ═══════════════════════════════════════════
+     MAIN DECRYPT FLOW
+  ═══════════════════════════════════════════ */
+  async function runDecrypt(){
+    if(!selectedFile){return;}
+    const password=document.getElementById('passwordInput').value;
+    if(!password){return;}
+
+    const decryptBtn=document.getElementById('decryptBtn');
+    decryptBtn.disabled=true;
+
+    // Reset previous results
+    if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl=null;}
+    document.getElementById('previewCard').classList.add('hidden');
+    document.getElementById('resetWrap').classList.add('hidden');
+    document.getElementById('previewArea').innerHTML='';
+    document.getElementById('actionButtons').innerHTML='';
+    document.getElementById('actionButtons').classList.add('hidden');
+    document.getElementById('videoActions').classList.add('hidden');
+    document.getElementById('videoActions').style.display='';
+    document.getElementById('framesSection').classList.add('hidden');
+    document.getElementById('framesGrid').innerHTML='';
+    document.getElementById('progressFill').style.width='0';
+    document.getElementById('frameCountBadge').classList.add('hidden');
+    frameImages=[];currentFrameIdx=-1;isFrameMode=false;videoElGlobal=null;
+    document.getElementById('metaStrip').classList.add('hidden');
+
+    setStatus(spinSvg()+'Membaca file...','loading');
+
+    try{
+      // Read file as text
+      const fileText=await readFileAsText(selectedFile);
+
+      setStatus(spinSvg()+'Mendekripsi dengan AES-256-CBC...','loading');
+
+      const decrypted=await decryptAES(fileText,password);
+
+      // Detect content type
+      let mime=detectMimeFromBytes(decrypted);
+      const outputName=document.getElementById('outputName').value.trim()||selectedFile.name;
+
+      // Check if decrypted is base64 text (nested base64 encoding)
+      if(mime==='text/plain'||mime==='application/octet-stream'){
+        const textContent=new TextDecoder('utf-8',{fatal:false}).decode(decrypted).trim();
+        const b64mimeFromText=detectMimeFromBase64Str(textContent);
+        if(b64mimeFromText&&b64mimeFromText!=='text/plain'&&b64mimeFromText!=='application/octet-stream'){
+          // It's a base64-encoded media file
+          mime=b64mimeFromText;
+          await showBase64Media(textContent,mime,outputName);
+          showMeta(decrypted.length,mime);
+          setStatus('<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16" style="color:#10b981"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Dekripsi berhasil!','success');
+          document.getElementById('previewCard').classList.remove('hidden');
+          document.getElementById('resetWrap').classList.remove('hidden');
+          decryptBtn.disabled=false;
+          checkFormReady();
+          return;
+        }
+
+        if(mime==='text/plain'){
+          showTextContent(textContent,outputName);
+          showMeta(decrypted.length,'text/plain');
+          setStatus('<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16" style="color:#10b981"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Dekripsi berhasil!','success');
+          document.getElementById('previewCard').classList.remove('hidden');
+          document.getElementById('resetWrap').classList.remove('hidden');
+          decryptBtn.disabled=false;
+          checkFormReady();
+          return;
+        }
+      }
+
+      // Binary media
+      currentBlob=new Blob([decrypted],{type:mime});
+      objectUrl=URL.createObjectURL(currentBlob);
+      const ext=guessExtension(mime,outputName);
+      const dlName=outputName.includes('.')?outputName:`${outputName}.${ext}`;
+
+      showMeta(decrypted.length,mime);
+      await showBinaryMedia(objectUrl,mime,dlName);
+
+      setStatus('<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16" style="color:#10b981"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Dekripsi berhasil!','success');
+      document.getElementById('previewCard').classList.remove('hidden');
+      document.getElementById('resetWrap').classList.remove('hidden');
+
+    }catch(err){
+      setStatus('<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16" style="color:#f87171"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.731 0 2.813-1.874 1.948-3.374L13.949 3.374c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg> Gagal: '+err.message,'error');
+      document.getElementById('resetWrap').classList.remove('hidden');
+    }
+
+    decryptBtn.disabled=false;
+    checkFormReady();
+  }
+
+  /* Read file as text */
+  function readFileAsText(file){
+    return new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onload=e=>res(e.target.result);
+      r.onerror=()=>rej(new Error('Gagal membaca file'));
+      r.readAsText(file,'utf-8');
+    });
+  }
+
+  /* Show meta badges */
+  function showMeta(rawBytes,mime){
+    document.getElementById('metaSize').textContent=bytesToHuman(rawBytes);
+    document.getElementById('metaMime').textContent=mime||'-';
+    document.getElementById('metaStrip').classList.remove('hidden');
+  }
+
+  /* Add download button */
+  function addDownloadBtn(href,filename,label,cls){
+    const wrap=document.getElementById('actionButtons');
+    const a=document.createElement('a');
+    a.href=href;a.download=filename;a.className='btn '+cls;
+    a.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg> ${label}`;
+    wrap.appendChild(a);
+    wrap.classList.remove('hidden');
+  }
+
+  /* Show image */
+  async function showBinaryMedia(url,mime,dlName){
+    const previewEl=document.getElementById('previewArea');
+    previewEl.innerHTML='';
+
+    if(mime.startsWith('image/')){
+      const img=document.createElement('img');
+      img.src=url;img.alt=dlName;img.style.cursor='pointer';
+      img.addEventListener('click',()=>openModalSingle(url,dlName));
+      previewEl.appendChild(img);
+      addDownloadBtn(url,dlName,'Download Gambar','btn-green');
+
+    }else if(mime.startsWith('video/')){
+      const vid=document.createElement('video');
+      vid.controls=true;vid.playsInline=true;vid.src=url;vid.loop=true;
+      vid.style.cssText='width:100%;max-width:400px;border-radius:.75rem;box-shadow:0 8px 32px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.06);';
+      previewEl.appendChild(vid);
+      videoElGlobal=vid;
+      addDownloadBtn(url,dlName,'Download Video','btn-glass');
+      const va=document.getElementById('videoActions');
+      va.classList.remove('hidden');
+      va.style.display='flex';
+      setupFrameExtractor(vid,dlName);
+
+    }else if(mime.startsWith('audio/')){
+      const aud=document.createElement('audio');
+      aud.controls=true;aud.src=url;
+      aud.style.cssText='width:100%;border-radius:.75rem;margin-top:.5rem;';
+      previewEl.appendChild(aud);
+      addDownloadBtn(url,dlName,'Download Audio','btn-glass');
+
+    }else{
+      const p=document.createElement('div');
+      p.style.cssText='padding:1rem 1.25rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:.75rem;font-size:.8125rem;color:#94a3b8;text-align:center;';
+      p.textContent=`File tipe "${mime}" tidak dapat di-preview — klik download untuk menyimpan.`;
+      previewEl.appendChild(p);
+      addDownloadBtn(url,dlName,'Download File','btn-glass');
+    }
+  }
+
+  /* Show nested base64 media */
+  async function showBase64Media(b64str,mime,dlName){
+    const cleaned=normalizeBase64(b64str);
+    const dataUrl='data:'+mime+';base64,'+cleaned;
+    const bin=atob(cleaned);
+    const arr=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+    currentBlob=new Blob([arr],{type:mime});
+    objectUrl=URL.createObjectURL(currentBlob);
+    const ext=guessExtension(mime,dlName);
+    const name=dlName.includes('.')?dlName:`${dlName}.${ext}`;
+    await showBinaryMedia(objectUrl,mime,name);
+  }
+
+  /* Show plain text */
+  function showTextContent(text,dlName){
+    const previewEl=document.getElementById('previewArea');
+    previewEl.innerHTML='';
+    const pre=document.createElement('pre');
+    pre.style.cssText='width:100%;padding:1rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:.75rem;font-size:.8125rem;white-space:pre-wrap;color:#cbd5e1;max-height:24rem;overflow:auto;text-align:left;';
+    pre.textContent=text;
+    previewEl.appendChild(pre);
+    // Create download link for text
+    const blob=new Blob([text],{type:'text/plain'});
+    const url=URL.createObjectURL(blob);
+    objectUrl=url;
+    const name=dlName.includes('.')?dlName:dlName+'.txt';
+    addDownloadBtn(url,name,'Download Teks','btn-glass');
+  }
+
+  /* ═══════════════════════════════════════════
+     FRAME EXTRACTOR
+  ═══════════════════════════════════════════ */
+  function setupFrameExtractor(videoEl,dlName){
+    const showFramesBtn=document.getElementById('showFramesBtn');
+    showFramesBtn.onclick=async()=>{
+      if(document.getElementById('framesGrid').children.length>0)return;
+      document.getElementById('framesSection').classList.remove('hidden');
+      document.getElementById('progressWrap').classList.remove('hidden');
+      showFramesBtn.disabled=true;showFramesBtn.style.opacity='.5';
+
+      const canvas=document.createElement('canvas');
+      const ctx=canvas.getContext('2d');
+
+      await new Promise(res=>{
+        if(videoEl.readyState>=1)res();
+        else videoEl.addEventListener('loadedmetadata',res,{once:true});
+      });
+
+      canvas.width=videoEl.videoWidth;canvas.height=videoEl.videoHeight;
+      const duration=videoEl.duration;
+      const fps=Math.min(30,Math.ceil(duration*2));
+      const totalFrames=Math.min(Math.floor(duration*fps),300);
+      const frameInterval=duration/totalFrames;
+      frameImages=[];
+
+      const grid=document.getElementById('framesGrid');
+      const fill=document.getElementById('progressFill');
+      const ptext=document.getElementById('progressText');
+
+      for(let i=0;i<totalFrames;i++){
+        videoEl.currentTime=i*frameInterval;
+        await new Promise(res=>videoEl.addEventListener('seeked',res,{once:true}));
+        ctx.drawImage(videoEl,0,0,canvas.width,canvas.height);
+        const dataUrl=canvas.toDataURL('image/jpeg',0.85);
+        const fname=`frame_${String(i+1).padStart(4,'0')}.jpg`;
+        frameImages.push({src:dataUrl,filename:fname});
+
+        const img=document.createElement('img');
+        img.src=dataUrl;img.className='frame-thumb';img.alt='Frame '+(i+1);
+        const idx=i;
+        img.addEventListener('click',()=>openModalFrame(idx));
+        grid.appendChild(img);
+
+        const pct=Math.round(((i+1)/totalFrames)*100);
+        fill.style.width=pct+'%';
+        ptext.textContent=`Mengekstrak frame ${i+1} dari ${totalFrames} (${pct}%)`;
+      }
+
+      document.getElementById('progressWrap').classList.add('hidden');
+      document.getElementById('frameCountBadge').classList.remove('hidden');
+      document.getElementById('frameCountText').textContent=`${frameImages.length} frame`;
+    };
+  }
+
+  /* ═══════════════════════════════════════════
+     MODAL
+  ═══════════════════════════════════════════ */
+  function openModalSingle(src,filename){
+    isFrameMode=false;currentFrameIdx=-1;
+    const m=document.getElementById('imageModal');
+    document.getElementById('modalImage').src=src;
+    document.getElementById('modalDownload').href=src;
+    document.getElementById('modalDownload').download=filename||'image';
+    document.getElementById('modalCounter').style.display='none';
+    document.getElementById('modalPrev').disabled=true;
+    document.getElementById('modalNext').disabled=true;
+    m.classList.add('open');
+  }
+
+  function openModalFrame(idx){
+    if(frameImages.length===0)return;
+    isFrameMode=true;
+    currentFrameIdx=Math.max(0,Math.min(idx,frameImages.length-1));
+    document.getElementById('imageModal').classList.add('open');
+    document.getElementById('modalCounter').style.display='';
+    document.getElementById('modalPrev').disabled=false;
+    document.getElementById('modalNext').disabled=false;
+    updateModalFrame();
+  }
+
+  function updateModalFrame(){
+    const f=frameImages[currentFrameIdx];
+    if(!f)return;
+    document.getElementById('modalImage').src=f.src;
+    document.getElementById('modalDownload').href=f.src;
+    document.getElementById('modalDownload').download=f.filename;
+    document.getElementById('modalCounter').textContent=`${currentFrameIdx+1} / ${frameImages.length}`;
+    document.getElementById('modalPrev').disabled=currentFrameIdx<=0;
+    document.getElementById('modalNext').disabled=currentFrameIdx>=frameImages.length-1;
+    document.querySelectorAll('.frame-thumb').forEach((t,i)=>t.classList.toggle('active-frame',i===currentFrameIdx));
+    const active=document.querySelectorAll('.frame-thumb')[currentFrameIdx];
+    if(active)active.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'});
+  }
+
+  function navigateFrame(dir){
+    if(!isFrameMode)return;
+    const next=currentFrameIdx+dir;
+    if(next<0||next>=frameImages.length)return;
+    currentFrameIdx=next;
+    updateModalFrame();
+  }
+
+  function closeModal(){
+    document.getElementById('imageModal').classList.remove('open');
+    document.querySelectorAll('.frame-thumb').forEach(t=>t.classList.remove('active-frame'));
+    isFrameMode=false;
+  }
+
+  document.getElementById('imageModal').addEventListener('click',e=>{
+    if(e.target===document.getElementById('imageModal'))closeModal();
+  });
+
+  document.addEventListener('keydown',e=>{
+    const m=document.getElementById('imageModal');
+    if(m.classList.contains('open')){
+      if(e.key==='Escape')closeModal();
+      if(isFrameMode){
+        if(e.key==='ArrowLeft'||e.key==='a'){e.preventDefault();navigateFrame(-1);}
+        if(e.key==='ArrowRight'||e.key==='d'){e.preventDefault();navigateFrame(1);}
+      }
+    }
+  });
+
+  // Touch swipe
+  let touchStartX=0;
+  document.getElementById('imageModal').addEventListener('touchstart',e=>{touchStartX=e.changedTouches[0].clientX;},{passive:true});
+  document.getElementById('imageModal').addEventListener('touchend',e=>{
+    if(!isFrameMode)return;
+    const diff=e.changedTouches[0].clientX-touchStartX;
+    if(Math.abs(diff)>50){if(diff<0)navigateFrame(1);else navigateFrame(-1);}
+  },{passive:true});
+
+  /* ═══════════════════════════════════════════
+     RESET
+  ═══════════════════════════════════════════ */
+  function resetAll(){
+    if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl=null;}
+    selectedFile=null;currentBlob=null;frameImages=[];currentFrameIdx=-1;isFrameMode=false;videoElGlobal=null;
+
+    fileInput.value='';
+    document.getElementById('passwordInput').value='';
+    document.getElementById('outputName').value='';
+    document.getElementById('fileChipWrap').classList.add('hidden');
+    dropZone.classList.remove('hidden');
+    document.getElementById('previewCard').classList.add('hidden');
+    document.getElementById('statusCard').classList.add('hidden');
+    document.getElementById('resetWrap').classList.add('hidden');
+    document.getElementById('previewArea').innerHTML='';
+    document.getElementById('actionButtons').innerHTML='';
+    document.getElementById('actionButtons').classList.add('hidden');
+    document.getElementById('videoActions').classList.add('hidden');
+    document.getElementById('framesSection').classList.add('hidden');
+    document.getElementById('framesGrid').innerHTML='';
+    document.getElementById('frameCountBadge').classList.add('hidden');
+    document.getElementById('metaStrip').classList.add('hidden');
+    document.getElementById('decryptBtn').disabled=true;
+
+    const showFramesBtn=document.getElementById('showFramesBtn');
+    showFramesBtn.disabled=false;showFramesBtn.style.opacity='1';
+  }
+
+  window.addEventListener('beforeunload',()=>{if(objectUrl)URL.revokeObjectURL(objectUrl);});
+  </script>
+</body>
+</html>
