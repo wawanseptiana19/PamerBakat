@@ -163,7 +163,7 @@
                         btn.dataset.filename = item.nama_file;
 
                         btn.addEventListener('click', function () {
-                            downloadAndDecrypt(this.dataset.url, this.dataset.password, this.dataset.filename);
+                            downloadFile(this.dataset.url, this.dataset.filename);
                         });
 
                         tdFile.appendChild(btn);
@@ -231,45 +231,32 @@
             });
         }
 
-        // ─── LOGIKA UNDUH DAN DEKRIPSI KETIKA NAMA FILE DIKLIK ─────────────────
-        async function downloadAndDecrypt(url, password, filename) {
+        // ─── LOGIKA UNDUH FILE LANGSUNG DARI URL ──────────────────────────────
+        async function downloadFile(url, filename) {
             if (!url) {
                 showToast("Tautan link file tidak ditemukan.", true);
                 return;
             }
-            if (!password) {
-                showToast("File tidak mempunyai password enkripsi.", true);
-                return;
-            }
-            
-            showToast("Mengunduh file terenkripsi...");
+
+            showToast("Mengunduh file...");
             try {
                 const response = await fetch(url);
-                if (!response.ok) throw new Error("Gagal mengambil file berkas dari server.");
-                const encryptedText = await response.text();
+                if (!response.ok) throw new Error("Gagal mengambil file dari server.");
+                const blob = await response.blob();
 
-                showToast("Mendekripsi file...");
-                const decryptedBytes = CryptoJS.AES.decrypt(encryptedText, password);
-                const originalDataUrl = decryptedBytes.toString(CryptoJS.enc.Utf8);
-
-                if (!originalDataUrl || !originalDataUrl.startsWith('data:')) {
-                    throw new Error("Gagal mendekripsi berkas. Password salah atau data rusak.");
-                }
-
+                const objectUrl = URL.createObjectURL(blob);
                 const downloadLink = document.createElement('a');
-                downloadLink.href = originalDataUrl;
-                
-                const extension = originalDataUrl.split(';')[0].split('/')[1] || 'bin';
-                downloadLink.download = filename.replace('.pb', `_decrypted.${extension}`);
-                
+                downloadLink.href = objectUrl;
+                downloadLink.download = filename || 'file';
                 document.body.appendChild(downloadLink);
                 downloadLink.click();
                 document.body.removeChild(downloadLink);
-                
-                showToast("Sukses mendekripsi & mengunduh file!");
+                URL.revokeObjectURL(objectUrl);
+
+                showToast("File berhasil diunduh!");
             } catch (err) {
                 console.error(err);
-                showToast(err.message, true);
+                showToast("Gagal mengunduh file: " + err.message, true);
             }
         }
 
