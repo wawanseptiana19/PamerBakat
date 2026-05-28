@@ -333,6 +333,36 @@
         .link-card-actions .card-btn-preview:hover { background: #ede9fe; color: #6d28d9; transform: scale(1.1); }
         .link-card-actions .card-btn-preview.active-preview { background: #7c3aed; color: white; box-shadow: 0 2px 8px rgba(124,58,237,0.4); }
 
+        /* ===== FAVORITE BUTTON ===== */
+        .link-card-actions .card-btn-fav { color: #d1d5db; position: relative; }
+        .link-card-actions .card-btn-fav:hover { background: #fef9c3; color: #f59e0b; transform: scale(1.1); }
+        .link-card-actions .card-btn-fav.is-fav {
+            color: #f59e0b;
+            background: #fef9c3;
+        }
+        .link-card-actions .card-btn-fav.is-fav:hover { background: #fef08a; color: #d97706; }
+        .link-card-actions .card-btn-fav.fav-loading { opacity: 0.5; pointer-events: none; }
+
+        /* Favorite badge on card */
+        .fav-badge {
+            position: absolute; top: 0.5rem; left: 0.5rem;
+            width: 22px; height: 22px; border-radius: 50%;
+            background: #fef9c3; border: 1.5px solid #fde68a;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem; color: #f59e0b;
+            opacity: 0; transform: scale(0.7);
+            transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+            pointer-events: none; z-index: 2;
+        }
+        .link-card-with-preview.is-favorite .fav-badge {
+            opacity: 1; transform: scale(1);
+        }
+        /* Gold top border on favorited cards */
+        .link-card-with-preview.is-favorite .link-card-front {
+            border-color: #fde68a;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 0 0 1.5px #fde68a40;
+        }
+
         /* ===== CARD FLIP SYSTEM ===== */
         /* Wrapper = perspective container */
         .link-card-with-preview {
@@ -1370,11 +1400,13 @@
         // Wrapper membungkus card-inner (perspective container)
         card.classList.add('link-card-with-preview');
         card.classList.remove('link-card'); // hapus class lama dari wrapper
+        if(link.is_favorite) card.classList.add('is-favorite');
 
         card.innerHTML=`
             <div class="link-card-inner">
               <!-- FRONT FACE -->
               <div class="link-card-front">
+                <div class="fav-badge"><i class="fa-solid fa-star"></i></div>
                 <button class="card-info-btn" title="Lihat URL & Kode Shift">!</button>
                 <div class="link-card-qr" title="Klik untuk memperbesar QR">
                   <canvas id="${smallQrId}" style="width:100px;height:100px;"></canvas>
@@ -1386,6 +1418,7 @@
                   <div class="link-card-meta"><i class="fa-regular fa-clock" style="margin-right:0.2rem;"></i>${formattedDate}</div>
                 </div>
                 <div class="link-card-actions">
+                  <button class="card-btn-fav fav-btn" title="Favorit"><i class="fa-star ${link.is_favorite ? 'fa-solid' : 'fa-regular'}"></i></button>
                   <button class="card-btn-view view-description-btn" title="Lihat Deskripsi"><i class="fa-solid fa-eye"></i></button>
                   <button class="card-btn-preview preview-btn" title="Preview Media"><i class="fa-solid fa-photo-film"></i></button>
                   <button class="card-btn-delete delete-btn" title="Hapus"><i class="fa-solid fa-trash-can"></i></button>
@@ -1402,6 +1435,38 @@
         `;
 
         card.querySelector('.card-info-btn').addEventListener('click',(e)=>{e.stopPropagation();openInfoPopup(link.id,link.name,link.url);});
+
+        // Favorite button
+        const favBtn = card.querySelector('.fav-btn');
+        if(favBtn){
+            if(link.is_favorite) favBtn.classList.add('is-fav');
+            favBtn.addEventListener('click', async (e)=>{
+                e.stopPropagation();
+                favBtn.classList.add('fav-loading');
+                const newVal = !link.is_favorite;
+                try{
+                    const{error}=await supabase.from('links').update({is_favorite: newVal}).eq('id', link.id);
+                    if(error) throw error;
+                    link.is_favorite = newVal;
+                    // Update icon
+                    favBtn.innerHTML = `<i class="fa-star ${newVal ? 'fa-solid' : 'fa-regular'}"></i>`;
+                    favBtn.classList.toggle('is-fav', newVal);
+                    card.classList.toggle('is-favorite', newVal);
+                    // Update allLinksData
+                    const idx = allLinksData.findIndex(l=>String(l.id)===String(link.id));
+                    if(idx!==-1) allLinksData[idx].is_favorite = newVal;
+                    // Re-sort so favorites float to front
+                    sortFavoritesFirst();
+                    currentPage=1;
+                    applyFilters();
+                    showStatus(newVal ? '⭐ Ditambahkan ke favorit' : 'Dihapus dari favorit', 'success');
+                }catch(err){
+                    showStatus('Gagal menyimpan favorit: '+err.message,'error');
+                }finally{
+                    favBtn.classList.remove('fav-loading');
+                }
+            });
+        }
 
         // Back-face close button
         card.querySelector('.back-close-btn').addEventListener('click',(e)=>{
@@ -1566,6 +1631,16 @@
     jumpPageInput.addEventListener('keydown',(e)=>{
         if(e.key==='Enter'){e.preventDefault();jumpPageBtn.click();}
     });
+
+    // ===== SORT FAVORITES TO FRONT =====
+    function sortFavoritesFirst(){
+        allLinksData.sort((a,b)=>{
+            if(a.is_favorite && !b.is_favorite) return -1;
+            if(!a.is_favorite && b.is_favorite) return 1;
+            // Preserve original order (by created_at desc) among same group
+            return new Date(b.created_at) - new Date(a.created_at);
+        });
+    }
 
     // ===== COMBINED FILTER =====
     function applyFilters(){
@@ -2147,6 +2222,7 @@
             if(!data||data.length===0){resultCountEl.textContent='';return;}
 
             allLinksData=data;
+            sortFavoritesFirst();
 
             // --- Name tags ---
             const nameCounts={};
@@ -2251,6 +2327,7 @@
             // Rebuild filters & re-render tanpa fetch ulang
             rebuildNameTags();
             rebuildCatTags();
+            sortFavoritesFirst();
             currentPage=1;
             applyFilters();
           }
