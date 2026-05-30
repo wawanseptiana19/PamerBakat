@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sistem Enkripsi</title>
-    <!-- AUTH GUARD -->
     <script>
       (function(){
         if(localStorage.getItem('dekrip_logged_in') !== 'true'){
@@ -12,1259 +11,1161 @@
         }
       })();
     </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <!-- CryptoJS for AES -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .tab-content {
-            overflow: hidden;
-            transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out;
-            max-height: 2000px;
-            opacity: 1;
-        }
-        .tab-content.tab-hidden {
-            max-height: 0;
-            opacity: 0;
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
-            margin-top: 0 !important;
-            margin-bottom: 0 !important;
-        }
+    :root {
+        --sidebar-w: 220px;
+        --header-h:  60px;
+        --bg:        #f0f2f5;
+        --surface:   #ffffff;
+        --surface2:  #f8f9fb;
+        --border:    #e4e7ec;
+        --border2:   #d0d5dd;
+        --text:      #101828;
+        --text2:     #475467;
+        --text3:     #98a2b3;
+        --accent:    #2563eb;
+        --accent-h:  #1d4ed8;
+        --accent-bg: #eff6ff;
+        --green:     #059669;
+        --green-h:   #047857;
+        --green-bg:  #ecfdf5;
+        --danger:    #dc2626;
+        --warn:      #d97706;
+        --warn-bg:   #fffbeb;
+        --radius:    9px;
+        --radius-lg: 14px;
+        --shadow-sm: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.1);
+        --shadow:    0 4px 8px -2px rgba(16,24,40,.1), 0 2px 4px -2px rgba(16,24,40,.06);
+    }
 
-        #modal-container {
-            transition: opacity 0.3s ease-in-out;
-            opacity: 0;
-            visibility: hidden;
-        }
-        #modal-container.show { opacity: 1; visibility: visible; }
-        #modal-container .bg-white {
-            transform: scale(0.9);
-            transition: transform 0.3s ease-in-out;
-        }
-        #modal-container.show .bg-white { transform: scale(1); }
+    html, body {
+        height: 100%; width: 100%;
+        overflow: hidden;
+        font-family: 'DM Sans', system-ui, sans-serif;
+        font-size: 15px;
+        color: var(--text);
+        background: var(--bg);
+    }
 
-        /* GitHub repo list */
-        .repo-item {
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-        .repo-item:hover { background: #eff6ff; }
-        .repo-item.selected { background: #dbeafe; border-color: #3b82f6; }
+    /* ══════════════════════════════════════════
+       APP SHELL  — fixed 100vh layout
+    ══════════════════════════════════════════ */
+    .app {
+        display: flex;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+    }
 
-        /* Progress bar */
-        #progress-bar {
-            transition: width 0.3s ease;
-        }
+    /* ── Sidebar ── */
+    .sidebar {
+        width: var(--sidebar-w);
+        height: 100%;
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
 
-        /* Multi-row table */
-        .link-row {
-            display: grid;
-            grid-template-columns: 3fr 4fr 2fr 2fr auto;
-            gap: 6px;
-            align-items: center;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 6px 8px;
-        }
-        .link-row input {
-            width: 100%;
-            padding: 6px 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            outline: none;
-            transition: border-color 0.15s;
-        }
-        .link-row input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px #bfdbfe; }
-        .link-row input[readonly] {
-            background: #fefce8;
-            border-color: #fde68a;
-            color: #92400e;
-            font-family: monospace;
-            font-size: 0.7rem;
-            cursor: default;
-        }
-        .link-row .del-btn {
-            background: none;
-            border: none;
-            color: #ef4444;
-            cursor: pointer;
-            padding: 4px 6px;
-            border-radius: 4px;
-            transition: background 0.15s;
-        }
-        .link-row .del-btn:hover { background: #fee2e2; }
+    .sidebar-logo {
+        height: var(--header-h);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 16px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+    }
+    .sidebar-logo-icon {
+        width: 36px; height: 36px;
+        background: var(--accent);
+        border-radius: 9px;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 15px;
+        flex-shrink: 0;
+    }
+    .sidebar-logo-text {
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--text);
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 
-        /* ── Thumbnail shared ── */
-        .fq-thumb-wrap, .lr-thumb-wrap {
-            flex-shrink: 0;
-        }
-        .fq-thumb, .lr-thumb {
-            width: 44px; height: 44px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 1px solid #e5e7eb;
-            cursor: zoom-in;
-            display: block;
-            transition: transform 0.15s, box-shadow 0.15s;
-            background: #f3f4f6;
-        }
-        .fq-thumb:hover, .lr-thumb:hover {
-            transform: scale(1.08);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.18);
-        }
-        .lr-thumb-empty {
-            width: 32px; height: 32px;
-            border-radius: 6px;
-            border: 1px dashed #d1d5db;
-            display: flex; align-items: center; justify-content: center;
-            background: #f9fafb;
-        }
+    /* nav tabs */
+    .sidebar-nav {
+        flex-shrink: 0;
+        padding: 12px 10px 0;
+    }
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 9px 12px;
+        border-radius: var(--radius);
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text2);
+        transition: background .15s, color .15s;
+        margin-bottom: 3px;
+        user-select: none;
+        white-space: nowrap;
+    }
+    .nav-item i { width: 14px; text-align: center; font-size: 0.78rem; flex-shrink: 0; }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active {
+        background: var(--accent-bg);
+        color: var(--accent);
+        font-weight: 600;
+    }
+    .nav-item .nav-badge {
+        margin-left: auto;
+        font-size: 0.6rem;
+        background: var(--accent);
+        color: white;
+        border-radius: 99px;
+        padding: 1px 6px;
+        font-weight: 700;
+    }
 
-        /* ── Lightbox ── */
-        #lightbox {
-            display: none;
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.88);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            animation: lbIn 0.18s ease-out;
-        }
-        #lightbox.open { display: flex; }
-        @keyframes lbIn {
-            from { opacity: 0; }
-            to   { opacity: 1; }
-        }
-        #lightbox-inner {
-            position: relative;
-            max-width: 92vw;
-            max-height: 88vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #lightbox-inner img, #lightbox-inner video {
-            max-width: 92vw;
-            max-height: 84vh;
-            border-radius: 10px;
-            box-shadow: 0 24px 64px rgba(0,0,0,0.6);
-            object-fit: contain;
-        }
-        #lightbox-close {
-            position: absolute;
-            top: -36px; right: 0;
-            background: none; border: none;
-            color: white; font-size: 1.5rem;
-            cursor: pointer; opacity: 0.8;
-            transition: opacity 0.15s;
-        }
-        #lightbox-close:hover { opacity: 1; }
+    .sidebar-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 10px 10px;
+    }
 
-        /* File queue row */
-        .file-queue-row {
-            display: grid;
-            grid-template-columns: 3fr 4fr 4fr auto;
-            gap: 6px;
-            align-items: center;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 6px 8px;
-        }
-        .file-queue-row .file-name-cell {
-            font-size: 0.75rem;
-            color: #374151;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .file-queue-row input {
-            width: 100%;
-            padding: 5px 8px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            outline: none;
-        }
-        .file-queue-row input:focus { border-color: #10b981; box-shadow: 0 0 0 2px #a7f3d0; }
-        .file-queue-row .pw-field {
-            font-family: monospace;
-            background: #fefce8;
-            border-color: #fde68a;
-            color: #92400e;
-            font-size: 0.65rem;
-        }
-        .file-queue-row .row-actions { display: flex; gap: 4px; }
-        .file-queue-row .row-actions button {
-            background: none; border: none; cursor: pointer;
-            padding: 4px 5px; border-radius: 4px; font-size: 0.75rem;
-            transition: background 0.15s;
-        }
-        .file-queue-row .row-actions .regen-btn { color: #3b82f6; }
-        .file-queue-row .row-actions .regen-btn:hover { background: #dbeafe; }
-        .file-queue-row .row-actions .del-btn { color: #ef4444; }
-        .file-queue-row .row-actions .del-btn:hover { background: #fee2e2; }
-        .file-queue-row.done { border-color: #10b981; background: #f0fdf4; }
-        .file-queue-row.error { border-color: #ef4444; background: #fef2f2; }
-        .status-badge {
-            font-size: 0.65rem;
-            padding: 2px 6px;
-            border-radius: 99px;
-            font-weight: 600;
-        }
+    .sidebar-footer {
+        margin-top: auto;
+        padding: 12px 10px;
+        border-top: 1px solid var(--border);
+        flex-shrink: 0;
+    }
+    .sidebar-footer-item {
+        display: flex; align-items: center; gap: 8px;
+        padding: 8px 12px; border-radius: var(--radius);
+        font-size: 0.78rem; font-weight: 500; color: var(--text3);
+        cursor: pointer; text-decoration: none;
+        transition: background .15s, color .15s;
+    }
+    .sidebar-footer-item:hover { background: var(--surface2); color: var(--text2); }
+    .sidebar-footer-item i { font-size: 0.75rem; width: 14px; text-align: center; }
 
-        /* Scrollbar untuk container tautan */
-        #linkRowsContainer::-webkit-scrollbar {
-            width: 5px;
-        }
-        #linkRowsContainer::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 99px;
-        }
-        #linkRowsContainer::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 99px;
-        }
-        #linkRowsContainer::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
+    /* ── Main area ── */
+    .main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+        min-width: 0;
+    }
 
-        /* AUTOCOMPLETE STYLES */
-        .autocomplete-wrapper {
-            position: relative;
+    /* Top header bar */
+    .topbar {
+        height: var(--header-h);
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+    .topbar-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text);
+        letter-spacing: -0.01em;
+    }
+    .topbar-subtitle {
+        font-size: 0.82rem;
+        color: var(--text3);
+        margin-left: 2px;
+    }
+    .topbar-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Scrollable content area */
+    .content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px;
+        min-height: 0;
+    }
+    .content::-webkit-scrollbar { width: 5px; }
+    .content::-webkit-scrollbar-track { background: transparent; }
+    .content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+
+    /* ══════════════════════════════════════════
+       COMPONENTS
+    ══════════════════════════════════════════ */
+
+    /* Card */
+    .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+    .card + .card { margin-top: 16px; }
+
+    .card-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .card-header-title {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--text);
+    }
+    .card-header-sub {
+        font-size: 0.78rem;
+        color: var(--text3);
+        margin-top: 2px;
+    }
+    .card-header-icon {
+        width: 36px; height: 36px;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 15px;
+        flex-shrink: 0;
+    }
+    .card-header-icon.blue  { background: var(--accent-bg); color: var(--accent); }
+    .card-header-icon.green { background: var(--green-bg);  color: var(--green); }
+    .card-header-icon.gray  { background: var(--surface2);  color: var(--text2); }
+    .card-body { padding: 20px; }
+
+    /* Form label */
+    .field-label {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--text2);
+        margin-bottom: 6px;
+        letter-spacing: .01em;
+    }
+
+    /* Input */
+    .input {
+        width: 100%;
+        padding: 9px 12px;
+        border: 1px solid var(--border2);
+        border-radius: var(--radius);
+        font-size: 0.88rem;
+        font-family: inherit;
+        color: var(--text);
+        background: var(--surface);
+        outline: none;
+        transition: border-color .15s, box-shadow .15s;
+        min-width: 0;
+    }
+    .input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+    .input::placeholder { color: var(--text3); }
+    .input.mono {
+        font-family: 'DM Mono', monospace;
+        font-size: 0.68rem;
+        background: var(--warn-bg);
+        border-color: #fde68a;
+        color: var(--warn);
+        cursor: default;
+    }
+    .input[disabled] { opacity: .6; cursor: not-allowed; }
+
+    /* Buttons */
+    .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        padding: 9px 16px;
+        border-radius: var(--radius);
+        font-size: 0.88rem;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        border: none;
+        transition: background .15s, opacity .15s, box-shadow .15s;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn i { font-size: .72rem; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-h); }
+    .btn-green   { background: var(--green);  color: white; }
+    .btn-green:hover:not(:disabled) { background: var(--green-h); }
+    .btn-ghost {
+        background: transparent; color: var(--text2);
+        border: 1px solid var(--border2);
+    }
+    .btn-ghost:hover:not(:disabled) { background: var(--surface2); color: var(--text); }
+    .btn-danger-ghost {
+        background: transparent; color: var(--danger);
+        border: 1px solid #fecaca;
+    }
+    .btn-danger-ghost:hover { background: #fef2f2; }
+    .btn-full { width: 100%; }
+
+    /* Icon button */
+    .icon-btn {
+        width: 32px; height: 32px;
+        border-radius: 7px;
+        border: none;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 13px;
+        cursor: pointer;
+        background: transparent;
+        transition: background .15s, color .15s;
+        flex-shrink: 0;
+    }
+    .icon-btn.del   { color: var(--text3); }
+    .icon-btn.del:hover   { background: #fee2e2; color: var(--danger); }
+    .icon-btn.regen { color: var(--text3); }
+    .icon-btn.regen:hover { background: var(--accent-bg); color: var(--accent); }
+
+    /* ── Col headers ── */
+    .col-headers {
+        display: grid;
+        gap: 8px;
+        padding: 0 6px 5px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 8px;
+    }
+    .col-headers span {
+        font-size: .72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        color: var(--text3);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .tab1-grid { grid-template-columns: minmax(0,3fr) minmax(0,4fr) minmax(0,2fr) minmax(0,2.5fr) 28px; }
+    .tab2-grid { grid-template-columns: minmax(0,2.5fr) minmax(0,3fr) minmax(0,3fr) 56px; }
+
+    /* ── Link row ── */
+    .link-row {
+        display: grid;
+        grid-template-columns: minmax(0,3fr) minmax(0,4fr) minmax(0,2fr) minmax(0,2.5fr) 28px;
+        gap: 8px;
+        align-items: center;
+        padding: 8px 10px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        transition: border-color .15s;
+    }
+    .link-row:hover { border-color: var(--border2); }
+    .cell-name { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .cell-name input { flex: 1; min-width: 0; }
+
+    /* ── File queue row ── */
+    .file-queue-row {
+        display: grid;
+        grid-template-columns: minmax(0,2.5fr) minmax(0,3fr) minmax(0,3fr) 56px;
+        gap: 8px;
+        align-items: center;
+        padding: 8px 10px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        transition: border-color .15s;
+    }
+    .file-queue-row.done  { border-color: #6ee7b7; background: #f0fdf4; }
+    .file-queue-row.error { border-color: #fca5a5; background: #fef2f2; }
+    .file-info { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .file-meta { min-width: 0; flex: 1; }
+    .file-meta .fname { font-size:.85rem; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .file-meta .fsize { font-size:.73rem; color:var(--text3); margin-top:1px; }
+    .row-actions { display: flex; gap: 3px; align-items: center; justify-content: flex-end; }
+
+    /* Status badge */
+    .status-badge {
+        display: inline-flex; align-items: center; gap: 3px;
+        font-size: .62rem; font-weight: 700;
+        padding: 1px 6px; border-radius: 99px; margin-top: 2px;
+    }
+    .status-badge.done  { background: #d1fae5; color: #065f46; }
+    .status-badge.error { background: #fee2e2; color: #991b1b; }
+    .status-badge.proc  { background: #dbeafe; color: #1e40af; }
+
+    /* Thumbnail */
+    .thumb {
+        width: 42px; height: 42px;
+        border-radius: 8px; object-fit: cover;
+        border: 1px solid var(--border);
+        cursor: zoom-in; flex-shrink: 0;
+        background: var(--bg); display: block;
+        transition: transform .15s;
+    }
+    .thumb:hover { transform: scale(1.12); }
+    .thumb-empty {
+        width: 42px; height: 42px;
+        border-radius: 8px;
+        border: 1px dashed var(--border2);
+        display: flex; align-items: center; justify-content: center;
+        background: var(--surface2); flex-shrink: 0;
+        color: var(--text3); font-size: 10px;
+    }
+
+    /* Rows container */
+    .rows-wrap {
+        display: flex; flex-direction: column; gap: 5px;
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 2px;
+    }
+    .rows-wrap::-webkit-scrollbar { width: 4px; }
+    .rows-wrap::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+
+    /* Add row button */
+    .add-row-btn {
+        width: 100%; padding: 10px;
+        border: 1.5px dashed var(--border2);
+        border-radius: var(--radius);
+        background: none; color: var(--text3);
+        font-size: 0.88rem; font-weight: 600; font-family: inherit;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        transition: all .15s;
+        margin-top: 10px;
+    }
+    .add-row-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+
+    /* Notification */
+    .notification {
+        padding: 8px 12px; border-radius: var(--radius);
+        font-size: .78rem; font-weight: 500;
+        opacity: 0; transition: opacity .3s; margin-top: 10px;
+        display: none;
+    }
+    .notification.show { display: block; }
+    .notification.success { background: var(--green-bg); color: #065f46; }
+    .notification.error   { background: #fef2f2; color: #991b1b; }
+
+    /* Token badge */
+    .token-badge {
+        display: flex; align-items: center; gap: 8px;
+        padding: 7px 11px; border-radius: var(--radius);
+        font-size: .75rem; font-weight: 500;
+        border: 1px solid var(--border); background: var(--surface2);
+        margin-bottom: 10px;
+    }
+    .token-badge.ok   { background: var(--green-bg); border-color: #a7f3d0; color: #065f46; }
+    .token-badge.fail { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+
+    /* Repo list */
+    .repo-list {
+        max-height: 140px; overflow-y: auto;
+        border: 1px solid var(--border); border-radius: var(--radius);
+        display: none; background: var(--surface); margin-bottom: 10px;
+    }
+    .repo-list::-webkit-scrollbar { width: 4px; }
+    .repo-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+    .repo-item {
+        display: flex; align-items: center; gap: 7px;
+        padding: 8px 11px; cursor: pointer;
+        font-size: .78rem; color: var(--text2);
+        border-bottom: 1px solid var(--border);
+        transition: background .12s;
+    }
+    .repo-item:last-child { border-bottom: none; }
+    .repo-item:hover   { background: var(--accent-bg); color: var(--accent); }
+    .repo-item.selected{ background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+    .repo-item i { font-size: .7rem; flex-shrink: 0; }
+
+    .selected-chip {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 3px 9px; background: var(--accent-bg);
+        border: 1px solid #bfdbfe; border-radius: 99px;
+        font-size: .72rem; font-weight: 600; color: var(--accent);
+        margin-bottom: 10px;
+    }
+
+    .row-flex { display: flex; gap: 8px; align-items: center; }
+    .row-flex .input { flex: 1; }
+
+    /* Progress */
+    .progress-box {
+        padding: 11px 13px;
+        background: var(--surface2); border: 1px solid var(--border);
+        border-radius: var(--radius); margin-bottom: 12px; display: none;
+    }
+    .prog-head { display: flex; justify-content: space-between; margin-bottom: 7px; }
+    .prog-label { font-size: .72rem; color: var(--text2); font-weight: 500; }
+    .prog-pct   { font-size: .72rem; color: var(--accent); font-weight: 700; }
+    .prog-track { height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .prog-fill  { height: 100%; background: linear-gradient(90deg, var(--accent), #60a5fa); border-radius: 99px; width: 0%; transition: width .3s ease; }
+
+    /* Hint */
+    .hint {
+        display: flex; align-items: flex-start; gap: 5px;
+        font-size: .72rem; color: var(--text3); margin-top: 8px; line-height: 1.45;
+    }
+    .hint i { color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+
+    /* Tech note */
+    .tech-note { font-size: .7rem; color: var(--text3); text-align: center; margin-top: 12px; }
+    .tech-note strong { color: var(--text2); }
+
+    /* Divider between sections */
+    .section-gap { margin-bottom: 16px; }
+    .section-label {
+        font-size: .7rem; font-weight: 700; letter-spacing: .05em;
+        text-transform: uppercase; color: var(--text3);
+        margin-bottom: 10px;
+        display: flex; align-items: center; gap: 6px;
+    }
+    .section-label i { font-size: .65rem; }
+
+    /* ── Autocomplete ── */
+    .ac-wrap { position: relative; }
+    .ac-dropdown {
+        position: absolute; top: calc(100% + 5px); left: 0; right: 0;
+        background: var(--surface); border: 1px solid var(--border2);
+        border-radius: var(--radius-lg);
+        box-shadow: 0 12px 28px rgba(0,0,0,.12), 0 4px 8px rgba(0,0,0,.06);
+        max-height: 220px; overflow-y: auto; z-index: 200;
+        display: none; animation: acIn .12s ease-out;
+    }
+    @keyframes acIn { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:none; } }
+    .ac-dropdown::-webkit-scrollbar { width: 4px; }
+    .ac-dropdown::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+    .ac-hdr { padding: 6px 12px 4px; font-size:.65rem; font-weight:700; letter-spacing:.06em; color:var(--text3); text-transform:uppercase; border-bottom:1px solid var(--border); }
+    .ac-item { display:flex; align-items:center; gap:9px; padding:8px 12px; cursor:pointer; font-size:.8rem; color:var(--text); transition:background .12s; }
+    .ac-item:hover, .ac-item.hl { background: var(--accent-bg); color: var(--accent); }
+    .ac-avatar { width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,#2563eb,#6366f1); color:white; font-size:9px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; text-transform:uppercase; overflow:hidden; }
+    .ac-name { flex:1; min-width:0; }
+    .ac-name mark { background:#bfdbfe; color:#1e40af; border-radius:2px; font-weight:600; padding:0 1px; }
+    .ac-hint { font-size:.6rem; color:var(--text3); background:var(--surface2); border:1px solid var(--border); border-radius:3px; padding:1px 4px; font-family:'DM Mono',monospace; opacity:0; transition:opacity .15s; }
+    .ac-item.hl .ac-hint { opacity:1; }
+    .ac-empty { padding:14px; text-align:center; font-size:.76rem; color:var(--text3); }
+
+    /* ── Lightbox ── */
+    #lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:9999; align-items:center; justify-content:center; }
+    #lightbox.open { display:flex; }
+    #lb-inner { position:relative; max-width:92vw; max-height:88vh; display:flex; align-items:center; justify-content:center; }
+    #lb-inner img, #lb-inner video { max-width:92vw; max-height:84vh; border-radius:10px; box-shadow:0 24px 64px rgba(0,0,0,.6); object-fit:contain; }
+    #lb-close { position:absolute; top:-38px; right:0; background:none; border:none; color:white; font-size:1.4rem; cursor:pointer; opacity:.8; }
+    #lb-close:hover { opacity:1; }
+
+    /* ── Modal ── */
+    #modal-overlay {
+        position:fixed; inset:0; z-index:9998;
+        background:rgba(0,0,0,.45);
+        display:flex; align-items:center; justify-content:center; padding:16px;
+        opacity:0; visibility:hidden; transition:opacity .25s;
+    }
+    #modal-overlay.show { opacity:1; visibility:visible; }
+    .modal-box {
+        background:var(--surface); border-radius:var(--radius-lg);
+        padding:22px 20px; max-width:360px; width:100%;
+        box-shadow:0 20px 60px rgba(0,0,0,.18);
+        transform:scale(.93); transition:transform .25s; text-align:center;
+    }
+    #modal-overlay.show .modal-box { transform:scale(1); }
+    .modal-title { font-size:.95rem; font-weight:700; color:var(--text); margin-bottom:7px; }
+    .modal-msg   { font-size:.78rem; color:var(--text2); white-space:pre-wrap; word-break:break-all; line-height:1.55; }
+    .modal-close-btn { margin-top:16px; padding:8px 22px; background:var(--accent); color:white; border:none; border-radius:var(--radius); font-size:.78rem; font-weight:600; font-family:inherit; cursor:pointer; transition:background .15s; }
+    .modal-close-btn:hover { background:var(--accent-h); }
+
+    /* ── Mobile: stack sidebar below ── */
+    @media (max-width: 700px) {
+        .app { flex-direction: column; }
+        .sidebar {
+            width: 100%; height: auto;
+            border-right: none; border-bottom: 1px solid var(--border);
         }
-        .autocomplete-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #d1d5db;
-            border-radius: 10px;
-            box-shadow: 0 12px 24px -4px rgb(0 0 0 / 0.12), 0 4px 8px -2px rgb(0 0 0 / 0.08);
-            max-height: 260px;
-            overflow-y: auto;
-            z-index: 50;
-            margin-top: 6px;
-            display: none;
-            animation: dropIn 0.15s ease-out;
-        }
-        @keyframes dropIn {
-            from { opacity: 0; transform: translateY(-6px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        .autocomplete-header {
-            padding: 6px 14px 4px;
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: 0.06em;
-            color: #9ca3af;
-            text-transform: uppercase;
-            border-bottom: 1px solid #f3f4f6;
-        }
-        .autocomplete-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 9px 14px;
-            cursor: pointer;
-            transition: background 0.15s;
-            font-size: 0.875rem;
-            color: #374151;
-        }
-        .autocomplete-item:last-child { border-radius: 0 0 10px 10px; }
-        .autocomplete-item:hover,
-        .autocomplete-item.highlight {
-            background-color: #eff6ff;
-            color: #1d4ed8;
-        }
-        .autocomplete-item .ac-avatar {
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #3b82f6, #6366f1);
-            color: white;
-            font-size: 11px;
-            font-weight: 700;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-            text-transform: uppercase;
-            overflow: hidden;
-            border: 1.5px solid #e5e7eb;
-        }
-        .autocomplete-item .ac-name { flex: 1; }
-        .autocomplete-item .ac-name mark {
-            background: #bfdbfe;
-            color: #1e40af;
-            border-radius: 2px;
-            font-weight: 600;
-            padding: 0 1px;
-        }
-        .autocomplete-item .ac-tab-hint {
-            font-size: 10px;
-            color: #9ca3af;
-            background: #f3f4f6;
-            border: 1px solid #e5e7eb;
-            border-radius: 4px;
-            padding: 1px 5px;
-            font-family: monospace;
-            opacity: 0;
-            transition: opacity 0.15s;
-        }
-        .autocomplete-item.highlight .ac-tab-hint,
-        .autocomplete-item:first-of-type .ac-tab-hint {
-            opacity: 1;
-        }
-        .autocomplete-empty {
-            padding: 14px 16px;
-            text-align: center;
-            font-size: 0.8rem;
-            color: #9ca3af;
-        }
+        .sidebar-nav { display: flex; padding: 8px 8px 0; gap: 4px; }
+        .nav-item { flex: 1; justify-content: center; gap: 5px; padding: 8px 6px; font-size:.72rem; }
+        .nav-item span.nav-text { display: none; }
+        .sidebar-section, .sidebar-divider, .sidebar-footer { display: none; }
+        .sidebar-logo { padding: 0 12px; }
+
+        .col-headers { display: none; }
+        .link-row { grid-template-columns: 1fr; gap:6px; padding:10px; }
+        .cell-name { width:100%; }
+        .file-queue-row { grid-template-columns: 1fr; gap:6px; padding:10px; }
+        .row-actions { justify-content: flex-end; }
+
+    }
     </style>
 </head>
-<body class="flex items-start justify-center min-h-screen p-4 bg-gray-100">
-    <div class="w-full">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Sistem Enkripsi</h1>
+<body>
 
-        <!-- Tab Buttons -->
-        <div class="flex border-b border-gray-300 mb-6">
-            <button id="tab1-btn" class="flex-1 py-3 text-center text-base font-medium text-gray-700 hover:text-blue-600 focus:outline-none focus:text-blue-600 border-b-2 border-transparent hover:border-blue-500 transition-colors duration-200">
-                Tambah Tautan
-            </button>
-            <button id="tab2-btn" class="flex-1 py-3 text-center text-base font-medium text-gray-700 hover:text-blue-600 focus:outline-none focus:text-blue-600 border-b-2 border-transparent hover:border-blue-500 transition-colors duration-200">
-                Enkripsi File
-            </button>
+<div class="app">
+
+    <!-- ═══════════ SIDEBAR ═══════════ -->
+    <aside class="sidebar">
+
+        <!-- Logo -->
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-icon"><i class="fa-solid fa-lock"></i></div>
+            <span class="sidebar-logo-text">Sistem Enkripsi</span>
         </div>
 
-        <!-- Tab 1: Tambah Tautan (Multi-baris) -->
-        <div id="tab1-content" class="tab-content">
-            <!-- Header nama orang (shared untuk semua baris) -->
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Nama Orang</label>
-                <div class="autocomplete-wrapper">
-                    <input type="text" id="personName"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                           placeholder="Ketik nama orang..." autocomplete="off">
-                    <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
-                </div>
+        <!-- Nav tabs -->
+        <nav class="sidebar-nav">
+            <div class="nav-item active" id="nav-tab1" onclick="switchTab(1)">
+                <i class="fa-solid fa-link"></i>
+                <span class="nav-text">Tambah Tautan</span>
             </div>
-
-            <!-- Header kolom -->
-            <div class="grid grid-cols-12 gap-2 mb-1 px-1">
-                <div class="col-span-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Nama Tautan</div>
-                <div class="col-span-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">URL Link</div>
-                <div class="col-span-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Kategori</div>
-                <div class="col-span-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Password / File</div>
-                <div class="col-span-1"></div>
+            <div class="nav-item" id="nav-tab2" onclick="switchTab(2)">
+                <i class="fa-solid fa-file-shield"></i>
+                <span class="nav-text">Enkripsi File</span>
             </div>
+        </nav>
 
-            <!-- Container baris-baris tautan (max 5 baris, sisanya scroll) -->
-            <div id="linkRowsContainer" class="space-y-2 mb-3" style="max-height: calc(5 * 56px + 4 * 8px); overflow-y: auto; padding-right: 2px;"></div>
+        <!-- Footer -->
+        <div class="sidebar-footer">
+            <a href="beranda.html" class="sidebar-footer-item">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Kembali ke Beranda</span>
+            </a>
+        </div>
+    </aside>
 
-            <!-- Tombol tambah baris -->
-            <button id="addRowBtn" type="button"
-                class="w-full py-2 border-2 border-dashed border-blue-300 text-blue-500 rounded-lg text-sm font-medium hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center justify-center gap-2 mb-4">
-                <i class="fas fa-plus"></i> Tambah Baris
-            </button>
+    <!-- ═══════════ MAIN ═══════════ -->
+    <div class="main">
 
-            <!-- Simpan semua -->
-            <button id="saveAllBtn" type="button"
-                class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
-                <i class="fas fa-save mr-2"></i> Simpan Semua
-            </button>
-            <div id="notification" class="mt-4 text-center text-sm font-medium transition-opacity duration-300 opacity-0"></div>
+        <!-- Top bar -->
+        <div class="topbar">
+            <div>
+                <div class="topbar-title" id="topbar-title">Tambah Tautan</div>
+                <div class="topbar-subtitle" id="topbar-sub">Simpan tautan ke Supabase</div>
+            </div>
+            <div class="topbar-right">
+                <div id="notification" class="notification"></div>
+            </div>
         </div>
 
-        <!-- Tab 2: Enkripsi Multi-File -->
-        <div id="tab2-content" class="tab-content tab-hidden">
-
-            <!-- GitHub Repo Section -->
-            <div class="border border-gray-200 rounded-lg p-4 mb-4 bg-white">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-sm font-semibold text-gray-700"><i class="fab fa-github mr-2"></i>Upload ke GitHub</span>
-                    <button id="loadReposBtn" class="text-xs bg-gray-800 text-white px-3 py-1 rounded-full hover:bg-gray-700 transition-colors">
-                        <i class="fas fa-sync-alt mr-1"></i> Muat Repo
-                    </button>
-                </div>
-                <div class="mb-3">
-                    <div id="tokenStatusBadge" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs text-gray-500">
-                        <i class="fas fa-circle-notch fa-spin text-gray-400"></i>
-                        <span id="tokenStatusText">Mengambil token dari Supabase...</span>
-                    </div>
-                </div>
-                <div id="repoList" class="max-h-36 overflow-y-auto border border-gray-200 rounded-lg mb-3 hidden"></div>
-                <div id="selectedRepoDisplay" class="hidden mb-3">
-                    <span class="text-xs text-gray-500">Repo dipilih:</span>
-                    <span id="selectedRepoName" class="ml-1 text-sm font-semibold text-blue-600"></span>
-                </div>
-                <div class="flex gap-2">
-                    <input id="newRepoName" type="text" placeholder="Nama repo baru..."
-                        class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400">
-                    <button id="createRepoBtn" class="text-xs bg-gray-800 text-white px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors whitespace-nowrap">
-                        <i class="fas fa-plus mr-1"></i> Buat Repo
-                    </button>
-                </div>
-            </div>
-
-            <!-- Antrian file -->
-            <div class="mb-3">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm font-semibold text-gray-700">Antrian File</span>
-                    <label class="text-xs bg-green-600 text-white px-3 py-1 rounded-full hover:bg-green-700 cursor-pointer transition-colors">
-                        <i class="fas fa-plus mr-1"></i> Tambah File
-                        <input id="fileQueueInput" type="file" accept="image/*,video/*" multiple class="hidden">
-                    </label>
-                </div>
-
-                <!-- Header kolom antrian -->
-                <div class="grid grid-cols-12 gap-2 mb-1 px-1">
-                    <div class="col-span-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">File</div>
-                    <div class="col-span-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Nama File Output</div>
-                    <div class="col-span-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Password (auto)</div>
-                    <div class="col-span-1"></div>
-                </div>
-
-                <div id="fileQueueContainer" class="space-y-2 mb-3 max-h-64 overflow-y-auto"></div>
-
-                <p class="text-xs text-gray-400"><i class="fas fa-info-circle mr-1 text-blue-400"></i>Setiap file mendapat password & nama file unik. Klik <i class="fas fa-sync-alt"></i> untuk generate ulang.</p>
-            </div>
-
-            <!-- Progress per file -->
-            <div id="progressContainer" class="hidden mb-4">
-                <div class="flex justify-between text-xs text-gray-500 mb-1">
-                    <span id="progressLabel">Mengenkripsi...</span>
-                    <span id="progressPercent">0%</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div id="progress-bar" class="bg-green-500 h-2 rounded-full" style="width:0%"></div>
-                </div>
-            </div>
-
-            <!-- Tombol enkripsi semua -->
-            <button id="encryptBtn" class="w-full bg-green-600 text-white font-semibold py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center mt-2">
-                <i class="fas fa-lock mr-2"></i> Enkripsi & Upload Semua ke GitHub
-            </button>
-            <p class="text-xs text-gray-400 mt-4 text-center">Teknik: File &rarr; Base64 &rarr; <strong>AES-256</strong> &rarr; Upload GitHub &rarr; Raw URL otomatis ke Tab 1</p>
-        </div>
-    </div>
-
-    <!-- Lightbox -->
-    <div id="lightbox">
-        <div id="lightbox-inner">
-            <button id="lightbox-close" title="Tutup (Esc)"><i class="fas fa-times"></i></button>
-            <!-- content injected by JS -->
-        </div>
-    </div>
-
-    <!-- Modal -->
-    <div id="modal-container" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-        <div class="bg-white p-6 rounded-lg shadow-xl text-center max-w-sm w-full mx-4">
-            <p id="modal-title" class="text-lg font-bold mb-3"></p>
-            <p id="modal-message" class="text-sm text-gray-600 whitespace-pre-wrap break-all"></p>
-            <button id="modal-close-btn" class="mt-5 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Tutup</button>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        // ─── CONFIG ─────────────────────────────────────────────────────────────
-        const SUPABASE_URL = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        let GITHUB_TOKEN = null;
-        const GITHUB_API = 'https://api.github.com';
-
-        let allPersonNames = []; // untuk autocomplete
-
-        // ─── AMBIL TOKEN DARI SUPABASE ───────────────────────────────────────────
-        async function loadGithubToken() {
-            const badge = document.getElementById('tokenStatusBadge');
-            const statusText = document.getElementById('tokenStatusText');
-            try {
-                const { data, error } = await supabaseClient
-                    .from('app_config')
-                    .select('value')
-                    .eq('key', 'github_token')
-                    .single();
-                if (error || !data) throw new Error('Token tidak ditemukan');
-                GITHUB_TOKEN = data.value;
-                badge.className = 'flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 border border-green-200 text-xs text-green-700';
-                badge.innerHTML = '<i class="fas fa-check-circle text-green-500"></i><span>Token GitHub siap digunakan</span>';
-            } catch (err) {
-                GITHUB_TOKEN = null;
-                badge.className = 'flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-xs text-red-600';
-                badge.innerHTML = `<i class="fas fa-exclamation-circle text-red-500"></i><span>Gagal ambil token: ${err.message}</span>`;
-            }
-        }
-        loadGithubToken();
-
-        // ─── LOAD PERSON NAMES + FOTO UNTUK AUTOCOMPLETE ────────────────────────
-        async function loadPersonNames() {
-            try {
-                // 1. Ambil unique person_name dari tabel links
-                const { data, error } = await supabaseClient
-                    .from('links')
-                    .select('person_name')
-                    .order('person_name');
-                if (error) throw error;
-
-                const uniqueNames = [...new Set(data.map(item => item.person_name).filter(Boolean))].sort();
-
-                // 2. Ambil daftar file di bucket person-photos
-                const { data: files, error: storageErr } = await supabaseClient
-                    .storage
-                    .from('person-photos')
-                    .list('', { limit: 500 });
-
-                // Buat map: nama_file_tanpa_ekstensi (lowercase) → public URL
-                const photoMap = {};
-                if (!storageErr && files) {
-                    files.forEach(file => {
-                        const baseName = file.name.replace(/\.[^.]+$/, '').toLowerCase().trim().replace(/\s+/g, '-');
-                        const { data: urlData } = supabaseClient
-                            .storage
-                            .from('person-photos')
-                            .getPublicUrl(file.name);
-                        photoMap[baseName] = urlData.publicUrl;
-                    });
-                }
-
-                // 3. Gabungkan nama + foto
-                allPersonNames = uniqueNames.map(name => ({
-                    name,
-                    photoUrl: photoMap[name.toLowerCase().trim().replace(/\s+/g, '-')] || null
-                }));
-
-            } catch (err) {
-                console.warn('Gagal memuat daftar nama orang:', err.message);
-                allPersonNames = [];
-            }
-        }
-
-
-        // ─── GENERIC AUTOCOMPLETE FACTORY ───────────────────────────────────────
-        function createAutocomplete({ inputId, dropdownId, getList, nextInputId, iconClass, headerLabel }) {
-            const input    = document.getElementById(inputId);
-            const dropdown = document.getElementById(dropdownId);
-            let currentFocus = -1;
-
-            function getInitials(name) {
-                return name.trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
-            }
-
-            function highlightMatch(name, query) {
-                if (!query) return document.createTextNode(name);
-                const idx = name.toLowerCase().indexOf(query.toLowerCase());
-                if (idx === -1) return document.createTextNode(name);
-                const span = document.createElement('span');
-                span.appendChild(document.createTextNode(name.slice(0, idx)));
-                const mark = document.createElement('mark');
-                mark.textContent = name.slice(idx, idx + query.length);
-                span.appendChild(mark);
-                span.appendChild(document.createTextNode(name.slice(idx + query.length)));
-                return span;
-            }
-
-            function showSuggestions(filtered, query = '') {
-                dropdown.innerHTML = '';
-                currentFocus = -1;
-
-                if (filtered.length === 0) {
-                    const empty = document.createElement('div');
-                    empty.className = 'autocomplete-empty';
-                    empty.innerHTML = `<i class="fas fa-search mr-1"></i> Tidak ditemukan`;
-                    dropdown.appendChild(empty);
-                    dropdown.style.display = 'block';
-                    return;
-                }
-
-                const header = document.createElement('div');
-                header.className = 'autocomplete-header';
-                header.textContent = query ? `${filtered.length} hasil ditemukan` : (headerLabel || 'Semua');
-                dropdown.appendChild(header);
-
-                filtered.forEach((item) => {
-                    // item bisa berupa objek {name, photoUrl} atau string biasa
-                    const displayValue = (typeof item === 'object') ? item.name : item;
-                    const photoUrl     = (typeof item === 'object') ? item.photoUrl : null;
-
-                    const div = document.createElement('div');
-                    div.className = 'autocomplete-item';
-                    div.dataset.fullValue = displayValue;
-
-                    // ── Avatar: foto jika ada, inisial jika tidak ──
-                    const avatar = document.createElement('div');
-                    avatar.className = 'ac-avatar';
-                    if (iconClass) {
-                        avatar.innerHTML = `<i class="${iconClass}" style="font-size:12px"></i>`;
-                    } else if (photoUrl) {
-                        const img = document.createElement('img');
-                        img.src = photoUrl;
-                        img.alt = displayValue;
-                        img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%';
-                        img.onerror = () => {
-                            // Fallback ke inisial jika foto gagal dimuat
-                            avatar.innerHTML = '';
-                            avatar.textContent = getInitials(displayValue);
-                        };
-                        avatar.appendChild(img);
-                    } else {
-                        avatar.textContent = getInitials(displayValue);
-                    }
-
-                    const nameEl = document.createElement('div');
-                    nameEl.className = 'ac-name';
-                    nameEl.appendChild(highlightMatch(displayValue, query));
-
-                    const hint = document.createElement('span');
-                    hint.className = 'ac-tab-hint';
-                    hint.textContent = 'Tab ↹';
-
-                    div.appendChild(avatar);
-                    div.appendChild(nameEl);
-                    div.appendChild(hint);
-
-                    div.addEventListener('mousedown', (e) => {
-                        e.preventDefault();
-                        input.value = displayValue;
-                        dropdown.style.display = 'none';
-                        currentFocus = -1;
-                        input.focus();
-                    });
-
-                    dropdown.appendChild(div);
-                });
-
-                dropdown.style.display = 'block';
-            }
-
-            function getItems() {
-                return dropdown.querySelectorAll('.autocomplete-item');
-            }
-
-            function doHighlight(items) {
-                items.forEach(i => i.classList.remove('highlight'));
-                if (currentFocus >= 0 && items[currentFocus]) {
-                    items[currentFocus].classList.add('highlight');
-                    items[currentFocus].scrollIntoView({ block: 'nearest' });
-                }
-            }
-
-            function filterList(list, query) {
-                if (!query) return list;
-                const q = query.toLowerCase();
-                return list.filter(item => {
-                    const name = (typeof item === 'object') ? item.name : item;
-                    return name.toLowerCase().includes(q);
-                });
-            }
-
-            input.addEventListener('input', () => {
-                const query = input.value.trim();
-                const list = getList();
-                showSuggestions(filterList(list, query), query);
-            });
-
-            input.addEventListener('keydown', (e) => {
-                const items = getItems();
-                const isOpen = dropdown.style.display !== 'none';
-
-                if (e.key === 'ArrowDown') {
-                    if (!isOpen) { showSuggestions(getList(), ''); return; }
-                    e.preventDefault();
-                    currentFocus = (currentFocus + 1) % items.length;
-                    doHighlight(items);
-                } else if (e.key === 'ArrowUp') {
-                    if (!isOpen) return;
-                    e.preventDefault();
-                    currentFocus = (currentFocus - 1 + items.length) % items.length;
-                    doHighlight(items);
-                } else if (e.key === 'Enter') {
-                    if (!isOpen) return;
-                    e.preventDefault();
-                    const target = currentFocus >= 0 ? items[currentFocus] : items[0];
-                    if (target) {
-                        input.value = target.dataset.fullValue;
-                        dropdown.style.display = 'none';
-                        currentFocus = -1;
-                    }
-                } else if (e.key === 'Tab') {
-                    if (isOpen && items.length > 0) {
-                        e.preventDefault();
-                        const target = currentFocus >= 0 ? items[currentFocus] : items[0];
-                        input.value = target.dataset.fullValue;
-                        dropdown.style.display = 'none';
-                        currentFocus = -1;
-                        if (nextInputId) setTimeout(() => document.getElementById(nextInputId).focus(), 0);
-                    }
-                } else if (e.key === 'Escape') {
-                    dropdown.style.display = 'none';
-                    currentFocus = -1;
-                }
-            });
-
-            input.addEventListener('focus', () => {
-                const query = input.value.trim();
-                const list = getList();
-                if (list.length > 0) {
-                    showSuggestions(filterList(list, query), query);
-                }
-            });
-
-            document.addEventListener('click', (e) => {
-                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
-                    dropdown.style.display = 'none';
-                    currentFocus = -1;
-                }
-            });
-        }
-
-        function setupAutocomplete() {
-            createAutocomplete({
-                inputId:    'personName',
-                dropdownId: 'autocompleteDropdown',
-                getList:    () => allPersonNames,
-                nextInputId:'linkName',
-                headerLabel:'Semua nama'
-            });
-        }
-
-        // ─── UI ELEMENTS ─────────────────────────────────────────────────────────
-        const tab1Btn           = document.getElementById('tab1-btn');
-        const tab2Btn           = document.getElementById('tab2-btn');
-        const tab1Content       = document.getElementById('tab1-content');
-        const tab2Content       = document.getElementById('tab2-content');
-        const notification      = document.getElementById('notification');
-        const encryptBtn        = document.getElementById('encryptBtn');
-        const modalContainer    = document.getElementById('modal-container');
-        const modalTitle        = document.getElementById('modal-title');
-        const modalMessage      = document.getElementById('modal-message');
-        const modalCloseBtn     = document.getElementById('modal-close-btn');
-        const loadReposBtn      = document.getElementById('loadReposBtn');
-        const repoList          = document.getElementById('repoList');
-        const createRepoBtn     = document.getElementById('createRepoBtn');
-        const newRepoName       = document.getElementById('newRepoName');
-        const selectedRepoDisplay = document.getElementById('selectedRepoDisplay');
-        const selectedRepoNameEl  = document.getElementById('selectedRepoName');
-        const progressContainer = document.getElementById('progressContainer');
-        const progressBar       = document.getElementById('progress-bar');
-        const progressLabel     = document.getElementById('progressLabel');
-        const progressPercent   = document.getElementById('progressPercent');
-        const linkRowsContainer = document.getElementById('linkRowsContainer');
-        const addRowBtn         = document.getElementById('addRowBtn');
-        const saveAllBtn        = document.getElementById('saveAllBtn');
-        const fileQueueInput    = document.getElementById('fileQueueInput');
-        const fileQueueContainer= document.getElementById('fileQueueContainer');
-
-        let selectedRepo = null;
-        let ghUsername   = null;
-        let fileQueue    = []; // [{file, outputName, password, status}]
-
-        // ─── MODAL ────────────────────────────────────────────────────────────────
-        function showModal(title, message) {
-            modalTitle.textContent   = title;
-            modalMessage.textContent = message;
-            modalContainer.classList.add('show');
-        }
-        modalCloseBtn.addEventListener('click', () => modalContainer.classList.remove('show'));
-
-        // ─── TABS ─────────────────────────────────────────────────────────────────
-        function switchTab(n) {
-            tab1Btn.classList.remove('border-blue-500', 'text-blue-600');
-            tab2Btn.classList.remove('border-blue-500', 'text-blue-600');
-            tab1Content.classList.add('tab-hidden');
-            tab2Content.classList.add('tab-hidden');
-            if (n === 1) {
-                tab1Btn.classList.add('border-blue-500', 'text-blue-600');
-                setTimeout(() => tab1Content.classList.remove('tab-hidden'), 50);
-            } else {
-                tab2Btn.classList.add('border-blue-500', 'text-blue-600');
-                setTimeout(() => tab2Content.classList.remove('tab-hidden'), 50);
-            }
-        }
-        tab1Btn.classList.add('border-blue-500', 'text-blue-600');
-        tab1Btn.addEventListener('click', () => switchTab(1));
-        tab2Btn.addEventListener('click', () => switchTab(2));
-
-        // ─── NOTIFICATION ─────────────────────────────────────────────────────────
-        function showNotification(msg, isError = false) {
-            notification.textContent = msg;
-            notification.style.opacity = 1;
-            notification.classList.toggle('text-red-500', isError);
-            notification.classList.toggle('text-green-500', !isError);
-            setTimeout(() => { notification.style.opacity = 0; }, 3500);
-        }
-
-        // ─── TAB 1: MULTI-BARIS TAMBAH TAUTAN ────────────────────────────────────
-        let rowCount = 0;
-
-        function createLinkRow(prefill = {}) {
-            rowCount++;
-            const id = rowCount;
-            const row = document.createElement('div');
-            row.className = 'link-row';
-            row.dataset.rowId = id;
-            if (prefill.namaFile) row.dataset.namaFile = prefill.namaFile;
-
-            // Thumbnail untuk baris dari enkripsi
-            let thumbHtml = '';
-            if (prefill.previewUrl) {
-                if (prefill.isVideo) {
-                    thumbHtml = `<video src="${prefill.previewUrl}" class="lr-thumb" muted playsinline preload="metadata" data-src="${prefill.previewUrl}" data-type="video"></video>`;
-                } else {
-                    thumbHtml = `<img src="${prefill.previewUrl}" class="lr-thumb" data-src="${prefill.previewUrl}" data-type="image" alt="">`;
-                }
-            } else {
-                thumbHtml = `<div class="lr-thumb-empty"><i class="fas fa-link" style="font-size:10px;color:#9ca3af;"></i></div>`;
-            }
-
-            row.innerHTML = `
-                <div style="display:flex;align-items:center;gap:6px;">
-                    <div class="lr-thumb-wrap">${thumbHtml}</div>
-                    <input type="text" class="row-linkname" placeholder="Nama tautan" value="${prefill.name || ''}" style="flex:1;">
-                </div>
-                <input type="text"  class="row-linkurl"  placeholder="https://..." value="${prefill.url || ''}">
-                <input type="text"  class="row-category" placeholder="Kategori"    value="${prefill.category || ''}">
-                <div style="display:flex;gap:4px;align-items:center;">
-                    <input type="text" class="row-password" readonly placeholder="—"
-                        value="${prefill.password || ''}"
-                        style="flex:1;padding:5px 6px;border:1px solid ${prefill.password ? '#fde68a' : '#e5e7eb'};
-                               border-radius:6px;font-size:0.65rem;font-family:monospace;
-                               background:${prefill.password ? '#fefce8' : '#f9fafb'};
-                               color:${prefill.password ? '#92400e' : '#9ca3af'};cursor:default;"
-                        title="${prefill.password || ''}">
-
-                </div>
-                <button class="del-btn" title="Hapus baris"><i class="fas fa-times"></i></button>
-            `;
-
-            // Thumbnail click → lightbox
-            const thumb = row.querySelector('.lr-thumb');
-            if (thumb) {
-                thumb.addEventListener('click', () => openLightbox(prefill.previewUrl, prefill.isVideo));
-            }
-
-            row.querySelector('.del-btn').addEventListener('click', () => row.remove());
-            linkRowsContainer.appendChild(row);
-            return row;
-        }
-
-
-
-        addRowBtn.addEventListener('click', () => {
-            createLinkRow();
-            // fokus ke nama tautan baris baru
-            const rows = linkRowsContainer.querySelectorAll('.link-row');
-            const lastRow = rows[rows.length - 1];
-            lastRow.querySelector('.row-linkname').focus();
-            // scroll ke baris baru
-            setTimeout(() => lastRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
-        });
-
-        saveAllBtn.addEventListener('click', async () => {
-            const personName = document.getElementById('personName').value.trim();
-            if (!personName) { showNotification('Nama orang wajib diisi.', true); return; }
-
-            const rows = [...linkRowsContainer.querySelectorAll('.link-row')];
-            const payloads = [];
-
-            for (const row of rows) {
-                const name     = row.querySelector('.row-linkname').value.trim();
-                const url      = row.querySelector('.row-linkurl').value.trim();
-                const category = row.querySelector('.row-category').value.trim();
-                const password = row.querySelector('.row-password').value.trim();
-                const namaFile = row.dataset.namaFile || '';
-
-                if (!name || !url) continue; // lewati baris kosong
-
-                const p = { person_name: personName, name, url, category };
-                if (password) p.password = password;
-                if (namaFile) p.nama_file = namaFile;
-                payloads.push(p);
-            }
-
-            if (payloads.length === 0) {
-                showNotification('Tidak ada baris valid untuk disimpan.', true);
-                return;
-            }
-
-            saveAllBtn.disabled = true;
-            saveAllBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Menyimpan...';
-
-            const { error } = await supabaseClient.from('links').insert(payloads);
-
-            saveAllBtn.disabled = false;
-            saveAllBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Simpan Semua';
-
-            if (error) {
-                console.error(error);
-                showNotification('Gagal menyimpan. ' + error.message, true);
-            } else {
-                showNotification(`${payloads.length} tautan berhasil disimpan!`);
-                linkRowsContainer.innerHTML = '';
-                rowCount = 0;
-                createLinkRow();
-                await loadPersonNames();
-            }
-        });
-
-        // ─── GITHUB HELPERS ───────────────────────────────────────────────────────
-        async function ghFetch(path, options = {}) {
-            const res = await fetch(`${GITHUB_API}${path}`, {
-                ...options,
-                headers: {
-                    'Authorization': `token ${GITHUB_TOKEN}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json',
-                    ...(options.headers || {})
-                }
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.message || `GitHub error ${res.status}`);
-            return data;
-        }
-
-        async function getGhUser() {
-            if (ghUsername) return ghUsername;
-            const user = await ghFetch('/user');
-            ghUsername = user.login;
-            return ghUsername;
-        }
-
-        function getToken() {
-            if (!GITHUB_TOKEN) throw new Error('Token GitHub belum siap.');
-            return GITHUB_TOKEN;
-        }
-
-        function generateAesKey() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-            let key = '';
-            for (let i = 0; i < 100; i++) key += chars[Math.floor(Math.random() * chars.length)];
-            return key;
-        }
-
-        function generateOutputName() {
-            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-            let name = '';
-            for (let i = 0; i < 8; i++) name += chars[Math.floor(Math.random() * chars.length)];
-            return name + '.pb';
-        }
-
-        function toGitHubBase64(str) {
-            return btoa(unescape(encodeURIComponent(str)));
-        }
-
-        function aesEncrypt(base64Data, key) {
-            return CryptoJS.AES.encrypt(base64Data, key).toString();
-        }
-
-        function setProgress(label, pct) {
-            progressContainer.classList.remove('hidden');
-            progressLabel.textContent  = label;
-            progressPercent.textContent = pct + '%';
-            progressBar.style.width    = pct + '%';
-        }
-
-        function hideProgress() {
-            progressContainer.classList.add('hidden');
-            progressBar.style.width = '0%';
-        }
-
-        // ─── TAB 2: ANTRIAN FILE ──────────────────────────────────────────────────
-        function renderFileQueueRow(idx) {
-            const item = fileQueue[idx];
-            let row = document.querySelector(`.file-queue-row[data-idx="${idx}"]`);
-            if (!row) {
-                row = document.createElement('div');
-                row.className = 'file-queue-row';
-                row.dataset.idx = idx;
-                fileQueueContainer.appendChild(row);
-            }
-            const statusHtml = item.status === 'done'
-                ? '<span class="status-badge" style="background:#d1fae5;color:#065f46;">✓ Selesai</span>'
-                : item.status === 'error'
-                ? '<span class="status-badge" style="background:#fee2e2;color:#991b1b;">✗ Error</span>'
-                : item.status === 'processing'
-                ? '<span class="status-badge" style="background:#dbeafe;color:#1e40af;">⏳</span>'
-                : '';
-
-            // Thumbnail HTML
-            const thumbHtml = item.isVideo
-                ? `<video src="${item.previewUrl}" class="fq-thumb" muted playsinline preload="metadata" data-idx="${idx}" data-type="video"></video>`
-                : `<img src="${item.previewUrl}" class="fq-thumb" data-idx="${idx}" data-type="image" alt="">`;
-
-            row.innerHTML = `
-                <div class="file-name-cell" title="${item.file.name}">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <div class="fq-thumb-wrap">${thumbHtml}</div>
+        <!-- Scrollable content -->
+        <div class="content">
+
+            <!-- ══ TAB 1 ══ -->
+            <div id="tab1-content">
+
+                <!-- Link table card -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-header-icon blue"><i class="fa-solid fa-link"></i></div>
                         <div>
-                            <div style="font-size:0.75rem;font-weight:600;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;">${item.file.name}</div>
-                            <div style="font-size:0.6rem;color:#9ca3af;">${(item.file.size/1024).toFixed(1)} KB</div>
-                            ${statusHtml}
+                            <div class="card-header-title">Daftar Tautan</div>
+                            <div class="card-header-sub">Tambah satu atau beberapa tautan sekaligus</div>
                         </div>
                     </div>
+                    <div class="card-body">
+
+                        <!-- Nama Orang -->
+                        <div style="margin-bottom:16px;">
+                            <label class="field-label" for="personName">Nama Orang</label>
+                            <div class="ac-wrap">
+                                <input type="text" id="personName" class="input"
+                                    placeholder="Ketik nama orang..." autocomplete="off" style="max-width:340px;">
+                                <div id="autocompleteDropdown" class="ac-dropdown" style="max-width:340px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Column headers desktop -->
+                        <div class="col-headers tab1-grid">
+                            <span>Nama Tautan</span>
+                            <span>URL</span>
+                            <span>Kategori</span>
+                            <span>Password</span>
+                            <span></span>
+                        </div>
+
+                        <div class="rows-wrap" id="linkRowsContainer"></div>
+
+                        <button class="add-row-btn" id="addRowBtn" type="button">
+                            <i class="fa-solid fa-plus"></i> Tambah Baris
+                        </button>
+
+                        <div style="margin-top:14px;">
+                            <button class="btn btn-primary btn-full" id="saveAllBtn" type="button">
+                                <i class="fa-solid fa-floppy-disk"></i> Simpan Semua
+                            </button>
+                        </div>
+
+                    </div>
                 </div>
-                <input type="text" value="${item.outputName}" placeholder="nama-output.pb"
-                    style="font-size:0.75rem;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;outline:none;"
-                    ${item.status === 'done' ? 'disabled' : ''}>
-                <input type="text" class="pw-field" value="${item.password}" readonly
-                    title="${item.password}" ${item.status === 'done' ? 'disabled' : ''}>
-                <div class="row-actions">
-                    ${item.status !== 'done' ? `<button class="regen-btn" title="Generate ulang password"><i class="fas fa-sync-alt"></i></button>` : ''}
-                    <button class="del-btn" title="Hapus"><i class="fas fa-times"></i></button>
+
+            </div>
+
+            <!-- ══ TAB 2 ══ -->
+            <div id="tab2-content" style="display:none;">
+
+                <!-- GitHub card -->
+                <div class="card section-gap">
+                    <div class="card-header">
+                        <div class="card-header-icon gray"><i class="fa-brands fa-github"></i></div>
+                        <div>
+                            <div class="card-header-title">Upload ke GitHub</div>
+                            <div class="card-header-sub">Pilih atau buat repo tujuan</div>
+                        </div>
+                        <div style="margin-left:auto;">
+                            <button id="loadReposBtn" class="btn btn-ghost">
+                                <i class="fa-solid fa-rotate"></i> Muat Repo
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+
+                        <div id="tokenStatusBadge" class="token-badge">
+                            <i class="fa-solid fa-circle-notch fa-spin" style="font-size:11px;"></i>
+                            <span id="tokenStatusText">Mengambil token…</span>
+                        </div>
+
+                        <div id="repoList" class="repo-list"></div>
+
+                        <div id="selectedRepoDisplay" style="display:none;">
+                            <div class="selected-chip">
+                                <i class="fa-solid fa-circle-check" style="font-size:.65rem;"></i>
+                                <span id="selectedRepoName"></span>
+                            </div>
+                        </div>
+
+                        <div class="row-flex">
+                            <input id="newRepoName" type="text" class="input" placeholder="Nama repo baru…">
+                            <button id="createRepoBtn" class="btn btn-ghost">
+                                <i class="fa-solid fa-plus"></i> Buat
+                            </button>
+                        </div>
+
+                    </div>
                 </div>
-            `;
 
-            // Thumbnail click → lightbox
-            const thumb = row.querySelector('.fq-thumb');
-            if (thumb) thumb.addEventListener('click', () => openLightbox(item.previewUrl, item.isVideo));
+                <!-- File queue card -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-header-icon green"><i class="fa-solid fa-layer-group"></i></div>
+                        <div>
+                            <div class="card-header-title">Antrian File</div>
+                            <div class="card-header-sub">Gambar &amp; video yang akan dienkripsi</div>
+                        </div>
+                        <div style="margin-left:auto;">
+                            <label class="btn btn-green" style="cursor:pointer;">
+                                <i class="fa-solid fa-plus"></i> Tambah File
+                                <input id="fileQueueInput" type="file" accept="image/*,video/*" multiple style="display:none;">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="card-body">
 
-            // Events
-            const nameInput = row.querySelectorAll('input')[0];
-            nameInput.addEventListener('input', e => { fileQueue[idx].outputName = e.target.value; });
+                        <div class="col-headers tab2-grid">
+                            <span>File</span>
+                            <span>Nama Output</span>
+                            <span>Password (auto)</span>
+                            <span></span>
+                        </div>
 
-            const regenBtn = row.querySelector('.regen-btn');
-            if (regenBtn) {
-                regenBtn.addEventListener('click', () => {
-                    fileQueue[idx].password = generateAesKey();
-                    renderFileQueueRow(idx);
+                        <div class="rows-wrap" id="fileQueueContainer"></div>
+
+                        <div class="hint">
+                            <i class="fa-solid fa-circle-info"></i>
+                            Setiap file mendapat password &amp; nama unik secara otomatis.
+                            Klik <i class="fa-solid fa-rotate" style="margin:0 2px;color:var(--accent);"></i> untuk generate ulang.
+                        </div>
+
+                        <!-- Progress -->
+                        <div class="progress-box" id="progressContainer" style="margin-top:12px;">
+                            <div class="prog-head">
+                                <span class="prog-label" id="progressLabel">Mengenkripsi…</span>
+                                <span class="prog-pct"   id="progressPercent">0%</span>
+                            </div>
+                            <div class="prog-track">
+                                <div class="prog-fill" id="progress-bar"></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:14px;">
+                            <button id="encryptBtn" class="btn btn-green btn-full">
+                                <i class="fa-solid fa-lock"></i> Enkripsi &amp; Upload ke GitHub
+                            </button>
+                        </div>
+
+                        <div class="tech-note">
+                            File → Base64 → <strong>AES-256</strong> → GitHub → Raw URL otomatis ke Tab 1
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div><!-- /content -->
+    </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Lightbox -->
+<div id="lightbox">
+    <div id="lb-inner">
+        <button id="lb-close" title="Tutup"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-title"   id="modal-title"></div>
+        <div class="modal-msg"     id="modal-message"></div>
+        <button class="modal-close-btn" id="modal-close-btn">Tutup</button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // ─── CONFIG ────────────────────────────────────────────────────────────────
+    const SUPABASE_URL      = 'https://qzdvdfebkzlwkhvxwsju.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs';
+    const supabaseClient    = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const GITHUB_API        = 'https://api.github.com';
+
+    let GITHUB_TOKEN   = null;
+    let ghUsername     = null;
+    let allPersonNames = [];
+    let selectedRepo   = null;
+    let fileQueue      = [];
+    let rowCount       = 0;
+
+    // ─── HELPERS ───────────────────────────────────────────────────────────────
+    function getPersonName(){
+        return document.getElementById('personName').value.trim();
+    }
+
+    // ─── GITHUB TOKEN ──────────────────────────────────────────────────────────
+    async function loadGithubToken() {
+        const badge = document.getElementById('tokenStatusBadge');
+        try {
+            const { data, error } = await supabaseClient
+                .from('app_config').select('value').eq('key', 'github_token').single();
+            if (error || !data) throw new Error('Token tidak ditemukan');
+            GITHUB_TOKEN = data.value;
+            badge.className = 'token-badge ok';
+            badge.innerHTML = '<i class="fa-solid fa-circle-check" style="font-size:11px;"></i><span>Token GitHub siap</span>';
+        } catch (err) {
+            GITHUB_TOKEN = null;
+            badge.className = 'token-badge fail';
+            badge.innerHTML = `<i class="fa-solid fa-circle-exclamation" style="font-size:11px;"></i><span>Gagal: ${err.message}</span>`;
+        }
+    }
+    loadGithubToken();
+
+    // ─── PERSON NAMES ──────────────────────────────────────────────────────────
+    async function loadPersonNames() {
+        try {
+            const { data, error } = await supabaseClient.from('links').select('person_name').order('person_name');
+            if (error) throw error;
+            const unique = [...new Set(data.map(i => i.person_name).filter(Boolean))].sort();
+            const { data: files, error: se } = await supabaseClient.storage.from('person-photos').list('', { limit: 500 });
+            const photoMap = {};
+            if (!se && files) {
+                files.forEach(f => {
+                    const slug = f.name.replace(/\.[^.]+$/, '').toLowerCase().trim().replace(/\s+/g, '-');
+                    const { data: u } = supabaseClient.storage.from('person-photos').getPublicUrl(f.name);
+                    photoMap[slug] = u.publicUrl;
                 });
             }
+            allPersonNames = unique.map(name => ({
+                name, photoUrl: photoMap[name.toLowerCase().trim().replace(/\s+/g, '-')] || null
+            }));
+        } catch { allPersonNames = []; }
+    }
 
-            row.querySelector('.del-btn').addEventListener('click', () => {
-                fileQueue.splice(idx, 1);
-                renderAllFileQueueRows();
+    // ─── AUTOCOMPLETE ──────────────────────────────────────────────────────────
+    function setupAC(inputEl, dropdownEl) {
+        let focus = -1;
+        const initials = n => n.trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+        function hlMatch(name, q) {
+            if (!q) return document.createTextNode(name);
+            const i = name.toLowerCase().indexOf(q.toLowerCase());
+            if (i===-1) return document.createTextNode(name);
+            const sp=document.createElement('span');
+            sp.appendChild(document.createTextNode(name.slice(0,i)));
+            const mk=document.createElement('mark'); mk.textContent=name.slice(i,i+q.length); sp.appendChild(mk);
+            sp.appendChild(document.createTextNode(name.slice(i+q.length)));
+            return sp;
+        }
+        function filter(list, q){ return q ? list.filter(it=>((typeof it==='object')?it.name:it).toLowerCase().includes(q.toLowerCase())) : list; }
+        function show(list, q='') {
+            dropdownEl.innerHTML=''; focus=-1;
+            if (!list.length) {
+                const e=document.createElement('div'); e.className='ac-empty';
+                e.innerHTML='<i class="fa-solid fa-magnifying-glass" style="margin-right:4px;"></i>Tidak ditemukan';
+                dropdownEl.appendChild(e); dropdownEl.style.display='block'; return;
+            }
+            const hd=document.createElement('div'); hd.className='ac-hdr';
+            hd.textContent = q ? `${list.length} hasil` : 'Semua nama'; dropdownEl.appendChild(hd);
+            list.forEach(item => {
+                const val=typeof item==='object'?item.name:item;
+                const photo=typeof item==='object'?item.photoUrl:null;
+                const d=document.createElement('div'); d.className='ac-item'; d.dataset.v=val;
+                const av=document.createElement('div'); av.className='ac-avatar';
+                if (photo) { const img=document.createElement('img'); img.src=photo; img.alt=val; img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%'; img.onerror=()=>{av.innerHTML='';av.textContent=initials(val);}; av.appendChild(img); }
+                else { av.textContent=initials(val); }
+                const nm=document.createElement('div'); nm.className='ac-name'; nm.appendChild(hlMatch(val,q));
+                const ht=document.createElement('span'); ht.className='ac-hint'; ht.textContent='Tab ↹';
+                d.appendChild(av); d.appendChild(nm); d.appendChild(ht);
+                d.addEventListener('mousedown', e=>{ e.preventDefault(); inputEl.value=val; dropdownEl.style.display='none'; focus=-1; inputEl.focus(); });
+                dropdownEl.appendChild(d);
             });
-
-            if (item.status === 'done') row.classList.add('done');
-            if (item.status === 'error') row.classList.add('error');
+            dropdownEl.style.display='block';
         }
+        function its(){ return dropdownEl.querySelectorAll('.ac-item'); }
+        function doHL(t){ t.forEach(i=>i.classList.remove('hl')); if(focus>=0&&t[focus]) t[focus].classList.add('hl'); }
 
-        function renderAllFileQueueRows() {
-            fileQueueContainer.innerHTML = '';
-            fileQueue.forEach((_, i) => renderFileQueueRow(i));
-        }
+        inputEl.addEventListener('input', ()=>show(filter(allPersonNames, inputEl.value.trim()), inputEl.value.trim()));
+        inputEl.addEventListener('focus', ()=>{ const q=inputEl.value.trim(); if(allPersonNames.length) show(filter(allPersonNames,q),q); });
+        inputEl.addEventListener('keydown', e=>{
+            const t=its(); const open=dropdownEl.style.display!=='none';
+            if(e.key==='ArrowDown'){ if(!open){show(allPersonNames,'');return;} e.preventDefault(); focus=(focus+1)%t.length; doHL(t); }
+            else if(e.key==='ArrowUp'){ if(!open)return; e.preventDefault(); focus=(focus-1+t.length)%t.length; doHL(t); }
+            else if(e.key==='Enter'){ if(!open)return; e.preventDefault(); const tg=focus>=0?t[focus]:t[0]; if(tg){inputEl.value=tg.dataset.v;dropdownEl.style.display='none';focus=-1;} }
+            else if(e.key==='Tab'){ if(open&&t.length){ e.preventDefault(); const tg=focus>=0?t[focus]:t[0]; inputEl.value=tg.dataset.v; dropdownEl.style.display='none'; focus=-1; } }
+            else if(e.key==='Escape'){ dropdownEl.style.display='none'; focus=-1; }
+        });
+        document.addEventListener('click', e=>{ if(!inputEl.contains(e.target)&&!dropdownEl.contains(e.target)){ dropdownEl.style.display='none'; focus=-1; } });
+    }
 
-        fileQueueInput.addEventListener('change', () => {
-            const files = [...fileQueueInput.files];
-            files.forEach(file => {
-                const previewUrl = URL.createObjectURL(file);
-                const isVideo    = file.type.startsWith('video/');
-                fileQueue.push({
-                    file,
-                    outputName: generateOutputName(),
-                    password:   generateAesKey(),
-                    status:     'pending',
-                    previewUrl,
-                    isVideo
+    // ─── TABS ──────────────────────────────────────────────────────────────────
+    const TAB_TITLES = {
+        1: ['Tambah Tautan', 'Simpan tautan ke Supabase'],
+        2: ['Enkripsi File', 'Enkripsi & upload ke GitHub']
+    };
+    function switchTab(n) {
+        document.getElementById('nav-tab1').classList.toggle('active', n===1);
+        document.getElementById('nav-tab2').classList.toggle('active', n===2);
+        document.getElementById('tab1-content').style.display = n===1 ? '' : 'none';
+        document.getElementById('tab2-content').style.display = n===2 ? '' : 'none';
+        document.getElementById('topbar-title').textContent = TAB_TITLES[n][0];
+        document.getElementById('topbar-sub').textContent   = TAB_TITLES[n][1];
+    }
+
+    // ─── MODAL ─────────────────────────────────────────────────────────────────
+    function showModal(t, m){ document.getElementById('modal-title').textContent=t; document.getElementById('modal-message').textContent=m; document.getElementById('modal-overlay').classList.add('show'); }
+    document.getElementById('modal-close-btn').addEventListener('click', ()=>document.getElementById('modal-overlay').classList.remove('show'));
+
+    // ─── NOTIFICATION ──────────────────────────────────────────────────────────
+    function showNotif(msg, isErr=false) {
+        const n=document.getElementById('notification');
+        n.textContent=msg; n.className='notification show '+(isErr?'error':'success');
+        n.style.opacity=1;
+        setTimeout(()=>{ n.style.opacity=0; setTimeout(()=>{ n.classList.remove('show'); },300); }, 3500);
+    }
+
+    // ─── LINK ROW ──────────────────────────────────────────────────────────────
+    function createLinkRow(p={}) {
+        rowCount++;
+        const row = document.createElement('div');
+        row.className = 'link-row'; row.dataset.rowId = rowCount;
+        if (p.namaFile) row.dataset.namaFile = p.namaFile;
+        const thumbHtml = p.previewUrl
+            ? (p.isVideo ? `<video src="${p.previewUrl}" class="thumb" muted playsinline preload="metadata"></video>` : `<img src="${p.previewUrl}" class="thumb" alt="">`)
+            : `<div class="thumb-empty"><i class="fa-solid fa-link"></i></div>`;
+        const pwStyle = p.password ? `font-family:'DM Mono',monospace;font-size:.68rem;background:#fffbeb;border-color:#fde68a;color:#d97706;cursor:default;` : `color:#9ca3af;cursor:default;`;
+        row.innerHTML = `
+            <div class="cell-name">
+                ${thumbHtml}
+                <input type="text" class="input row-linkname" placeholder="Nama tautan" value="${p.name||''}">
+            </div>
+            <input type="text" class="input row-linkurl"  placeholder="https://…" value="${p.url||''}">
+            <input type="text" class="input row-category" placeholder="Kategori"   value="${p.category||''}">
+            <input type="text" class="input row-password" readonly placeholder="—" value="${p.password||''}" title="${p.password||''}" style="${pwStyle}">
+            <button class="icon-btn del" title="Hapus"><i class="fa-solid fa-xmark"></i></button>
+        `;
+        if (p.previewUrl) { const t=row.querySelector('.thumb'); if(t) t.addEventListener('click',()=>openLB(p.previewUrl,p.isVideo)); }
+        row.querySelector('.del').addEventListener('click', ()=>row.remove());
+        document.getElementById('linkRowsContainer').appendChild(row);
+        return row;
+    }
+
+    document.getElementById('addRowBtn').addEventListener('click', ()=>{
+        const row=createLinkRow(); row.querySelector('.row-linkname').focus();
+        setTimeout(()=>row.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+    });
+
+    document.getElementById('saveAllBtn').addEventListener('click', async ()=>{
+        const personName = getPersonName();
+        if (!personName) { showNotif('Nama orang wajib diisi.', true); return; }
+        const rows=[...document.getElementById('linkRowsContainer').querySelectorAll('.link-row')];
+        const payloads=[];
+        rows.forEach(row=>{
+            const name=row.querySelector('.row-linkname').value.trim();
+            const url=row.querySelector('.row-linkurl').value.trim();
+            const category=row.querySelector('.row-category').value.trim();
+            const password=row.querySelector('.row-password').value.trim();
+            const namaFile=row.dataset.namaFile||'';
+            if(!name||!url) return;
+            const p={person_name:personName,name,url,category};
+            if(password) p.password=password; if(namaFile) p.nama_file=namaFile;
+            payloads.push(p);
+        });
+        if(!payloads.length){ showNotif('Tidak ada baris valid untuk disimpan.', true); return; }
+        const btn=document.getElementById('saveAllBtn');
+        btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan…';
+        const{error}=await supabaseClient.from('links').insert(payloads);
+        btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Simpan Semua';
+        if(error){ showNotif('Gagal: '+error.message, true); }
+        else { showNotif(`${payloads.length} tautan berhasil disimpan!`); document.getElementById('linkRowsContainer').innerHTML=''; rowCount=0; createLinkRow(); await loadPersonNames(); }
+    });
+
+    // ─── GITHUB ────────────────────────────────────────────────────────────────
+    async function ghFetch(path, opts={}) {
+        const res=await fetch(`${GITHUB_API}${path}`,{...opts,headers:{'Authorization':`token ${GITHUB_TOKEN}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json',...(opts.headers||{})}});
+        const data=await res.json(); if(!res.ok) throw new Error(data.message||`GitHub error ${res.status}`); return data;
+    }
+    async function getGhUser(){ if(ghUsername) return ghUsername; const u=await ghFetch('/user'); ghUsername=u.login; return ghUsername; }
+    function getToken(){ if(!GITHUB_TOKEN) throw new Error('Token GitHub belum siap.'); return GITHUB_TOKEN; }
+    function genKey(){ const c='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'; let k=''; for(let i=0;i<100;i++) k+=c[Math.floor(Math.random()*c.length)]; return k; }
+    function genName(){ const c='abcdefghijklmnopqrstuvwxyz0123456789'; let n=''; for(let i=0;i<8;i++) n+=c[Math.floor(Math.random()*c.length)]; return n+'.pb'; }
+    function toB64(s){ return btoa(unescape(encodeURIComponent(s))); }
+    function aesEnc(b64, key){ return CryptoJS.AES.encrypt(b64, key).toString(); }
+    function setProgress(label, pct){ const pc=document.getElementById('progressContainer'); pc.style.display='block'; document.getElementById('progressLabel').textContent=label; document.getElementById('progressPercent').textContent=pct+'%'; document.getElementById('progress-bar').style.width=pct+'%'; }
+    function hideProgress(){ document.getElementById('progressContainer').style.display='none'; document.getElementById('progress-bar').style.width='0%'; }
+
+    document.getElementById('loadReposBtn').addEventListener('click', async ()=>{
+        const btn=document.getElementById('loadReposBtn'); const rl=document.getElementById('repoList');
+        try {
+            getToken(); btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i>';
+            const un=await getGhUser(); const repos=await ghFetch(`/users/${un}/repos?per_page=100&sort=updated`);
+            rl.innerHTML='';
+            repos.forEach(r=>{
+                const d=document.createElement('div'); d.className='repo-item';
+                d.innerHTML=`<i class="fa-brands fa-github"></i>${r.name}`;
+                d.addEventListener('click',()=>{
+                    rl.querySelectorAll('.repo-item').forEach(x=>x.classList.remove('selected')); d.classList.add('selected');
+                    selectedRepo=r.name; const sd=document.getElementById('selectedRepoDisplay'); sd.style.display='block'; document.getElementById('selectedRepoName').textContent=r.name;
                 });
+                rl.appendChild(d);
             });
-            renderAllFileQueueRows();
-            fileQueueInput.value = '';
+            rl.style.display='block';
+        } catch(err){ showModal('Error', err.message); }
+        finally{ btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-rotate"></i> Muat Repo'; }
+    });
+
+    document.getElementById('createRepoBtn').addEventListener('click', async ()=>{
+        const name=document.getElementById('newRepoName').value.trim(); if(!name) return;
+        const btn=document.getElementById('createRepoBtn');
+        try {
+            getToken(); btn.disabled=true;
+            await ghFetch('/user/repos',{method:'POST',body:JSON.stringify({name,private:false,auto_init:true})});
+            selectedRepo=name; document.getElementById('selectedRepoDisplay').style.display='block'; document.getElementById('selectedRepoName').textContent=name;
+            document.getElementById('newRepoName').value=''; showModal('Berhasil',`Repo "${name}" dibuat dan dipilih.`);
+        } catch(err){ showModal('Error', err.message); }
+        finally{ btn.disabled=false; }
+    });
+
+    // ─── FILE QUEUE ────────────────────────────────────────────────────────────
+    function renderFQRow(idx) {
+        const item=fileQueue[idx]; const fc=document.getElementById('fileQueueContainer');
+        let row=fc.querySelector(`.file-queue-row[data-idx="${idx}"]`);
+        if(!row){ row=document.createElement('div'); row.className='file-queue-row'; row.dataset.idx=idx; fc.appendChild(row); }
+        const statusHtml=item.status==='done'?'<span class="status-badge done"><i class="fa-solid fa-check"></i> Selesai</span>':item.status==='error'?'<span class="status-badge error"><i class="fa-solid fa-xmark"></i> Error</span>':item.status==='processing'?'<span class="status-badge proc">⏳</span>':'';
+        const thumbHtml=item.isVideo?`<video src="${item.previewUrl}" class="thumb" muted playsinline preload="metadata"></video>`:`<img src="${item.previewUrl}" class="thumb" alt="">`;
+        row.innerHTML=`
+            <div class="file-info">
+                ${thumbHtml}
+                <div class="file-meta">
+                    <div class="fname" title="${item.file.name}">${item.file.name}</div>
+                    <div class="fsize">${(item.file.size/1024).toFixed(1)} KB</div>
+                    ${statusHtml}
+                </div>
+            </div>
+            <input type="text" class="input" value="${item.outputName}" placeholder="nama-output.pb" ${item.status==='done'?'disabled':''}>
+            <input type="text" class="input mono" value="${item.password}" readonly title="${item.password}" ${item.status==='done'?'disabled':''}>
+            <div class="row-actions">
+                ${item.status!=='done'?`<button class="icon-btn regen" title="Generate ulang"><i class="fa-solid fa-rotate"></i></button>`:''}
+                <button class="icon-btn del" title="Hapus"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        `;
+        const thumb=row.querySelector('.thumb'); if(thumb) thumb.addEventListener('click',()=>openLB(item.previewUrl,item.isVideo));
+        row.querySelectorAll('input')[0].addEventListener('input',e=>{ fileQueue[idx].outputName=e.target.value; });
+        const regen=row.querySelector('.regen'); if(regen) regen.addEventListener('click',()=>{ fileQueue[idx].password=genKey(); renderFQRow(idx); });
+        row.querySelector('.del').addEventListener('click',()=>{ fileQueue.splice(idx,1); renderAllFQ(); });
+        if(item.status==='done') row.classList.add('done');
+        if(item.status==='error') row.classList.add('error');
+    }
+    function renderAllFQ(){ document.getElementById('fileQueueContainer').innerHTML=''; fileQueue.forEach((_,i)=>renderFQRow(i)); }
+
+    document.getElementById('fileQueueInput').addEventListener('change', ()=>{
+        [...document.getElementById('fileQueueInput').files].forEach(f=>{
+            fileQueue.push({file:f,outputName:genName(),password:genKey(),status:'pending',previewUrl:URL.createObjectURL(f),isVideo:f.type.startsWith('video/')});
         });
+        renderAllFQ(); document.getElementById('fileQueueInput').value='';
+    });
 
-        // ─── LOAD & SELECT REPOS ──────────────────────────────────────────────────
-        loadReposBtn.addEventListener('click', async () => {
-            try {
-                getToken();
-                loadReposBtn.disabled = true;
-                loadReposBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>';
-                const username = await getGhUser();
-                const repos    = await ghFetch(`/users/${username}/repos?per_page=100&sort=updated`);
-                repoList.innerHTML = '';
-                repos.forEach(r => {
-                    const div = document.createElement('div');
-                    div.className = 'repo-item px-3 py-2 text-sm flex items-center gap-2';
-                    div.innerHTML = `<i class="fab fa-github text-gray-400"></i>${r.name}`;
-                    div.addEventListener('click', () => {
-                        repoList.querySelectorAll('.repo-item').forEach(x => x.classList.remove('selected'));
-                        div.classList.add('selected');
-                        selectedRepo = r.name;
-                        selectedRepoDisplay.classList.remove('hidden');
-                        selectedRepoNameEl.textContent = r.name;
-                    });
-                    repoList.appendChild(div);
-                });
-                repoList.classList.remove('hidden');
-            } catch (err) {
-                showModal('Error', err.message);
-            } finally {
-                loadReposBtn.disabled = false;
-                loadReposBtn.innerHTML = '<i class="fas fa-sync-alt mr-1"></i> Muat Repo';
-            }
-        });
-
-        createRepoBtn.addEventListener('click', async () => {
-            const name = newRepoName.value.trim();
-            if (!name) return;
-            try {
-                getToken();
-                createRepoBtn.disabled = true;
-                await ghFetch('/user/repos', {
-                    method: 'POST',
-                    body: JSON.stringify({ name, private: false, auto_init: true })
-                });
-                selectedRepo = name;
-                selectedRepoDisplay.classList.remove('hidden');
-                selectedRepoNameEl.textContent = name;
-                newRepoName.value = '';
-                showModal('Berhasil', `Repo "${name}" berhasil dibuat dan dipilih.`);
-            } catch (err) {
-                showModal('Error', err.message);
-            } finally {
-                createRepoBtn.disabled = false;
-            }
-        });
-
-        // ─── ENKRIPSI SEMUA FILE ──────────────────────────────────────────────────
-        encryptBtn.addEventListener('click', async () => {
-            if (fileQueue.length === 0) { showModal('Info', 'Tambahkan file terlebih dahulu.'); return; }
-            if (!selectedRepo)          { showModal('Info', 'Pilih atau buat repo GitHub terlebih dahulu.'); return; }
-
-            try {
-                getToken();
-            } catch(e) { showModal('Error', e.message); return; }
-
-            const username  = await getGhUser();
-            const pending   = fileQueue.filter(f => f.status !== 'done');
-            let doneCount   = 0;
-
-            encryptBtn.disabled = true;
-            encryptBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
-
-            for (let i = 0; i < fileQueue.length; i++) {
-                const item = fileQueue[i];
-                if (item.status === 'done') continue;
-
-                item.status = 'processing';
-                renderAllFileQueueRows();
-                setProgress(`[${i+1}/${fileQueue.length}] Membaca ${item.file.name}...`, Math.round((i / fileQueue.length) * 100));
-
-                try {
-                    // Baca file → Base64
-                    const base64 = await new Promise((res, rej) => {
-                        const reader = new FileReader();
-                        reader.onload  = e => res(e.target.result.split(',')[1]);
-                        reader.onerror = () => rej(new Error('Gagal membaca file'));
-                        reader.readAsDataURL(item.file);
-                    });
-
-                    setProgress(`[${i+1}/${fileQueue.length}] Mengenkripsi ${item.file.name}...`, Math.round(((i + 0.4) / fileQueue.length) * 100));
-
-                    // Enkripsi AES
-                    const encrypted = aesEncrypt(base64, item.password);
-
-                    setProgress(`[${i+1}/${fileQueue.length}] Upload ${item.outputName}...`, Math.round(((i + 0.7) / fileQueue.length) * 100));
-
-                    // Cek apakah file sudah ada (perlu SHA untuk update)
-                    let sha = null;
-                    try {
-                        const existing = await ghFetch(`/repos/${username}/${selectedRepo}/contents/${item.outputName}`);
-                        sha = existing.sha;
-                    } catch {}
-
-                    const body = { message: `Enkripsi: ${item.outputName}`, content: toGitHubBase64(encrypted) };
-                    if (sha) body.sha = sha;
-
-                    const uploaded = await ghFetch(`/repos/${username}/${selectedRepo}/contents/${item.outputName}`, {
-                        method: 'PUT',
-                        body: JSON.stringify(body)
-                    });
-
-                    const rawUrl = `https://raw.githubusercontent.com/${username}/${selectedRepo}/main/${item.outputName}`;
-
-                    // Simpan ke Supabase (password & nama file)
-                    await supabaseClient.from('encryption_keys').insert([{
-                        file_name: item.outputName,
-                        password:  item.password,
-                        raw_url:   rawUrl
-                    }]).then(() => {});
-
-                    // Tambah baris ke Tab 1 otomatis
-                    switchTab(1);
-                    createLinkRow({
-                        url:        rawUrl,
-                        name:       item.outputName.replace('.pb', ''),
-                        password:   item.password,
-                        namaFile:   item.outputName,
-                        previewUrl: item.previewUrl,
-                        isVideo:    item.isVideo
-                    });
-
-                    item.status = 'done';
-                    doneCount++;
-
-                } catch (err) {
-                    console.error(err);
-                    item.status = 'error';
-                }
-
-                renderAllFileQueueRows();
-            }
-
-            hideProgress();
-            encryptBtn.disabled = false;
-            encryptBtn.innerHTML = '<i class="fas fa-lock mr-2"></i> Enkripsi & Upload Semua ke GitHub';
-
-            if (doneCount > 0) {
-                showModal('Selesai', `${doneCount} file berhasil dienkripsi & diupload.\n\nBaris sudah ditambahkan otomatis di Tab 1. Isi Nama Orang lalu klik Simpan Semua.`);
-            }
-        });
-
-        // ─── LIGHTBOX ─────────────────────────────────────────────────────────────
-        const lightbox      = document.getElementById('lightbox');
-        const lightboxInner = document.getElementById('lightbox-inner');
-        const lightboxClose = document.getElementById('lightbox-close');
-
-        function openLightbox(src, isVideo) {
-            // Hapus konten lama
-            const old = lightboxInner.querySelector('img, video');
-            if (old) old.remove();
-
-            let el;
-            if (isVideo) {
-                el = document.createElement('video');
-                el.src = src;
-                el.controls = true;
-                el.autoplay = true;
-                el.style.maxWidth  = '92vw';
-                el.style.maxHeight = '84vh';
-            } else {
-                el = document.createElement('img');
-                el.src = src;
-                el.alt = 'Preview';
-            }
-            lightboxInner.appendChild(el);
-            lightbox.classList.add('open');
-            document.body.style.overflow = 'hidden';
+    document.getElementById('encryptBtn').addEventListener('click', async ()=>{
+        if(!fileQueue.length){ showModal('Info','Tambahkan file terlebih dahulu.'); return; }
+        if(!selectedRepo){ showModal('Info','Pilih atau buat repo GitHub terlebih dahulu.'); return; }
+        try{ getToken(); } catch(e){ showModal('Error',e.message); return; }
+        const un=await getGhUser(); let doneCount=0;
+        const btn=document.getElementById('encryptBtn');
+        btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Memproses…';
+        for(let i=0;i<fileQueue.length;i++){
+            const item=fileQueue[i]; if(item.status==='done') continue;
+            item.status='processing'; renderAllFQ();
+            setProgress(`[${i+1}/${fileQueue.length}] Membaca ${item.file.name}…`, Math.round((i/fileQueue.length)*100));
+            try{
+                const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=()=>rej(new Error('Gagal membaca'));r.readAsDataURL(item.file);});
+                setProgress(`[${i+1}/${fileQueue.length}] Mengenkripsi…`, Math.round(((i+.4)/fileQueue.length)*100));
+                const enc=aesEnc(b64,item.password);
+                setProgress(`[${i+1}/${fileQueue.length}] Upload ${item.outputName}…`, Math.round(((i+.7)/fileQueue.length)*100));
+                let sha=null; try{const ex=await ghFetch(`/repos/${un}/${selectedRepo}/contents/${item.outputName}`);sha=ex.sha;}catch{}
+                const body={message:`Enkripsi: ${item.outputName}`,content:toB64(enc)}; if(sha) body.sha=sha;
+                await ghFetch(`/repos/${un}/${selectedRepo}/contents/${item.outputName}`,{method:'PUT',body:JSON.stringify(body)});
+                const rawUrl=`https://raw.githubusercontent.com/${un}/${selectedRepo}/main/${item.outputName}`;
+                await supabaseClient.from('encryption_keys').insert([{file_name:item.outputName,password:item.password,raw_url:rawUrl}]);
+                switchTab(1);
+                createLinkRow({url:rawUrl,name:item.outputName.replace('.pb',''),password:item.password,namaFile:item.outputName,previewUrl:item.previewUrl,isVideo:item.isVideo});
+                item.status='done'; doneCount++;
+            }catch(err){ console.error(err); item.status='error'; }
+            renderAllFQ();
         }
+        hideProgress(); btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-lock"></i> Enkripsi &amp; Upload ke GitHub';
+        if(doneCount>0) showModal('Selesai',`${doneCount} file berhasil dienkripsi & diupload.\n\nBaris sudah ditambahkan di Tab 1. Isi Nama Orang lalu Simpan Semua.`);
+    });
 
-        function closeLightbox() {
-            lightbox.classList.remove('open');
-            document.body.style.overflow = '';
-            const v = lightboxInner.querySelector('video');
-            if (v) v.pause();
-            const old = lightboxInner.querySelector('img, video');
-            if (old) old.remove();
-        }
+    // ─── LIGHTBOX ──────────────────────────────────────────────────────────────
+    function openLB(src, isVideo){
+        const lb=document.getElementById('lightbox'); const inner=document.getElementById('lb-inner');
+        const old=inner.querySelector('img,video'); if(old) old.remove();
+        const el=isVideo?document.createElement('video'):document.createElement('img');
+        el.src=src; if(isVideo){el.controls=true;el.autoplay=true;el.style.cssText='max-width:92vw;max-height:84vh;';}else{el.alt='Preview';}
+        inner.appendChild(el); lb.classList.add('open'); document.body.style.overflow='hidden';
+    }
+    function closeLB(){
+        const lb=document.getElementById('lightbox'); lb.classList.remove('open'); document.body.style.overflow='';
+        const v=document.getElementById('lb-inner').querySelector('video'); if(v) v.pause();
+        const old=document.getElementById('lb-inner').querySelector('img,video'); if(old) old.remove();
+    }
+    document.getElementById('lb-close').addEventListener('click',closeLB);
+    document.getElementById('lightbox').addEventListener('click',e=>{if(e.target===document.getElementById('lightbox'))closeLB();});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLB();});
 
-        lightboxClose.addEventListener('click', closeLightbox);
-        lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
-
-        // ─── INIT ───────────────────────────────────────────────────────────────
-        window.addEventListener('load', async () => {
-            await loadPersonNames();
-            setupAutocomplete();
-
-        });
-    </script>
+    // ─── INIT ──────────────────────────────────────────────────────────────────
+    window.addEventListener('load', async ()=>{
+        await loadPersonNames();
+        setupAC(document.getElementById('personName'), document.getElementById('autocompleteDropdown'));
+        createLinkRow();
+    });
+</script>
 </body>
 </html>
