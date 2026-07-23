@@ -1465,7 +1465,7 @@
       </div>
       <div class="crop-zoom">
         <label><i class="fa-solid fa-magnifying-glass-minus"></i></label>
-        <input type="range" id="cropZoom" min="1" max="3" step="0.05" value="1" />
+        <input type="range" id="cropZoom" min="0.3" max="3" step="0.05" value="1" />
         <label><i class="fa-solid fa-magnifying-glass-plus"></i></label>
       </div>
       <div class="crop-actions">
@@ -1819,8 +1819,8 @@
                 cropState.naturalW=cropImg.naturalWidth;
                 cropState.naturalH=cropImg.naturalHeight;
                 cropZoom.value=1;
-                initCrop();
                 cropOverlay.classList.add('show');
+                requestAnimationFrame(()=>requestAnimationFrame(initCrop));
             };
         };
         reader.readAsDataURL(file);
@@ -1897,31 +1897,29 @@
     document.addEventListener('touchend',()=>{cropState.dragging=false;});
 
     function clampImg(){
-        // Image must cover the crop frame
-        const fX=cropState.frameX, fY=cropState.frameY, fS=cropState.frameSize;
-        if(cropState.imgX>fX) cropState.imgX=fX;
-        if(cropState.imgY>fY) cropState.imgY=fY;
-        if(cropState.imgX+cropState.imgW<fX+fS) cropState.imgX=fX+fS-cropState.imgW;
-        if(cropState.imgY+cropState.imgH<fY+fS) cropState.imgY=fY+fS-cropState.imgH;
+        const cW=cropState.containerW, cH=cropState.containerH;
+        if(cropState.imgX>cW) cropState.imgX=cW;
+        if(cropState.imgY>cH) cropState.imgY=cH;
+        if(cropState.imgX+cropState.imgW<0) cropState.imgX=-cropState.imgW;
+        if(cropState.imgY+cropState.imgH<0) cropState.imgY=-cropState.imgH;
     }
 
     cropCancelBtn.addEventListener('click',()=>cropOverlay.classList.remove('show'));
 
     cropConfirmBtn.addEventListener('click',()=>{
-        // Render crop to canvas
-        const outputSize=400;
-        const canvas=document.createElement('canvas');
-        canvas.width=outputSize; canvas.height=outputSize;
-        const ctx=canvas.getContext('2d');
-        // Clip circle
-        ctx.beginPath(); ctx.arc(outputSize/2,outputSize/2,outputSize/2,0,Math.PI*2);
-        ctx.clip();
-        // Calculate src rect
         const fX=cropState.frameX, fY=cropState.frameY, fS=cropState.frameSize;
         const srcX=(fX-cropState.imgX)/cropState.scale;
         const srcY=(fY-cropState.imgY)/cropState.scale;
         const srcW=fS/cropState.scale;
         const srcH=fS/cropState.scale;
+        const outputSize=Math.max(300,Math.min(800,Math.round(srcW)));
+        const canvas=document.createElement('canvas');
+        canvas.width=outputSize; canvas.height=outputSize;
+        const ctx=canvas.getContext('2d');
+        ctx.fillStyle='#ffffff';
+        ctx.fillRect(0,0,outputSize,outputSize);
+        ctx.beginPath(); ctx.arc(outputSize/2,outputSize/2,outputSize/2,0,Math.PI*2);
+        ctx.clip();
         ctx.drawImage(cropImg,srcX,srcY,srcW,srcH,0,0,outputSize,outputSize);
         canvas.toBlob((blob)=>{
             psCroppedBlob=blob;
