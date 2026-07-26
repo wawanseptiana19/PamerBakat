@@ -148,6 +148,58 @@ header p{color:var(--muted);margin:0;font-size:14px}
   min-width:260px;
 }
 .modal-box p{margin:0 0 16px;font-size:15px}
+.viewer-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.92);
+  z-index:998;
+  justify-content:center;
+  align-items:center;
+  padding:40px;
+}
+.viewer-overlay img,.viewer-overlay video{
+  max-width:calc(100vw - 80px);
+  max-height:calc(100vh - 80px);
+  width:auto;
+  height:auto;
+  object-fit:contain;
+  border-radius:8px;
+  display:block;
+}
+.viewer-close{
+  position:fixed;
+  top:16px;
+  right:20px;
+  z-index:999;
+  background:rgba(255,255,255,0.1);
+  color:#fff;
+  border:none;
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  font-size:20px;
+  cursor:pointer;
+  display:none;
+}
+.toolbar{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-top:16px;
+}
+#archiveToggle{
+  background:transparent;
+  color:var(--accent);
+  border:1px solid var(--accent);
+  padding:8px 18px;
+  border-radius:8px;
+  font-weight:600;
+  cursor:pointer;
+}
+#archiveToggle:hover{background:var(--accent);color:#14161f}
+.arch-btn{color:var(--muted);border:1px solid var(--muted)}
+.arch-btn:hover{background:var(--muted);color:#14161f}
 .modal-box button{
   background:var(--accent);
   color:#14161f;
@@ -172,10 +224,19 @@ header p{color:var(--muted);margin:0;font-size:14px}
   </div>
   <p id="status"></p>
 
+  <div class="toolbar">
+    <button id="archiveToggle" onclick="toggleArchiveView()">Lihat Arsip</button>
+  </div>
+
   <div class="gallery" id="gallery">
     <div class="empty" id="emptyMsg">Belum ada media yang diupload</div>
   </div>
 </div>
+
+<div class="viewer-overlay" id="viewerOverlay">
+  <div id="viewerContent"></div>
+</div>
+<button class="viewer-close" id="viewerCloseBtn" onclick="closeViewer()">✕</button>
 
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-box">
@@ -190,6 +251,31 @@ const SUPABASE_URL = "https://qzdvdfebkzlwkhvxwsju.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZHZkZmVia3psd2todnh3c2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyMTA4OTksImV4cCI6MjA1Mjc4Njg5OX0.Z9XKmX49vu0kZwn6YMom8QeLNNdKQMXCIkxcIoHKQFs";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const BUCKET = "media";
+const ARCHIVE_FOLDER = "archived";
+let currentFolder = "";
+
+function openViewer(url, kind) {
+  const overlay = document.getElementById("viewerOverlay");
+  const content = document.getElementById("viewerContent");
+  content.innerHTML = kind === "video"
+    ? `<video src="${url}" controls autoplay></video>`
+    : `<img src="${url}">`;
+  overlay.style.display = "flex";
+  document.getElementById("viewerCloseBtn").style.display = "flex";
+}
+function closeViewer() {
+  document.getElementById("viewerOverlay").style.display = "none";
+  document.getElementById("viewerCloseBtn").style.display = "none";
+  document.getElementById("viewerContent").innerHTML = "";
+}
+
+function toggleArchiveView() {
+  currentFolder = currentFolder === "" ? ARCHIVE_FOLDER : "";
+  document.getElementById("archiveToggle").textContent = currentFolder === "" ? "Lihat Arsip" : "Lihat Aktif";
+  document.querySelector(".upload-box").style.display = currentFolder === "" ? "flex" : "none";
+  document.getElementById("gallery").innerHTML = '<div class="empty" id="emptyMsg">Belum ada media</div>';
+  loadGallery();
+}
 
 function showModal(message) {
   document.getElementById("modalMessage").textContent = message;
@@ -232,8 +318,11 @@ function renderCard(path, url, kind) {
   card.dataset.path = path;
   if (kind === "video") {
     card.innerHTML = `<video src="${url}" controls></video>`;
+    card.querySelector("video").addEventListener("click", e => { e.stopPropagation(); openViewer(url, "video"); });
   } else if (kind === "image") {
     card.innerHTML = `<img src="${url}">`;
+    card.querySelector("img").addEventListener("click", () => openViewer(url, "image"));
+    card.querySelector("img").style.cursor = "pointer";
   } else {
     card.innerHTML = `<div class="file-tile"><span class="icon">📄</span><span class="name">${originalName(path)}</span></div>`;
   }
@@ -245,27 +334,68 @@ function renderCard(path, url, kind) {
   dl.className = "dl-btn";
   dl.textContent = "⭳";
   dl.onclick = () => downloadFile(path);
+  actions.appendChild(dl);
+
+  const arch = document.createElement("button");
+  arch.className = "arch-btn";
+  if (currentFolder === ARCHIVE_FOLDER) {
+    arch.textContent = "↩";
+    arch.onclick = () => unarchiveFile(path, card);
+  } else {
+    arch.textContent = "📦";
+    arch.onclick = () => archiveFile(path, card);
+  }
+  actions.appendChild(arch);
 
   const del = document.createElement("button");
   del.className = "del-btn";
   del.textContent = "✕";
   del.onclick = () => deleteFile(path, card);
-
-  actions.appendChild(dl);
   actions.appendChild(del);
+
   card.appendChild(actions);
   document.getElementById("gallery").appendChild(card);
   document.getElementById("emptyMsg").style.display = "none";
 }
 
 async function loadGallery() {
-  const { data, error } = await sb.storage.from(BUCKET).list("", { sortBy: { column: "created_at", order: "desc" } });
+  const { data, error } = await sb.storage.from(BUCKET).list(currentFolder, { sortBy: { column: "created_at", order: "desc" } });
   if (error || !data || data.length === 0) return;
   document.getElementById("emptyMsg").style.display = "none";
   data.forEach(item => {
-    const { data: urlData } = sb.storage.from(BUCKET).getPublicUrl(item.name);
-    renderCard(item.name, urlData.publicUrl, fileKind(item.name));
+    if (!item.id) return;
+    const fullPath = currentFolder ? `${currentFolder}/${item.name}` : item.name;
+    const { data: urlData } = sb.storage.from(BUCKET).getPublicUrl(fullPath);
+    renderCard(fullPath, urlData.publicUrl, fileKind(item.name));
   });
+}
+
+async function archiveFile(path, card) {
+  const newPath = `${ARCHIVE_FOLDER}/${path}`;
+  const { error } = await sb.storage.from(BUCKET).move(path, newPath);
+  if (error) {
+    showModal("Gagal mengarsip: " + error.message);
+    return;
+  }
+  card.remove();
+  if (document.getElementById("gallery").children.length === 1) {
+    document.getElementById("emptyMsg").style.display = "block";
+  }
+  showModal("Media diarsipkan");
+}
+
+async function unarchiveFile(path, card) {
+  const newPath = path.replace(`${ARCHIVE_FOLDER}/`, "");
+  const { error } = await sb.storage.from(BUCKET).move(path, newPath);
+  if (error) {
+    showModal("Gagal mengembalikan: " + error.message);
+    return;
+  }
+  card.remove();
+  if (document.getElementById("gallery").children.length === 1) {
+    document.getElementById("emptyMsg").style.display = "block";
+  }
+  showModal("Media dikembalikan dari arsip");
 }
 
 async function uploadFile() {
